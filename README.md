@@ -1,95 +1,91 @@
-![Azure Functions Logo](https://raw.githubusercontent.com/Azure/azure-functions-cli/refs/heads/main/eng/res/functions.png)
+# Azure Functions Language Worker Protobuf
 
-|Branch|Status|
-|---|---|
-|main|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/.NET%20Worker/.NET%20Worker?branchName=main)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=main)|
-|release/1.x|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/.NET%20Worker/.NET%20Worker?branchName=release%2F1.x)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=release%2F1.x)|
+This repository contains the protobuf definition file which defines the gRPC service which is used between the [Azure Functions Host](https://github.com/Azure/azure-functions-host) and the Azure Functions language workers. This repo is shared across many repos in many languages (for each worker) by using git commands.
 
+To use this repo in Azure Functions language workers, follow steps below to add this repo as a subtree (*Adding This Repo*). If this repo is already embedded in a language worker repo, follow the steps to update the consumed file (*Pulling Updates*).
 
-# Azure Functions .NET Worker
+Learn more about Azure Function's projects on the [meta](https://github.com/azure/azure-functions) repo.
 
-Welcome to the Azure Functions .NET Worker Repository. Introduced in 2020, Azure Functions' **Isolated Worker Model** moves function execution into a separate language worker process. Isolating function execution from the Azure Functions runtime allows you to have full control over your application's dependencies and easily incorporate advanced .NET features such as middleware and dependency injection.
+## Adding This Repo
 
-A .NET Isolated worker process function works differently from a .NET in-process function. For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](samples/FunctionApp/Program.cs) that starts the worker.
+From within the Azure Functions language worker repo:
+1.	Define remote branch for cleaner git commands
+    -	`git remote add proto-file https://github.com/azure/azure-functions-language-worker-protobuf.git`
+    -	`git fetch proto-file`
+2.	Index contents of azure-functions-worker-protobuf to language worker repo
+    -	`git read-tree  --prefix=<path in language worker repo> -u proto-file/<version branch>`
+3.	Add new path in language worker repo to .gitignore file
+    -   In .gitignore, add path in language worker repo
+4.	Finalize with commit
+    -	`git commit -m "Added subtree from https://github.com/azure/azure-functions-language-worker-protobuf. Branch: <version branch>. Commit: <latest protobuf commit hash>"`
+    -	`git push`
 
-## Binding Model
+## Pulling Updates
 
-.NET Isolated introduces a new binding model, slightly different from the binding model exposed in .NET in-process Azure Functions. More information can be [found here](https://github.com/Azure/azure-functions-dotnet-worker/wiki/.NET-Worker-bindings). Please review our samples for usage information.
+From within the Azure Functions language worker repo:
+1.	Define remote branch for cleaner git commands
+    -	`git remote add proto-file https://github.com/azure/azure-functions-language-worker-protobuf.git`
+    -	`git fetch proto-file`
+2.	Pull a specific release tag
+    -   `git fetch proto-file refs/tags/<tag-name>`
+        -   Example: `git fetch proto-file refs/tags/v1.1.0-protofile`
+3.	Merge updates
+    -   Merge with an explicit path to subtree: `git merge -X subtree=<path in language worker repo> --squash <tag-name> --allow-unrelated-histories --strategy-option theirs`
+        -   Example: `git merge -X subtree=src/WebJobs.Script.Grpc/azure-functions-language-worker-protobuf --squash v1.1.0-protofile --allow-unrelated-histories --strategy-option theirs`
+4.	Finalize with commit
+    -	`git commit -m "Updated subtree from https://github.com/azure/azure-functions-language-worker-protobuf. Tag: <tag-name>. Commit: <commit hash>"`
+    -	`git push`
 
-## Middleware
+## Consuming FunctionRPC.proto
+*Note: Update versionNumber before running following commands*
 
-The Azure Functions .NET Isolated supports middleware registration, following a model similar to what exists in ASP.NET and giving you the ability to inject logic into the invocation pipeline, pre and post function executions.
+## CSharp
+```
+set NUGET_PATH="%UserProfile%\.nuget\packages"
+set GRPC_TOOLS_PATH=%NUGET_PATH%\grpc.tools\<versionNumber>\tools\windows_x86
+set PROTO_PATH=.\azure-functions-language-worker-protobuf\src\proto
+set PROTO=.\azure-functions-language-worker-protobuf\src\proto\FunctionRpc.proto
+set PROTOBUF_TOOLS=%NUGET_PATH%\google.protobuf.tools\<versionNumber>\tools
+set MSGDIR=.\Messages
 
-## Samples
+if exist %MSGDIR% rmdir /s /q %MSGDIR%
+mkdir %MSGDIR%
 
-You can find samples on how to use different features of the .NET Worker under `samples` ([link](https://github.com/Azure/azure-functions-dotnet-worker/tree/main/samples)).
+set OUTDIR=%MSGDIR%\DotNet
+mkdir %OUTDIR%
+%GRPC_TOOLS_PATH%\protoc.exe %PROTO% --csharp_out %OUTDIR% --grpc_out=%OUTDIR% --plugin=protoc-gen-grpc=%GRPC_TOOLS_PATH%\grpc_csharp_plugin.exe --proto_path=%PROTO_PATH% --proto_path=%PROTOBUF_TOOLS%
+```
+## JavaScript
+In package.json, add to the build script the following commands to build .js files and to build .ts files. Use and install npm package `protobufjs`.
 
-## Create and run .NET Isolated Worker functions
+Generate JavaScript files:
+```
+pbjs -t json-module -w commonjs -o azure-functions-language-worker-protobuf/src/rpc.js azure-functions-language-worker-protobuf/src/proto/FunctionRpc.proto
+```
+Generate TypeScript files:
+```
+pbjs -t static-module azure-functions-language-worker-protobuf/src/proto/FunctionRpc.proto -o azure-functions-language-worker-protobuf/src/rpc_static.js && pbts -o azure-functions-language-worker-protobuf/src/rpc.d.ts azure-functions-language-worker-protobuf/src/rpc_static.js
+```
 
-Please see our [Guide for running C# Azure Functions in an isolated worker process](https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide) for information on how to develop, debug and deploy using the Isolated Worker model.
+## Java
+Maven plugin : [protobuf-maven-plugin](https://www.xolstice.org/protobuf-maven-plugin/)
+In pom.xml add following under configuration for this plugin
+<protoSourceRoot>${basedir}/<path to this repo>/azure-functions-language-worker-protobuf/src/proto</protoSourceRoot>
 
-## Running E2E Tests
+## Python
+```
+python -m pip install -e .[dev] -U
+python setup.py build
+```
 
-### Requirements
-
-- [Powershell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.2)
-- [CosmosDb Emulator](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator?tabs=ssl-netstd21)
-- Azurite (the set up script will download this automatically)
-
-### Instructions
-
-1. Run `setup-e2e-tests.ps1`. Once the build succeeds and the emulators are started correctly, you are done with the setup.
-1. Run `run-e2e-tests.ps1` to run the tests or use the Test Explorer in VS.
-
-**Note:** Do **not** add the switch to skip the core-tools download when running `set-up-e2e-tests.ps1` as it will lead to an incomplete setup. 
-
-## Deploying to Azure
-
-### Create the Azure resources
-
-1. To deploy the app, first ensure that you've installed the Azure CLI. 
-
-2. Login to the CLI.
-
-    ```bash
-    az login
-    ```
-
-3. If necessary, use `az account set` to select the subscription you want to use.
-  
-4. Create a resource group, Storage account, and Azure Functions app. If you would like to use an existing Windows .NET Core 3 function app, please skip this step.
-
-    ```bash
-    az group create --name AzureFunctionsQuickstart-rg --location westeurope
-    az storage account create --name <STORAGE_NAME> --location westeurope --resource-group AzureFunctionsQuickstart-rg --sku Standard_LRS
-    az functionapp create --resource-group AzureFunctionsQuickstart-rg --consumption-plan-location westeurope --runtime dotnet-isolated --functions-version 3 --name <APP_NAME> --storage-account <STORAGE_NAME>
-    ```
-
-### Deploy the app
-
-1. Ensure you are in your functions project folder.
-2. Deploy the app.
-
-    ```bash
-    func azure functionapp publish <APP_NAME>
-    ```
-
-## Known issues
-
-* Optimizations are not all in place in the consumption plan and you may experience longer cold starts.
-
-## Feedback
-
-Please create issues in this repo. Thanks!
-
-# Contributing
+## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+the rights to use your contribution. For details, visit https://cla.microsoft.com.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
+When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
 provided by the bot. You will only need to do this once across all repos using our CLA.
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).

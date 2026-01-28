@@ -75,9 +75,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 await _functionExecutionDelegate(context);
 
-                var tags = invokeActivity?.Tags
-                    .GroupBy(kv => kv.Key)
-                    .ToDictionary(g => g.Key, g => g.Last().Value);
+                var tags = invokeActivity?.Tags;
 
                 if (tags is not null && context.Items is not null)
                 {

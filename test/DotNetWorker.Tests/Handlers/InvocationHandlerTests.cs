@@ -276,12 +276,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 new("customTag1", "value1"),
                 new("customTag2", "value2"),
-                new("customTag1", "value1-latest")
+                new("customTag1", "value3"), // Duplicate key to test handling
             };
 
-            var expectedTags = activityTags
-                .GroupBy(kv => kv.Key)
-                .ToDictionary(g => g.Key, g => g.Last().Value);
+            var expectedTags = new List<KeyValuePair<string, string>>
+            {
+                new("customTag2", "value2"),
+                new("customTag1", "value3"),
+            };
 
             // Set up the application to add tags to the context.Items
             _mockApplication
@@ -292,8 +294,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     ctx.Items ??= new ConcurrentDictionary<object, object>();
 
                     // Simulate tags being set in the Items dictionary
-                    ctx.Items[Worker.Diagnostics.TraceConstants.InternalKeys.FunctionContextItemsKey] =
-                        new Dictionary<string, string>(expectedTags);
+                    ctx.Items[Worker.Diagnostics.TraceConstants.InternalKeys.FunctionContextItemsKey] = activityTags;
                 })
                 .Returns(Task.CompletedTask);
 

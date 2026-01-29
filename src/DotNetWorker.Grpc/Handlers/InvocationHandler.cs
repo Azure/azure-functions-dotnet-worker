@@ -1,12 +1,15 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -112,6 +115,8 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                     response.ReturnValue = returnVal;
                 }
 
+                AddTraceContextTags(response, context);
+
                 response.Result.Status = StatusResult.Types.Status.Success;
             }
             catch (Exception ex) when (!ex.IsFatal())
@@ -162,6 +167,31 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
 
             return false;
+        }
+
+        private void AddTraceContextTags(InvocationResponse response, FunctionContext context)
+        {
+            if (context.Items is null)
+            {
+                return;
+            }
+
+            var tags = context.Items.TryGetValue(TraceConstants.InternalKeys.FunctionContextItemsKey, out var tagsObj)
+                ? tagsObj as IEnumerable<KeyValuePair<string, string>>
+                : null;
+
+            if (tags is not null)
+            {
+                var known = TraceConstants.KnownAttributes.All;
+
+                foreach (var (key, value) in tags)
+                {
+                    if (!known.Contains(key))
+                    {
+                        response.TraceContextAttributes[key] = value;
+                    }
+                }
+            }
         }
     }
 }

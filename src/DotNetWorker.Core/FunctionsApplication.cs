@@ -74,6 +74,13 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 await _functionExecutionDelegate(context);
+
+                var tags = invokeActivity?.Tags;
+
+                if (tags is not null && context.Items is not null)
+                {
+                    context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;
+                }
             }
             catch (Exception ex)
             {

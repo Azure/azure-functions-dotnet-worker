@@ -1,6 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+
 namespace Microsoft.Azure.Functions.Worker.Diagnostics;
 
 internal static class TraceConstants
@@ -40,8 +43,21 @@ internal static class TraceConstants
         public const string SchemaVersion = "https://opentelemetry.io/schemas/1.37.0";
     }
 
+    public static class KnownAttributes
+    {
+        public static ImmutableHashSet<string> All { get; } = ImmutableHashSet.Create<string>(
+            OTelAttributes_1_17_0.InvocationId,
+            OTelAttributes_1_17_0.SchemaUrl,
+            OTelAttributes_1_37_0.InvocationId,
+            OTelAttributes_1_37_0.FunctionName,
+            OTelAttributes_1_37_0.Instance,
+            OTelAttributes_1_37_0.SchemaUrl
+        );
+    }
+
     public static class InternalKeys
     {
+        public const string FunctionContextItemsKey = "AzureFunctions_ActivityTags";
         public const string FunctionInvocationId = "AzureFunctions_InvocationId";
         public const string FunctionName = "AzureFunctions_FunctionName";
         public const string HostInstanceId = "HostInstanceId";

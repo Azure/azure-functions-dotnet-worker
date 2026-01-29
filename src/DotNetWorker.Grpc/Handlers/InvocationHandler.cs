@@ -188,14 +188,6 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 {
                     if (!known.Contains(key))
                     {
-                        // Duplicate tags can exist for an Activity, but the gRPC message type
-                        // Map<string, string>  does not allow for duplicate keys.
-                        // Log and overwrite in this scenario.
-                        if (response.TraceContextAttributes.ContainsKey(key))
-                        {
-                            _logger.LogDebug("Trace context attribute '{key}' already exists on the invocation response. Overwriting value.", key);
-                        }
-
                         response.TraceContextAttributes[key] = value;
                     }
                 }

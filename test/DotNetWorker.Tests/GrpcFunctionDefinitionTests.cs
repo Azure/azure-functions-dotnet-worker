@@ -259,7 +259,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
 
-            var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();
 
             string fullPathToThisAssembly = GetType().Assembly.Location;
@@ -310,6 +309,53 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     Assert.Equal(BindingDirection.Out, p.Value.Direction);
                     Assert.Equal("Http", p.Value.Type);
                 });
+        }
+
+        [Fact]
+        public void GrpcFunctionDefinition_OverloadedMethod_NoFunctionAttribute_ThrowsException()
+        {
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+
+            var methodInfoLocator = new DefaultMethodInfoLocator();
+
+            string fullPathToThisAssembly = GetType().Assembly.Location;
+            var functionLoadRequest = new FunctionLoadRequest
+            {
+                FunctionId = "abc",
+                Metadata = new RpcFunctionMetadata
+                {
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyOverloadedFunctionClassNoAttribute)}.{nameof(MyOverloadedFunctionClassNoAttribute.Run)}",
+                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
+                    Name = "myfunction"
+                }
+            };
+
+            // This should fail because neither overload has [Function] attribute
+            var exception = Assert.Throws<InvalidOperationException>(() => functionLoadRequest.ToFunctionDefinition(methodInfoLocator));
+            Assert.Contains("was not found", exception.Message);
+        }
+
+        [Fact]
+        public void GrpcFunctionDefinition_OverloadedMethod_MultipleFunctionAttributes_ThrowsException()
+        {
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+
+            var methodInfoLocator = new DefaultMethodInfoLocator();
+
+            string fullPathToThisAssembly = GetType().Assembly.Location;
+            var functionLoadRequest = new FunctionLoadRequest
+            {
+                FunctionId = "abc",
+                Metadata = new RpcFunctionMetadata
+                {
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyOverloadedFunctionClassMultipleAttributes)}.{nameof(MyOverloadedFunctionClassMultipleAttributes.Run)}",
+                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
+                    Name = "myfunction"
+                }
+            };
+
+            // This should fail because multiple overloads have [Function] attribute
+            Assert.Throws<InvalidOperationException>(() => functionLoadRequest.ToFunctionDefinition(methodInfoLocator));
         }
 
         private class MyFunctionClass
@@ -366,6 +412,32 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             public HttpResponseData Run(HttpRequestData req)
             {
                 return req.CreateResponse();
+            }
+        }
+
+        private class MyOverloadedFunctionClassNoAttribute
+        {
+            // Overload 1 - no Function attribute
+            public void Run(string message) { }
+
+            // Overload 2 - also no Function attribute
+            public void Run(int count) { }
+        }
+
+        private class MyOverloadedFunctionClassMultipleAttributes
+        {
+            // Overload 1 - has Function attribute
+            [Function("MyFunction1")]
+            public HttpResponseData Run(HttpRequestData req)
+            {
+                return req.CreateResponse();
+            }
+
+            // Overload 2 - also has Function attribute
+            [Function("MyFunction2")]
+            public HttpResponseData Run(string message)
+            {
+                return null;
             }
         }
     }

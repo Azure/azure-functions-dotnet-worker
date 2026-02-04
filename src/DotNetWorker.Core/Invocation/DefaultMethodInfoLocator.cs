@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Runtime.Loader;
 #endif
 using System.Text.RegularExpressions;
-using Microsoft.Azure.Functions.Worker;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
@@ -38,11 +37,11 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             Type? functionType = assembly.GetType(typeName);
 
-            var methods = functionType?.GetMethods().Where(m => m.Name == methodName).ToArray();
+            var methods = functionType?.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly).Where(m => m.Name == methodName).ToArray();
             MethodInfo? methodInfo = methods?.Length switch
             {
                 1 => methods[0],
-                > 1 => methods.FirstOrDefault(m => m.GetCustomAttribute<FunctionAttribute>() is not null),
+                > 1 => methods.SingleOrDefault(m => m.GetCustomAttributes().Any(a => a.GetType().Name == "FunctionAttribute")),
                 _ => null
             };
 

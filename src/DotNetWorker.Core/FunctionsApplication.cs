@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -73,6 +75,13 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
+                if (context.Items.TryGetValue("TraceBaggage", out var value) && value is IEnumerable<KeyValuePair<string, string>> dict)
+                {
+                    foreach (var baggage in dict)
+                    {
+                        invokeActivity?.AddBaggage(baggage.Key, baggage.Value);
+                    }
+                }
                 await _functionExecutionDelegate(context);
             }
             catch (Exception ex)

@@ -437,7 +437,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             [Function("MyFunction2")]
             public HttpResponseData Run(string message)
             {
-                return null;
+                throw new NotImplementedException();
             }
         }
     }

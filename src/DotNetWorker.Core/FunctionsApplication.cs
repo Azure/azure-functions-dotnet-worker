@@ -14,6 +14,7 @@ using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenTelemetry;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -75,13 +76,14 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                if (context.Items.TryGetValue("TraceBaggage", out var value) && value is IEnumerable<KeyValuePair<string, string>> dict)
+                if (context.Items.TryGetValue(TraceConstants.InternalKeys.BaggageKeyName, out var value) && value is IEnumerable<KeyValuePair<string, string>> dict)
                 {
-                    foreach (var baggage in dict)
+                    foreach (var kv in dict)
                     {
-                        invokeActivity?.AddBaggage(baggage.Key, baggage.Value);
+                        Baggage.SetBaggage(kv.Key, kv.Value);
                     }
                 }
+
                 await _functionExecutionDelegate(context);
             }
             catch (Exception ex)

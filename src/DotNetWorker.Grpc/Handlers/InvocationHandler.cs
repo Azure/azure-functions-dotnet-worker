@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -90,7 +91,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
                 if (baggage is not null)
                 {
-                    context.Items["TraceBaggage"] = baggage;
+                    context.Items[TraceConstants.InternalKeys.BaggageKeyName] = baggage;
                 }
 
                 await _application.InvokeFunctionAsync(context);

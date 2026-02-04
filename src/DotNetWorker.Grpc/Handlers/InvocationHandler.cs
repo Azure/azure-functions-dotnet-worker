@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -84,6 +84,13 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 if (_inputConversionFeatureProvider.TryCreate(typeof(DefaultInputConversionFeature), out var conversion))
                 {
                     invocationFeatures.Set<IInputConversionFeature>(conversion!);
+                }
+
+                var baggage = request.TraceContext?.Baggage;
+
+                if (baggage is not null)
+                {
+                    context.Items["TraceBaggage"] = baggage;
                 }
 
                 await _application.InvokeFunctionAsync(context);

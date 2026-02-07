@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Middleware;
-using Microsoft.Azure.Functions.Worker.Diagnostics;
 using OpenTelemetry;
 
 namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
@@ -14,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
     {
         public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
         {
-            if (context.Items.TryGetValue(TraceConstants.InternalKeys.BaggageKeyName, out var value) &&
+            if (context.Items.TryGetValue(TraceConstants.BaggageKeyName, out var value) &&
                 value is IEnumerable<KeyValuePair<string, string>> dict)
             {
                 foreach (var kv in dict)

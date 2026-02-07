@@ -13,16 +13,24 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
     {
         public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
         {
-            if (context.Items.TryGetValue(TraceConstants.BaggageKeyName, out var value) &&
-                value is IEnumerable<KeyValuePair<string, string>> dict)
+            try
             {
-                foreach (var kv in dict)
+                if (context.Items.TryGetValue(TraceConstants.BaggageKeyName, out var value) &&
+                    value is IEnumerable<KeyValuePair<string, string>> dict)
                 {
-                    Baggage.SetBaggage(kv.Key, kv.Value);
+                    foreach (var kv in dict)
+                    {
+                        Baggage.SetBaggage(kv.Key, kv.Value);
+                    }
                 }
+
+                await next(context);
+            }
+            finally
+            {
+                Baggage.ClearBaggage();
             }
 
-            await next(context);
         }
     }
 }

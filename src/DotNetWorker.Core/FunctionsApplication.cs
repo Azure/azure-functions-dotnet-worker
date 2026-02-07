@@ -2,9 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -14,7 +12,6 @@ using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OpenTelemetry;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -76,14 +73,6 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                if (context.Items.TryGetValue(TraceConstants.InternalKeys.BaggageKeyName, out var value) && value is IEnumerable<KeyValuePair<string, string>> dict)
-                {
-                    foreach (var kv in dict)
-                    {
-                        Baggage.SetBaggage(kv.Key, kv.Value);
-                    }
-                }
-
                 await _functionExecutionDelegate(context);
             }
             catch (Exception ex)

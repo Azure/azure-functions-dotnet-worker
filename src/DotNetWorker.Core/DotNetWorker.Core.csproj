@@ -23,7 +23,6 @@
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.44.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
-    <PackageReference Include="OpenTelemetry.Api" Version="1.13.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

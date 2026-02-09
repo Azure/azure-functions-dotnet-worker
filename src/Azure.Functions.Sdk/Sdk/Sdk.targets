@@ -12,7 +12,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <PropertyGroup>
-    <AzureFunctionsSdkTasksDirectory>$(MSBuildThisFileDirectory)../tools/netstandard2.0/</AzureFunctionsSdkTasksDirectory>
+    <AzureFunctionsSdkTasksDirectory Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)../tools/netstandard2.0/</AzureFunctionsSdkTasksDirectory>
+    <AzureFunctionsSdkTasksDirectory Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MSBuildThisFileDirectory)../tools/net472/</AzureFunctionsSdkTasksDirectory>
     <AzureFunctionsSdkTasksAssembly>$(AzureFunctionsSdkTasksDirectory)Azure.Functions.Sdk.dll</AzureFunctionsSdkTasksAssembly>
     <AzureFunctionsTaskNamespace>Azure.Functions.Sdk.Tasks</AzureFunctionsTaskNamespace>
   </PropertyGroup>

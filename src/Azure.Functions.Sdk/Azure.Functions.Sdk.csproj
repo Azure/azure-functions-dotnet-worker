@@ -3,7 +3,7 @@
   <Import Project="$(RepoRoot)build/PackageInfo.props" />
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <NoWarn>$(NoWarn);TA001</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -14,27 +14,29 @@
     <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
     <DevelopmentDependency>true</DevelopmentDependency>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionPrefix>0.2.0</VersionPrefix>
     <VersionSuffix>$(BuildNumber)</VersionSuffix>
     <PolySharpExcludeGeneratedTypes>System.Runtime.CompilerServices.ModuleInitializerAttribute;System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute</PolySharpExcludeGeneratedTypes>
+    <MetadataLoaderExtensionProject>$(RepoRoot)sdk/FunctionMetadataLoaderExtension/FunctionMetadataLoaderExtension.csproj</MetadataLoaderExtensionProject>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)sdk/FunctionMetadataLoaderExtension/FunctionMetadataLoaderExtension.csproj"
-      ReferenceOutputAssembly="false" Pack="true" PackagePath="/tools/extensions" />
+    <ProjectReference Include="$(MetadataLoaderExtensionProject)" Condition="'$(TargetFramework)' == 'netstandard2.0'"
+      ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
     <PackageReference Include="Microsoft.Bcl.TimeProvider" Version="9.0.10" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    <PackageReference Include="NuGet.ProjectModel" Version="6.14.0" />
     <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="22.0.15" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- These packages are provided by MSBuild / dotnet sdk at runtime, we want to reference but NOT include them. -->
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.48" ExcludeAssets="Runtime" />
-    <PackageReference Include="NuGet.ProjectModel" Version="6.14.0" ExcludeAssets="Runtime" />
+    <PackageReference Update="NuGet.ProjectModel" Condition="'$(TargetFramework)' == 'netstandard2.0'" ExcludeAssets="Runtime" />
   </ItemGroup>
 
   <!-- Dev dependencies -->
@@ -48,6 +50,17 @@
     <None Include="Sdk/**" Pack="true" CamelCasePath="true" PackagePath="sdk/" />
     <None Include="Targets/**" Pack="true" CamelCasePath="true" PackagePath="targets/" />
   </ItemGroup>
+
+  <Target Name="_IncludeToolExtensions" BeforeTargets="_GetPackageFiles">
+    <MSBuild Targets="GetTargetPath" Projects="$(MetadataLoaderExtensionProject)">
+      <Output TaskParameter="TargetOutputs" ItemName="MetadataLoaderExtensionAssembly" />
+    </MSBuild>
+
+    <ItemGroup>
+      <None Include="@(MetadataLoaderExtensionAssembly)" Pack="true"
+        PackagePath="tools/netstandard2.0/extensions/%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
 
   <Target Name="_AddPackagePath" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
@@ -74,15 +87,13 @@
   </Target>
 
   <!-- Test project calls this to scaffold out this SDK in its expected structure. -->
-  <Target Name="GetSdkFiles"
-    DependsOnTargets="_AddPackagePath;IncludeReferenceCopyLocalPathsInBuildOutputInPackage;_GetBuildOutputFilesWithTfm;_GetPackageFiles"
-    Returns="@(_SdkFiles)">
+  <Target Name="GetSdkFiles" DependsOnTargets="$(GenerateNuspecDependsOn)" Returns="@(_SdkFiles)">
     <ItemGroup>
       <_SdkFilesTemp Include="@(_PackageFiles)" />
-      <_SdkFilesTemp Include="@(BuildOutputInPackage)" PackagePath="tools/netstandard2.0/%(BuildOutputInPackage.TargetPath)" />
+      <_SdkFilesTemp Include="@(_BuildOutputInPackage)" PackagePath="tools/%(_BuildOutputInPackage.TargetFramework)/%(_BuildOutputInPackage.TargetPath)" />
     </ItemGroup>
 
-    <ConvertToAbsolutePath Paths="@(_SdkFilesTemp->Distinct())">
+    <ConvertToAbsolutePath Paths="@(_SdkFilesTemp)">
       <Output TaskParameter="AbsolutePaths" ItemName="_SdkFiles" />
     </ConvertToAbsolutePath>
   </Target>

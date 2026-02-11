@@ -46,6 +46,7 @@ internal static class TraceConstants
         public const string FunctionName = "AzureFunctions_FunctionName";
         public const string HostInstanceId = "HostInstanceId";
         public const string AzFuncLiveLogsSessionId = "#AzFuncLiveLogsSessionId";
+        public const string BaggageKeyName = "AzureFunctions_TraceContext_Baggage";
     }
 
     public static class CapabilityFlags

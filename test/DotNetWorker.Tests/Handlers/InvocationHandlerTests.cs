@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -14,6 +14,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
+
+using CoreTraceConstants = Microsoft.Azure.Functions.Worker.Diagnostics.TraceConstants;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
@@ -259,6 +261,32 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.True(_context.IsDisposed);
             Assert.Null(_context.RetryContext);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_SetsBaggage_WhenPresentInInvocationRequest()
+        {
+            var invocationId = Guid.NewGuid().ToString();
+            var request = TestUtility.CreateInvocationRequest(invocationId);
+
+            var testKey = "testKey";
+            var testValue = "testValue";
+            request.TraceContext.Baggage[testKey] = testValue;
+
+            // Setup to verify baggage is set in context.Items during invocation
+            _mockApplication
+                .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
+                .Returns(Task.CompletedTask)
+                .Callback<FunctionContext>(ctx =>
+                {
+                    Assert.True(ctx.Items.ContainsKey(CoreTraceConstants.InternalKeys.BaggageKeyName));
+                    var actualBaggage = ctx.Items[CoreTraceConstants.InternalKeys.BaggageKeyName] as System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>>;
+                    Assert.NotNull(actualBaggage);
+                    Assert.Contains(actualBaggage, kv => kv.Key == testKey && kv.Value == testValue);
+                });
+
+            var handler = CreateInvocationHandler();
+            await handler.InvokeAsync(request);
         }
 
         private InvocationHandler CreateInvocationHandler(IFunctionsApplication application = null,

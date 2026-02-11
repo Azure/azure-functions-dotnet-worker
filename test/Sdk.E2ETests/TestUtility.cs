@@ -64,20 +64,13 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
         {
             JToken functionsMetadataContents = JToken.Parse(File.ReadAllText(actualFilePath));
             var assembly = Assembly.GetExecutingAssembly();
-            string resourceName = assembly.GetManifestResourceNames()
-                .Single(str => str.EndsWith(embeddedResourceName));
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    using (var jsonReader = new JsonTextReader(reader))
-                    {
-                        JsonSerializer serializer = new JsonSerializer();
-                        var expected = serializer.Deserialize<JToken>(jsonReader);
-                        Assert.True(JToken.DeepEquals(functionsMetadataContents, expected), $"Actual: {functionsMetadataContents}{Environment.NewLine}Expected: {expected}");
-                    }
-                }
-            }
+            string resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith(embeddedResourceName));
+            using Stream stream = assembly.GetManifestResourceStream(resourceName);
+            using StreamReader reader = new(stream);
+            using JsonTextReader jsonReader = new(reader);
+            JsonSerializer serializer = new();
+            var expected = serializer.Deserialize<JToken>(jsonReader);
+            Assert.True(JToken.DeepEquals(functionsMetadataContents, expected), $"Actual: {functionsMetadataContents}{Environment.NewLine}Expected: {expected}");
         }
 
         public static async Task RestoreAndBuildProjectAsync(string fullPathToProjFile, string outputDir, string additionalParams, ITestOutputHelper outputHelper)

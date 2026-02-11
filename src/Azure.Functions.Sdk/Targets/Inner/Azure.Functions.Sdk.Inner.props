@@ -25,7 +25,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <ItemGroup>
     <!-- Always include extensions bundled with this SDK. -->
-    <Reference Include="$(MSBuildThisFileDirectory)../../tools/extensions/*.dll"
+    <Reference Include="$(MSBuildThisFileDirectory)../../tools/netstandard2.0/extensions/*.dll"
       DestinationSubPath="%(Filename)%(Extension)" AssetType="runtime" />
   </ItemGroup>
 

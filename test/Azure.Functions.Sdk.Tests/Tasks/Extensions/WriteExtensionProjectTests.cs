@@ -149,6 +149,7 @@ public sealed class WriteExtensionProjectTests
         task = CreateTask(packages: [package2]);
 
         // Act
+        Thread.Sleep(100); // Ensure file system timestamps will differ
         bool result = task.Execute();
 
         // Assert

@@ -3,7 +3,6 @@
 
 using System.Collections;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Build.Execution;
 
 namespace Microsoft.Build.Utilities.ProjectCreation;
@@ -35,8 +34,13 @@ internal class TargetOutputs : IReadOnlyDictionary<string, TargetResult>
     public IEnumerator<KeyValuePair<string, TargetResult>> GetEnumerator()
         => _results.GetEnumerator();
 
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out TargetResult value)
+#if NET
+    public bool TryGetValue(string key, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TargetResult value)
         => _results.TryGetValue(key, out value);
+#else
+    public bool TryGetValue(string key, out TargetResult value)
+        => _results.TryGetValue(key, out value);
+#endif
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

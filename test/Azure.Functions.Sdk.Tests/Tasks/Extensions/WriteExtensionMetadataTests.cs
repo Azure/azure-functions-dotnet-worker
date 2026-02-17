@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using Azure.Functions.Sdk.Tests;
 using Microsoft.Build.Framework;
 
-namespace Azure.Functions.Sdk.Tasks.Extensions;
+namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 
 public class WriteExtensionMetadataTests
 {

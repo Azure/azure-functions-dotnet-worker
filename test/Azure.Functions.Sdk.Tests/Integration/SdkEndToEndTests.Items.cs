@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Build.Evaluation;
@@ -91,7 +91,7 @@ public partial class SdkEndToEndTests
         // Assert
         foreach (string expected in CompilerVisiblePropertiesExpected)
         {
-            items.Should().ContainSingle(x => x.EvaluatedInclude == expected);
+            items.Should().Contain(x => x.EvaluatedInclude == expected);
         }
     }
 

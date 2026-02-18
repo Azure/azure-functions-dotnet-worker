@@ -8,7 +8,7 @@ namespace Azure.Functions.Sdk.Resolver;
 public class TestSdkResolver : SdkResolver
 {
     private static readonly string SdkPath = Path.Combine(
-        Path.GetDirectoryName(typeof(TestSdkResolver).Assembly.Location), "sdk");
+        Path.GetDirectoryName(GetAssemblyLocation()), "sdk");
 
     public override string Name => "Test Azure Functions SDK Resolver";
 
@@ -22,5 +22,12 @@ public class TestSdkResolver : SdkResolver
         }
 
         return factory.IndicateFailure([]);
+    }
+
+    private static string GetAssemblyLocation()
+    {
+        // Using codebase and not location due to shadow copying when running netfx tests.
+        Uri uri = new Uri(typeof(TestSdkResolver).Assembly.CodeBase!);
+        return uri.AbsolutePath;
     }
 }

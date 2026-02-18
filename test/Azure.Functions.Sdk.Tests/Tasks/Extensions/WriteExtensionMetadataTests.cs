@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using Azure.Functions.Sdk.Tests;
 using Microsoft.Build.Framework;
 
-namespace Azure.Functions.Sdk.Tasks.Extensions;
+namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 
 public class WriteExtensionMetadataTests
 {
@@ -63,6 +63,7 @@ public class WriteExtensionMetadataTests
         _fileSystem.File.WriteAllText(ExtensionJsonPath, "invalid hash");
         DateTime time = _fileSystem.File.GetLastWriteTimeUtc(ExtensionJsonPath);
 
+        Thread.Sleep(50); // ensure file system timestamp changes
         bool result = task.Execute(); // run again, should regenerate
         result.Should().BeTrue();
         _fileSystem.File.GetLastWriteTimeUtc(ExtensionJsonPath).Should().BeAfter(time);

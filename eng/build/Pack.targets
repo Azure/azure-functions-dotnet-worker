@@ -1,0 +1,28 @@
+<Project>
+
+  <PropertyGroup>
+    <BeforeGetBuildOutputFilesWithTfm Condition="'$(PackageType)' == 'MSBuildSdk'">_PackPreventProjectReferencesFromBuilding;IncludeReferenceCopyLocalPathsInBuildOutputInPackage</BeforeGetBuildOutputFilesWithTfm>
+  </PropertyGroup>
+
+  <Target Name="_BeforeGetBuildOutputFilesWithTfm"
+    BeforeTargets="_GetBuildOutputFilesWithTfm"
+    DependsOnTargets="$(BeforeGetBuildOutputFilesWithTfm)" />
+
+  <Target Name="_PackPreventProjectReferencesFromBuilding">
+    <PropertyGroup>
+      <BuildProjectReferences>false</BuildProjectReferences>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="IncludeReferenceCopyLocalPathsInBuildOutputInPackage"
+          BeforeTargets="_GetBuildOutputFilesWithTfm"
+          DependsOnTargets="ResolveReferences;ResolvePackageDependenciesForBuild">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(RuntimeCopyLocalItems-&gt;WithMetadataValue('AssetType', 'runtime'))"
+                            TargetPath="%(RuntimeCopyLocalItems.DestinationSubDirectory)%(Filename)%(Extension)" />
+      <BuildOutputInPackage Include="@(RuntimeCopyLocalItems-&gt;WithMetadataValue('CopyLocal', 'true'))"
+                            TargetPath="%(RuntimeCopyLocalItems.DestinationSubDirectory)%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

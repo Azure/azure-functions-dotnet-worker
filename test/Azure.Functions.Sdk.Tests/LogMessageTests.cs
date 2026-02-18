@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections;
@@ -26,27 +26,29 @@ public class LogMessageTests
         act.Should().Throw<ArgumentException>().WithParameterName("id");
     }
 
+    // We cannot have NuGet types directly in InlineData (xunit crashes), so use int instead.
+    // Crash is due to msbuild assembly trickery, not xunit issue.
     [Theory]
-    [InlineData("AZFW0100_Error_CannotRunFuncCli", LogLevel.Error, "AZFW0100")]
-    [InlineData("AZFW0102_Warning_ExtensionPackageDuplicate", LogLevel.Warning, "AZFW0102")]
-    [InlineData("Error_SomeError", LogLevel.Error, null)]
-    [InlineData("Warning_SomeWarning", LogLevel.Warning, null)]
-    [InlineData("Info_SomeInfo", LogLevel.Information, null)]
-    [InlineData("Information_SomeInfo", LogLevel.Information, null)]
-    [InlineData("Normal_SomeInfo", LogLevel.Information, null)]
-    [InlineData("Minimal_SomeInfo", LogLevel.Minimal, null)]
-    [InlineData("High_SomeInfo", LogLevel.Minimal, null)]
-    [InlineData("Verbose_SomeInfo", LogLevel.Verbose, null)]
-    [InlineData("Low_SomeInfo", LogLevel.Verbose, null)]
-    [InlineData("Debug_SomeInfo", LogLevel.Debug, null)]
-    [InlineData("UnknownLevel_SomeInfo", LogLevel.Verbose, null)]
-    [InlineData("SomeRandomId", LogLevel.Verbose, null)]
-    public void Ctor_WithStringId_ParsesLevelAndCodeCorrectly(string id, LogLevel expectedLevel, string? expectedCode)
+    [InlineData("AZFW0100_Error_CannotRunFuncCli", (int)LogLevel.Error, "AZFW0100")]
+    [InlineData("AZFW0102_Warning_ExtensionPackageDuplicate", (int)LogLevel.Warning, "AZFW0102")]
+    [InlineData("Error_SomeError", (int)LogLevel.Error, null)]
+    [InlineData("Warning_SomeWarning", (int)LogLevel.Warning, null)]
+    [InlineData("Info_SomeInfo", (int)LogLevel.Information, null)]
+    [InlineData("Information_SomeInfo", (int)LogLevel.Information, null)]
+    [InlineData("Normal_SomeInfo", (int)LogLevel.Information, null)]
+    [InlineData("Minimal_SomeInfo", (int)LogLevel.Minimal, null)]
+    [InlineData("High_SomeInfo", (int)LogLevel.Minimal, null)]
+    [InlineData("Verbose_SomeInfo", (int)LogLevel.Verbose, null)]
+    [InlineData("Low_SomeInfo", (int)LogLevel.Verbose, null)]
+    [InlineData("Debug_SomeInfo", (int)LogLevel.Debug, null)]
+    [InlineData("UnknownLevel_SomeInfo", (int)LogLevel.Verbose, null)]
+    [InlineData("SomeRandomId", (int)LogLevel.Verbose, null)]
+    public void Ctor_WithStringId_ParsesLevelAndCodeCorrectly(string id, int expectedLevel, string? expectedCode)
     {
         LogMessage logMessage = new(id);
 
         logMessage.Id.Should().Be(id);
-        logMessage.Level.Should().Be(expectedLevel);
+        logMessage.Level.Should().Be((LogLevel)expectedLevel);
         logMessage.Code.Should().Be(expectedCode);
     }
 
@@ -93,16 +95,18 @@ public class LogMessageTests
         act.Should().Throw<ArgumentException>().WithParameterName("id");
     }
 
+    // We cannot have NuGet types directly in InlineData (xunit crashes), so use int instead.
+    // Crash is due to msbuild assembly trickery, not xunit issue.
     [Theory]
-    [InlineData(LogLevel.Error, "TestId", "CODE123")]
-    [InlineData(LogLevel.Warning, "AnotherTestId", null)]
-    [InlineData(LogLevel.Information, "InfoId", "")]
-    [InlineData(LogLevel.Debug, "DebugId", "DEBUG001")]
-    public void Ctor_WithThreeParams_SetsPropertiesCorrectly(LogLevel level, string id, string? code)
+    [InlineData((int)LogLevel.Error, "TestId", "CODE123")]
+    [InlineData((int)LogLevel.Warning, "AnotherTestId", null)]
+    [InlineData((int)LogLevel.Information, "InfoId", "")]
+    [InlineData((int)LogLevel.Debug, "DebugId", "DEBUG001")]
+    public void Ctor_WithThreeParams_SetsPropertiesCorrectly(int level, string id, string? code)
     {
-        LogMessage logMessage = new(level, id, code);
+        LogMessage logMessage = new((LogLevel)level, id, code);
 
-        logMessage.Level.Should().Be(level);
+        logMessage.Level.Should().Be((LogLevel)level);
         logMessage.Id.Should().Be(id);
         logMessage.Code.Should().Be(code);
     }

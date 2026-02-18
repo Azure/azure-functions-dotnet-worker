@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -23,11 +23,9 @@
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.3.0" />
     <PackageReference Include="AwesomeAssertions.Analyzers" Version="9.0.8" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Moq" Version="4.18.4" />
-    <PackageReference Include="MSBuild.ProjectCreation" Version="14.1.0" />
-    <PackageReference Include="NuGet.Common" Version="6.14.0" />
+    <PackageReference Include="MSBuild.ProjectCreation" Version="16.1.0" />
     <PackageReference Include="System.Formats.Asn1" Version="9.0.9" />
     <PackageReference Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="22.0.15" />
     <PackageReference Include="xunit" Version="2.9.0" />
@@ -36,8 +34,8 @@
 
   <ItemGroup>
     <!-- Microsoft.Build assemblies are loaded from the current dotnet SDK. This is required to integration test our SDK. -->
-    <PackageReference Include="Microsoft.Build" Version="17.11.48" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.11.48" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="17.14.28" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.14.28" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>

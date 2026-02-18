@@ -15,7 +15,6 @@
   </Target>
 
   <Target Name="IncludeReferenceCopyLocalPathsInBuildOutputInPackage"
-          BeforeTargets="_GetBuildOutputFilesWithTfm"
           DependsOnTargets="ResolveReferences;ResolvePackageDependenciesForBuild">
     <ItemGroup>
       <BuildOutputInPackage Include="@(RuntimeCopyLocalItems-&gt;WithMetadataValue('AssetType', 'runtime'))"

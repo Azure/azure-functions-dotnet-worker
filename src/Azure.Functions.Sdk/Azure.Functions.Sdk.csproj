@@ -75,17 +75,6 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="IncludeReferenceCopyLocalPathsInBuildOutputInPackage"
-          BeforeTargets="_GetBuildOutputFilesWithTfm"
-          DependsOnTargets="ResolveReferences;ResolvePackageDependenciesForBuild">
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(RuntimeCopyLocalItems-&gt;WithMetadataValue('AssetType', 'runtime'))"
-                            TargetPath="%(RuntimeCopyLocalItems.DestinationSubDirectory)%(Filename)%(Extension)" />
-      <BuildOutputInPackage Include="@(RuntimeCopyLocalItems-&gt;WithMetadataValue('CopyLocal', 'true'))"
-                            TargetPath="%(RuntimeCopyLocalItems.DestinationSubDirectory)%(Filename)%(Extension)" />
-    </ItemGroup>
-  </Target>
-
   <!-- Test project calls this to scaffold out this SDK in its expected structure. -->
   <Target Name="GetSdkFiles" DependsOnTargets="$(GenerateNuspecDependsOn)" Returns="@(_SdkFiles)">
     <ItemGroup>

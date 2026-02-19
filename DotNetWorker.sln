@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.1.11312.151 d18.0
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FD7243E4-BF18-43F8-8744-BA1D17ACF378}"
 EndProject
@@ -15,8 +15,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{1B6B4B62
 		build\Extensions.props = build\Extensions.props
 		build\icon.png = build\icon.png
 		build\Icon.props = build\Icon.props
+		eng\build\Pack.targets = eng\build\Pack.targets
 		build\PackageInfo.props = build\PackageInfo.props
-		build\SharedReferences.targets = build\SharedReferences.targets
+		eng\build\RepositoryInfo.targets = eng\build\RepositoryInfo.targets
+		eng\build\SharedReferences.targets = eng\build\SharedReferences.targets
+		eng\build\WorkerExtensions.targets = eng\build\WorkerExtensions.targets
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk", "sdk\Sdk\Sdk.csproj", "{E28BAAEF-4E70-4CAB-8475-759ECBAF1AF5}"

@@ -169,7 +169,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             return false;
         }
 
-        private void AddTraceContextTags(InvocationResponse response, FunctionContext context)
+        private static void AddTraceContextTags(InvocationResponse response, FunctionContext context)
         {
             if (context.Items is null)
             {
@@ -180,16 +180,19 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 ? tagsObj as IEnumerable<KeyValuePair<string, string>>
                 : null;
 
-            if (tags is not null)
+            if (tags is null)
             {
-                var known = TraceConstants.KnownAttributes.All;
+                return;
+            }
 
-                foreach (var (key, value) in tags)
+            var known = TraceConstants.KnownAttributes.All;
+
+            foreach (var (key, value) in tags)
+            {
+                // avoid overwriting protected attributes
+                if (!known.Contains(key))
                 {
-                    if (!known.Contains(key))
-                    {
-                        response.TraceContextAttributes[key] = value;
-                    }
+                    response.TraceContextAttributes[key] = value;
                 }
             }
         }

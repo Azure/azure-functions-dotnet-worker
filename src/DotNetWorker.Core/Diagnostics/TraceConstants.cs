@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.Azure.Functions.Worker.Diagnostics;
@@ -45,6 +44,9 @@ internal static class TraceConstants
 
     public static class KnownAttributes
     {
+        /// <summary>
+        /// Returns protected attribute names that are set by Azure functions that should not be overriden.
+        /// </summary>
         public static ImmutableHashSet<string> All { get; } = ImmutableHashSet.Create<string>(
             OTelAttributes_1_17_0.InvocationId,
             OTelAttributes_1_17_0.SchemaUrl,

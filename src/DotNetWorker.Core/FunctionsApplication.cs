@@ -74,13 +74,6 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 await _functionExecutionDelegate(context);
-
-                var tags = invokeActivity?.Tags;
-
-                if (tags is not null && context.Items is not null)
-                {
-                    context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;
-                }
             }
             catch (Exception ex)
             {
@@ -89,6 +82,15 @@ namespace Microsoft.Azure.Functions.Worker
                 Log.InvocationError(_logger, context.FunctionDefinition.Name, context.InvocationId, ex);
 
                 throw;
+            }
+            finally
+            {
+                var tags = invokeActivity?.Tags;
+
+                if (tags is not null && context.Items is not null)
+                {
+                    context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;
+                }
             }
         }
     }

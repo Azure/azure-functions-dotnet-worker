@@ -25,5 +25,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the attributes associated with the trace.
         /// </summary>
         public virtual IReadOnlyDictionary<string, string> Attributes => ImmutableDictionary<string, string>.Empty;
+
+        /// <summary>
+        /// Gets the baggage associated with the trace.
+        /// </summary>
+        public virtual IReadOnlyDictionary<string, string> Baggage => ImmutableDictionary<string, string>.Empty;
     }
 }

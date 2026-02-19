@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using OpenTelemetry;
@@ -15,13 +13,9 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
         {
             try
             {
-                if (context.Items.TryGetValue(TraceConstants.BaggageKeyName, out var value) &&
-                    value is IEnumerable<KeyValuePair<string, string>> dict)
+                foreach (var kv in context.TraceContext.Baggage)
                 {
-                    foreach (var kv in dict)
-                    {
-                        Baggage.SetBaggage(kv.Key, kv.Value);
-                    }
+                    Baggage.SetBaggage(kv.Key, kv.Value);
                 }
 
                 await next(context);

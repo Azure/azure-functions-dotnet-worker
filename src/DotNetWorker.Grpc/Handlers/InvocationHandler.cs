@@ -87,13 +87,6 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                     invocationFeatures.Set<IInputConversionFeature>(conversion!);
                 }
 
-                var baggage = request.TraceContext?.Baggage;
-
-                if (baggage is not null)
-                {
-                    context.Items[TraceConstants.InternalKeys.BaggageKeyName] = baggage;
-                }
-
                 await _application.InvokeFunctionAsync(context);
 
                 var serializer = _workerOptions.Serializer!;

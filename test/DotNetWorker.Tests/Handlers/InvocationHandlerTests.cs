@@ -273,16 +273,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var testValue = "testValue";
             request.TraceContext.Baggage[testKey] = testValue;
 
-            // Setup to verify baggage is set in context.Items during invocation
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Returns(Task.CompletedTask)
                 .Callback<FunctionContext>(ctx =>
                 {
-                    Assert.True(ctx.Items.ContainsKey(CoreTraceConstants.InternalKeys.BaggageKeyName));
-                    var actualBaggage = ctx.Items[CoreTraceConstants.InternalKeys.BaggageKeyName] as System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>>;
-                    Assert.NotNull(actualBaggage);
-                    Assert.Contains(actualBaggage, kv => kv.Key == testKey && kv.Value == testValue);
+                    Assert.True(ctx.TraceContext.Baggage.ContainsKey(testKey));
+                    Assert.Equal(testValue, ctx.TraceContext.Baggage[testKey]);
                 });
 
             var handler = CreateInvocationHandler();

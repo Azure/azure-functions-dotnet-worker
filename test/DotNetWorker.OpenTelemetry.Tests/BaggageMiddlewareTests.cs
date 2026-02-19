@@ -17,17 +17,16 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests
         {
             var baggageKey = "TestKey";
             var baggageValue = "TestValue";
-            var baggageDict = new List<KeyValuePair<string, string>>
+            var baggageDict = new Dictionary<string, string>
             {
-                new KeyValuePair<string, string>(baggageKey, baggageValue)
+                { baggageKey, baggageValue }
             };
 
+            var traceContextMock = new Mock<TraceContext>();
+            traceContextMock.Setup(t => t.Baggage).Returns(baggageDict);
+
             var contextMock = new Mock<FunctionContext>();
-            var items = new Dictionary<object, object>
-            {
-                { TraceConstants.BaggageKeyName, baggageDict }
-            };
-            contextMock.Setup(c => c.Items).Returns(items);
+            contextMock.Setup(c => c.TraceContext).Returns(traceContextMock.Object);
 
             bool nextCalled = false;
             var middleware = new BaggageMiddleware();
@@ -52,17 +51,16 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests
         {
             var baggageKey = "TestKey";
             var baggageValue = "TestValue";
-            var baggageDict = new List<KeyValuePair<string, string>>
-        {
-            new KeyValuePair<string, string>(baggageKey, baggageValue)
-        };
+            var baggageDict = new Dictionary<string, string>
+            {
+                { baggageKey, baggageValue }
+            };
+
+            var traceContextMock = new Mock<TraceContext>();
+            traceContextMock.Setup(t => t.Baggage).Returns(baggageDict);
 
             var contextMock = new Mock<FunctionContext>();
-            var items = new Dictionary<object, object>
-        {
-            { TraceConstants.BaggageKeyName, baggageDict }
-        };
-            contextMock.Setup(c => c.Items).Returns(items);
+            contextMock.Setup(c => c.TraceContext).Returns(traceContextMock.Object);
 
             var middleware = new BaggageMiddleware();
 

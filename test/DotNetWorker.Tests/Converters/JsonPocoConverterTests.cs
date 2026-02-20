@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -91,6 +91,161 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         }
 
         [Fact]
+        public async Task SuccessfulConversionWithCaseInsensitivePocoProperties()
+        {
+            string source = "{ \"title\": \"a\", \"author\": \"b\" }";
+            var context = new TestConverterContext(typeof(Book), source);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Value);
+            Assert.Equal("a", book.Title);
+            Assert.Equal("b", book.Author);
+        }
+
+        [Fact]
+        public async Task ConvertStringValueWithLeadingZeroToIntIsCultureInvariant()
+        {
+            var originalCulture = System.Globalization.CultureInfo.CurrentCulture;
+            var originalUICulture = System.Globalization.CultureInfo.CurrentUICulture;
+
+            try
+            {
+                System.Globalization.CultureInfo.CurrentCulture =
+                    new System.Globalization.CultureInfo("fr-FR");
+
+                System.Globalization.CultureInfo.CurrentUICulture =
+                    new System.Globalization.CultureInfo("fr-FR");
+
+                string source = "01";
+                var context = new TestConverterContext(typeof(int), source);
+
+                var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+                Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+                var convertedInt =
+                    TestUtility.AssertIsTypeAndConvert<int>(conversionResult.Value);
+
+                Assert.Equal(1, convertedInt);
+            }
+            finally
+            {
+                System.Globalization.CultureInfo.CurrentCulture = originalCulture;
+                System.Globalization.CultureInfo.CurrentUICulture = originalUICulture;
+            }
+        }
+
+        [Fact]
+        public async Task ConvertNegativeStringValueWithLeadingZeroToInt()
+        {
+            string source = "-01";
+            var context = new TestConverterContext(typeof(int), source);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var convertedInt =
+                TestUtility.AssertIsTypeAndConvert<int>(conversionResult.Value);
+
+            Assert.Equal(-1, convertedInt);
+        }
+
+        [Fact]
+        public async Task ConvertStringValueWithMultipleLeadingZerosToInt()
+        {
+            string source = "000";
+            var context = new TestConverterContext(typeof(int), source);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var convertedInt =
+                TestUtility.AssertIsTypeAndConvert<int>(conversionResult.Value);
+
+            Assert.Equal(0, convertedInt);
+        }
+
+        [Fact]
+        public async Task ConvertStringValueWithLeadingZeroToLong()
+        {
+            string source = "01";
+            var context = new TestConverterContext(typeof(long), source);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var convertedLong =
+                TestUtility.AssertIsTypeAndConvert<long>(conversionResult.Value);
+
+            Assert.Equal(1L, convertedLong);
+        }
+
+        [Fact]
+        public async Task ConvertMemoryValueWithLeadingZeroToInt()
+        {
+            string source = "01";
+            var sourceMemory = new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(source));
+            var context = new TestConverterContext(typeof(int), sourceMemory);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var convertedInt = TestUtility.AssertIsTypeAndConvert<int>(conversionResult.Value);
+            Assert.Equal(1, convertedInt);
+        }
+
+        [Fact]
+        public async Task ConvertMemoryNegativeValueWithLeadingZeroToInt()
+        {
+            string source = "-01";
+            var sourceMemory = new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(source));
+            var context = new TestConverterContext(typeof(int), sourceMemory);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var convertedInt = TestUtility.AssertIsTypeAndConvert<int>(conversionResult.Value);
+            Assert.Equal(-1, convertedInt);
+        }
+
+        [Fact]
+        public async Task ConvertMemoryValueWithMultipleLeadingZerosToInt()
+        {
+            string source = "000";
+            var sourceMemory = new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(source));
+            var context = new TestConverterContext(typeof(int), sourceMemory);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var convertedInt = TestUtility.AssertIsTypeAndConvert<int>(conversionResult.Value);
+            Assert.Equal(0, convertedInt);
+        }
+
+        [Fact]
+        public async Task ConvertJsonObjectStringToSimpleModel()
+        {
+            string source = "{ \"Id\": 1 }";
+            var context = new TestConverterContext(typeof(SimpleModel), source);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var poco = TestUtility.AssertIsTypeAndConvert<SimpleModel>(conversionResult.Value);
+            Assert.Equal(1, poco.Id);
+        }
+
+        [Fact]
         public async Task Newtonsoft()
         {
             var options = new WorkerOptions
@@ -121,6 +276,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             [JsonProperty("author")]
             public string BookAuthor { get; set; }
+        }
+
+        // Used for regression testing of JSON deserialization
+        private class SimpleModel
+        {
+            public int Id { get; set; }
         }
     }
 }

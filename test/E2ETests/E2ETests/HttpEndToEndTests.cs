@@ -33,6 +33,8 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
         [InlineData("HelloWithNoResponse", "", HttpStatusCode.NoContent, "")]
         [InlineData("ExceptionFunction", "", HttpStatusCode.InternalServerError, "")]
         [InlineData("HelloFromQuery", "", HttpStatusCode.BadRequest, "")]
+        [InlineData("IntFromRoute/01", "", HttpStatusCode.OK, "1")]
+        [InlineData("DoubleFromRoute/1.23", "", HttpStatusCode.OK, "1.23")]
         public async Task HttpTriggerTests(string functionName, string queryString, HttpStatusCode expectedStatusCode, string expectedMessage)
         {
             HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionName, queryString);

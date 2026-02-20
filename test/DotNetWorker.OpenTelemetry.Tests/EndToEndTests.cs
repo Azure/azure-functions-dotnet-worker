@@ -22,6 +22,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
 
+using CoreTraceConstants = Microsoft.Azure.Functions.Worker.Diagnostics.TraceConstants;
+
 namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests;
 
 public class EndToEndTests
@@ -89,7 +91,7 @@ public class EndToEndTests
             Assert.Equal(activity.TraceId, activityContext.TraceId);
             Assert.Equal(activity.TraceStateString, activityContext.TraceState);
             Assert.Equal(ActivityKind.Internal, activity.Kind);
-            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.OTelAttributes_1_37_0.InvocationId && t.Value == context.InvocationId);
+            Assert.Contains(activity.Tags, t => t.Key == CoreTraceConstants.OTelAttributes_1_37_0.InvocationId && t.Value == context.InvocationId);
         }
         else
         {
@@ -112,7 +114,7 @@ public class EndToEndTests
             Assert.Equal(activity.TraceId, activityContext.TraceId);
             Assert.Equal(activity.TraceStateString, activityContext.TraceState);
             Assert.Equal(ActivityKind.Server, activity.Kind);
-            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.OTelAttributes_1_17_0.InvocationId && t.Value == context.InvocationId);
+            Assert.Contains(activity.Tags, t => t.Key == CoreTraceConstants.OTelAttributes_1_17_0.InvocationId && t.Value == context.InvocationId);
         }
         else
         {

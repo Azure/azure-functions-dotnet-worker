@@ -7,11 +7,12 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal sealed class DefaultTraceContext : TraceContext
     {
-        public DefaultTraceContext(string traceParent, string traceState, IReadOnlyDictionary<string, string> attributes)
+        public DefaultTraceContext(string traceParent, string traceState, IReadOnlyDictionary<string, string> attributes, IReadOnlyDictionary<string, string> baggage)
         {
             TraceParent = traceParent;
             TraceState = traceState;
             Attributes = attributes;
+            Baggage = baggage;
         }
 
         public override string TraceParent { get; }
@@ -19,5 +20,7 @@ namespace Microsoft.Azure.Functions.Worker
         public override string TraceState { get; }
 
         public override IReadOnlyDictionary<string, string> Attributes { get; }
+
+        public override IReadOnlyDictionary<string, string> Baggage { get;  }
     }
 }

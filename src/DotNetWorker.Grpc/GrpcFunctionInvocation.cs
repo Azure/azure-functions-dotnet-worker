@@ -13,7 +13,8 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
         public GrpcFunctionInvocation(InvocationRequest invocationRequest)
         {
             _invocationRequest = invocationRequest;
-            TraceContext = new DefaultTraceContext(_invocationRequest.TraceContext.TraceParent, _invocationRequest.TraceContext.TraceState, _invocationRequest.TraceContext.Attributes);
+            TraceContext = new DefaultTraceContext(_invocationRequest.TraceContext.TraceParent, 
+                _invocationRequest.TraceContext.TraceState, _invocationRequest.TraceContext.Attributes, _invocationRequest.TraceContext.Baggage);
         }
 
         public override string Id => _invocationRequest.InvocationId;

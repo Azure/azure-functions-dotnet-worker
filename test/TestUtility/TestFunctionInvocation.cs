@@ -30,7 +30,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 { TraceConstants.InternalKeys.AzFuncLiveLogsSessionId, Guid.NewGuid().ToString() },
             };
 
-            TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString(), attributes);
+            Dictionary<string, string> baggage = new Dictionary<string, string>
+            {
+                { "TestBaggageKey", "TestBaggageValue" }
+            };
+
+            TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString(), attributes, baggage);
         }
 
         public override string Id { get; } = Guid.NewGuid().ToString();

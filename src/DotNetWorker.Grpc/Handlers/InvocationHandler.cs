@@ -176,7 +176,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 return;
             }
 
-            var tags = context.Items.TryGetValue(TraceConstants.InternalKeys.FunctionContextItemsKey, out var tagsObj)
+            var tags = context.Items.TryGetValue(TraceConstants.FunctionContextKeys.FunctionContextItemsKey, out var tagsObj)
                 ? tagsObj as IEnumerable<KeyValuePair<string, string>>
                 : null;
 
@@ -185,15 +185,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 return;
             }
 
-            var known = TraceConstants.KnownAttributes.All;
-
             foreach (var (key, value) in tags)
             {
-                // avoid overwriting protected attributes
-                if (!known.Contains(key))
-                {
-                    response.TraceContextAttributes[key] = value;
-                }
+                response.TraceContextAttributes[key] = value;
             }
         }
     }

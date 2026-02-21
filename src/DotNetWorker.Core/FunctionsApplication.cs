@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -89,7 +91,22 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (tags is not null && context.Items is not null)
                 {
-                    context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;
+                    var known = TraceConstants.KnownAttributes.All;
+                    var validTags = new List<KeyValuePair<string, string>>();
+
+                    foreach (var (key, value) in tags)
+                    {
+                        // avoid overwriting protected attributes
+                        if (!known.Contains(key) && value is not null)
+                        {
+                            validTags.Add(new KeyValuePair<string, string>(key, value));
+                        }
+                    }
+
+                    if (validTags.Count > 0)
+                    {
+                        context.Items[TraceConstants.FunctionContextKeys.FunctionContextItemsKey] = validTags;
+                    }
                 }
             }
         }

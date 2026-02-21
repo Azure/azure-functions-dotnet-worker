@@ -293,7 +293,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     ctx.Items ??= new ConcurrentDictionary<object, object>();
 
                     // Simulate tags being set in the Items dictionary
-                    ctx.Items[Worker.Diagnostics.TraceConstants.InternalKeys.FunctionContextItemsKey] = activityTags;
+                    ctx.Items[Worker.Diagnostics.TraceConstants.FunctionContextKeys.FunctionContextItemsKey] = activityTags;
                 })
                 .Returns(Task.CompletedTask);
 

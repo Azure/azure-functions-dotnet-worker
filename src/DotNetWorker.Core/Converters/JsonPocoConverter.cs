@@ -127,7 +127,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             return false;
         }
 
-        private static bool TryParseIntegerPrimitive(Type t, ReadOnlySpan<byte> utf8, out object? result)
+        private static bool TryParseIntegralPrimitive(Type t, ReadOnlySpan<byte> utf8, out object? result)
         {
             result = null;
 

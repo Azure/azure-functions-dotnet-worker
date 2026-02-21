@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.IO;
+using Microsoft.Azure.Functions.Tests;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2ETests

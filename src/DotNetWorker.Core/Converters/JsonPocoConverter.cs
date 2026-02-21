@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             if (context.Source is string sourceString)
             {
-                if (TryParseIntegerPrimitive(context.TargetType, sourceString, out var converted))
+                if (TryParseIntegralPrimitive(context.TargetType, sourceString, out var converted))
                 {
                     return ConversionResult.Success(converted);
                 }
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             if (context.Source is ReadOnlyMemory<byte> sourceMemory)
             {
-                if (TryParseIntegerPrimitive(context.TargetType, sourceMemory.Span, out var converted))
+                if (TryParseIntegralPrimitive(context.TargetType, sourceMemory.Span, out var converted))
                 {
                     return ConversionResult.Success(converted);
                 }
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             return ConversionResult.Unhandled();
         }
 
-        private static bool TryParseIntegerPrimitive(Type t, string value, out object? result)
+        private static bool TryParseIntegralPrimitive(Type t, string value, out object? result)
         {
             result = null;
 

@@ -194,7 +194,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             try
             {
-                stream = new MemoryStream(bytes, offset, count, writable: false, publiclyVisible: true);
+                stream = new MemoryStream(bytes, offset, count, writable: false);
 
                 var deserializedObject = await _serializer.DeserializeAsync(stream, type, CancellationToken.None);
                 return ConversionResult.Success(deserializedObject);

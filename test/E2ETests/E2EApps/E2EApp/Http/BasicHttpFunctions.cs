@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -147,6 +148,28 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.WriteString($"{region} {category} {caller.Name}");
+            return response;
+        }
+
+        [Function(nameof(IntFromRoute))]
+        public static HttpResponseData IntFromRoute(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = nameof(IntFromRoute) + "/{value}")] HttpRequestData req,
+            int value,
+            FunctionContext context)
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.WriteString(value.ToString(CultureInfo.InvariantCulture));
+            return response;
+        }
+
+        [Function(nameof(DoubleFromRoute))]
+        public static HttpResponseData DoubleFromRoute(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = nameof(DoubleFromRoute) + "/{value}")] HttpRequestData req,
+            double value,
+            FunctionContext context)
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.WriteString(value.ToString(CultureInfo.InvariantCulture));
             return response;
         }
 

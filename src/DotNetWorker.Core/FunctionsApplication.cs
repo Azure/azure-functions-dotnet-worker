@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -92,18 +91,19 @@ namespace Microsoft.Azure.Functions.Worker
                 if (tags is not null && context.Items is not null)
                 {
                     var known = TraceConstants.KnownAttributes.All;
-                    var validTags = new List<KeyValuePair<string, string>>();
+                    List<KeyValuePair<string, string>>? validTags = null;
 
                     foreach (var (key, value) in tags)
                     {
                         // avoid overwriting protected attributes
                         if (!known.Contains(key) && value is not null)
                         {
+                            validTags ??= new List<KeyValuePair<string, string>>();
                             validTags.Add(new KeyValuePair<string, string>(key, value));
                         }
                     }
 
-                    if (validTags.Count > 0)
+                    if (validTags is not null)
                     {
                         context.Items[TraceConstants.FunctionContextKeys.FunctionContextItemsKey] = validTags;
                     }

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
@@ -30,7 +31,11 @@ public class OpenTelemetryTraceConstantsTests
         var allField = classType.GetField("All", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.NotNull(allField);
 
-        var allValues = (allField.GetValue(null) as string[])?.OrderBy(v => v).ToArray();
+        var allFieldValue = allField.GetValue(null);
+        Assert.NotNull(allFieldValue);
+
+        // Handle ImmutableArray<string>
+        var allValues = (allFieldValue as ImmutableArray<string>?)?.OrderBy(v => v).ToArray();
         Assert.NotNull(allValues);
 
         // Verify that "All" contains exactly the same values as all public constants

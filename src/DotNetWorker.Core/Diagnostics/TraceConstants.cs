@@ -34,7 +34,7 @@ internal static class TraceConstants
         public const string InvocationId = "faas.execution";
         public const string SchemaUrl = "az.schema_url";
 
-        internal static readonly string[] All = { InvocationId, SchemaUrl };
+        internal static ImmutableArray<string> All = ImmutableArray.Create(InvocationId, SchemaUrl);
     }
 
     public static class OTelAttributes_1_37_0
@@ -45,7 +45,7 @@ internal static class TraceConstants
         public const string Instance = "faas.instance";
         public const string SchemaUrl = "schema.url";
 
-        internal static readonly string[] All = { InvocationId, FunctionName, Instance, SchemaUrl };
+        internal static ImmutableArray<string> All = ImmutableArray.Create(InvocationId, FunctionName, Instance, SchemaUrl);
     }
 
     public static class KnownAttributes
@@ -67,7 +67,8 @@ internal static class TraceConstants
         public const string HostInstanceId = "HostInstanceId";
         public const string AzFuncLiveLogsSessionId = "#AzFuncLiveLogsSessionId";
 
-        internal static readonly string[] All = { FunctionInvocationId, FunctionName, HostInstanceId, AzFuncLiveLogsSessionId };
+        internal static ImmutableArray<string> All = ImmutableArray.Create(FunctionInvocationId, FunctionName, 
+            HostInstanceId, AzFuncLiveLogsSessionId);
     }
 
     public static class FunctionContextKeys

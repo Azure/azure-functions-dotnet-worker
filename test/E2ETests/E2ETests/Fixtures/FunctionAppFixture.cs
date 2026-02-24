@@ -72,6 +72,8 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
                             _funcProcess.StartInfo.ArgumentList.Add("PocoWithoutBindingSource");
                             _funcProcess.StartInfo.ArgumentList.Add("HelloPascal");
                             _funcProcess.StartInfo.ArgumentList.Add("HelloAllCaps");
+                            _funcProcess.StartInfo.ArgumentList.Add("IntFromRoute");
+                            _funcProcess.StartInfo.ArgumentList.Add("DoubleFromRoute");
                             break;
                         case Constants.TestAppNames.E2EAspNetCoreApp:
                             _funcProcess.StartInfo.ArgumentList.Add("--functions");

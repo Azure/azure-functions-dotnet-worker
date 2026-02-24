@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -82,6 +83,31 @@ namespace Microsoft.Azure.Functions.Worker
                 Log.InvocationError(_logger, context.FunctionDefinition.Name, context.InvocationId, ex);
 
                 throw;
+            }
+            finally
+            {
+                var tags = invokeActivity?.Tags;
+
+                if (tags is not null && context.Items is not null)
+                {
+                    var known = TraceConstants.KnownAttributes.All;
+                    List<KeyValuePair<string, string>>? validTags = null;
+
+                    foreach (var (key, value) in tags)
+                    {
+                        // avoid overwriting protected attributes
+                        if (!known.Contains(key) && value is not null)
+                        {
+                            validTags ??= new List<KeyValuePair<string, string>>();
+                            validTags.Add(new KeyValuePair<string, string>(key, value));
+                        }
+                    }
+
+                    if (validTags is not null)
+                    {
+                        context.Items[TraceConstants.FunctionContextKeys.FunctionContextItemsKey] = validTags;
+                    }
+                }
             }
         }
     }

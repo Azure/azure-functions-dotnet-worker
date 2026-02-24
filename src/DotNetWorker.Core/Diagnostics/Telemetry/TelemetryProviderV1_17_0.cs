@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics;
 internal sealed class TelemetryProviderV1_17_0 : TelemetryProvider
 {
     private static readonly KeyValuePair<string, object> SchemaUrlAttribute =
-        new(TraceConstants.OTelAttributes_1_17_0.SchemaUrl, TraceConstants.OTelAttributes_1_17_0.SchemaVersion);
+        new(TraceConstants.OTelAttributes_1_17_0.SchemaUrl, TraceConstants.OTel_1_17_0_SchemaVersion);
 
     protected override OpenTelemetrySchemaVersion SchemaVersion
         => OpenTelemetrySchemaVersion.V1_17_0;

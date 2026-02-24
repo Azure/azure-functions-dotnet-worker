@@ -1,7 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -259,6 +261,58 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.True(_context.IsDisposed);
             Assert.Null(_context.RetryContext);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_TagsInFunctionInvocationContextItems_AreIncludedInInvocationResponse()
+        {
+            // Arrange
+            var invocationId = "tags-test-invocation";
+            var request = TestUtility.CreateInvocationRequest(invocationId);
+
+            // Build tags dictionary the same way as Activity and FunctionsApplication would
+            var activityTags = new List<KeyValuePair<string, string>>
+            {
+                new("customTag1", "value1"),
+                new("customTag2", "value2"),
+                new("customTag1", "value3"), // Duplicate key to test handling
+            };
+
+            var expectedTags = new List<KeyValuePair<string, string>>
+            {
+                new("customTag2", "value2"),
+                new("customTag1", "value3"),
+            };
+
+            // Set up the application to add tags to the context.Items
+            _mockApplication
+                .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
+                .Callback<FunctionContext>(ctx =>
+                {
+                    // Ensure Items is initialized before use
+                    ctx.Items ??= new ConcurrentDictionary<object, object>();
+
+                    // Simulate tags being set in the Items dictionary
+                    ctx.Items[Worker.Diagnostics.TraceConstants.FunctionContextKeys.FunctionContextItemsKey] = activityTags;
+                })
+                .Returns(Task.CompletedTask);
+
+            var handler = CreateInvocationHandler();
+
+            // Act
+            var response = await handler.InvokeAsync(request);
+
+            // Assert
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+
+            // Extract tags from the response
+            var tags = response.TraceContextAttributes;
+            Assert.NotNull(tags);
+            foreach (var expectedTag in expectedTags)
+            {
+                var tag = tags.FirstOrDefault(t => t.Key == expectedTag.Key);
+                Assert.Equal(expectedTag.Value, tag.Value);
+            }
         }
 
         private InvocationHandler CreateInvocationHandler(IFunctionsApplication application = null,

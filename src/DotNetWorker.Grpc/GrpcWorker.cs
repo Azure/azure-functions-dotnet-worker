@@ -138,8 +138,8 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             var appCapabilities = new Dictionary<string, string>();
-            appCapabilities.Add("key1", "value1"); // Placeholder for future app capabilities
-            appCapabilities.Add("key2", "value2");
+            appCapabilities.Add("workerKey1", "value1"); // Placeholder for future app capabilities
+            appCapabilities.Add("workerKey2", "value2");
             response.AppCapabilities.Add(appCapabilities);
 
             return response;

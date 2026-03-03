@@ -5,7 +5,7 @@ using System.Net;
 
 namespace Azure.Functions.Sdk.ZipDeploy;
 
-public class DeploymentException : Exception
+public sealed class DeploymentException : Exception
 {
     public DeploymentException(string message)
         : base(message)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
@@ -14,30 +14,24 @@ using Microsoft.Build.Framework;
 
 namespace Azure.Functions.Sdk.Tasks.Publish;
 
-public sealed class ZipDeployTask(IFileSystem fileSystem)
+public sealed class ZipDeployTask(IFileSystem fileSystem, DeploymentClient? client = null)
     : Microsoft.Build.Utilities.Task, ICancelableTask, IDisposable
 {
-    private static readonly TimeSpan DeployTimeout = TimeSpan.FromMinutes(3);
-
-    private static readonly ProductInfoHeaderValue SdkUserAgentHeader = new(
+    internal static readonly ProductInfoHeaderValue SdkUserAgentHeader = new(
         ThisAssembly.Name, ThisAssembly.Version.ToString(fieldCount: 3));
 
-    private static readonly ProductInfoHeaderValue OsUserAgentHeader = new(
+    internal static readonly ProductInfoHeaderValue OsUserAgentHeader = new(
         $"({RuntimeInformation.OSDescription}; {RuntimeInformation.OSArchitecture})");
+
+    private static readonly TimeSpan DeployTimeout = TimeSpan.FromMinutes(3);
 
     private readonly CancellationTokenSource _cts = new();
     private readonly IFileSystem _fileSystem = Throw.IfNull(fileSystem);
-    private DeploymentClient? _deploymentClient;
+    private DeploymentClient? _deploymentClient = client;
 
     public ZipDeployTask()
         : this(new FileSystem())
     {
-    }
-
-    public ZipDeployTask(IFileSystem fileSystem, DeploymentClient client) // for testing purposes
-        : this(fileSystem)
-    {
-        _deploymentClient = client;
     }
 
     [Required]
@@ -85,6 +79,19 @@ public sealed class ZipDeployTask(IFileSystem fileSystem)
         return DeployAsync(_deploymentClient, linked.Token).GetAwaiter().GetResult();
     }
 
+    internal HttpClient BuildHttpClient(Uri publishUri) // internal for testing.
+    {
+        ProductInfoHeaderValue dotnetSdkHeader = new("Microsoft.NET.Sdk", DotnetSdkVersion);
+        return new()
+        {
+            BaseAddress = publishUri,
+            DefaultRequestHeaders =
+            {
+                UserAgent = { SdkUserAgentHeader, dotnetSdkHeader, OsUserAgentHeader }
+            },
+        };
+    }
+
     private async Task<bool> DeployAsync(DeploymentClient client, CancellationToken cancellation)
     {
         Log.LogMessageFromResources(
@@ -129,19 +136,11 @@ public sealed class ZipDeployTask(IFileSystem fileSystem)
 
         if (!TryParsePublishUri(out Uri? publishUri))
         {
+            Log.LogErrorFromResources(nameof(Strings.Deploy_InvalidPublishUrl), PublishUrl);
             return false;
         }
 
-        ProductInfoHeaderValue dotnetSdkHeader = new("Microsoft.NET.Sdk", DotnetSdkVersion);
-        HttpClient client = new()
-        {
-            BaseAddress = publishUri,
-            DefaultRequestHeaders =
-            {
-                UserAgent = { SdkUserAgentHeader, dotnetSdkHeader, OsUserAgentHeader }
-            },
-        };
-
+        HttpClient client = BuildHttpClient(publishUri);
         _deploymentClient = new(client, Log);
         return true;
     }

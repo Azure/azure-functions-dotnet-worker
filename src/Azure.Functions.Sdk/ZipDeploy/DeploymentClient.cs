@@ -138,12 +138,12 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
         {
             if (response.Content is null)
             {
-                return StatusResult.Default;
+                return Default;
             }
 
             using Stream stream = await response.Content.ReadAsStreamAsync();
             return await JsonSerializer.DeserializeAsync<StatusResult>(stream, cancellationToken: cancellation)
-                ?? StatusResult.Default;
+                ?? Default;
         }
     }
 }

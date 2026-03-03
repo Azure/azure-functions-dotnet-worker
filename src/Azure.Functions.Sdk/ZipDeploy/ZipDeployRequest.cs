@@ -12,8 +12,9 @@ public record ZipDeployRequest(string UserName, string Password, Stream Content)
     private const string AzureADUserName = "00000000-0000-0000-0000-000000000000";
     private const string BearerAuthenticationScheme = "Bearer";
     private const string BasicAuthenticationScheme = "Basic";
-    private const string PublishPath = "api/publish?RemoteBuild=false";
-    private const string ZipDeployPath = "api/zipdeploy?isAsync=true";
+
+    internal static readonly Uri PublishPath = new("api/publish?RemoteBuild=false", UriKind.Relative);
+    internal static readonly Uri ZipDeployPath = new("api/zipdeploy?isAsync=true", UriKind.Relative);
 
     private static readonly MediaTypeHeaderValue ZipContentHeader = new(MediaTypeNames.Application.Zip)
     {
@@ -22,7 +23,15 @@ public record ZipDeployRequest(string UserName, string Password, Stream Content)
 
     public bool UseBlobContainer { get; init; }
 
-    internal HttpRequestMessage CreateRequestMessage(Uri? baseUri = null)
+    public Uri GetUri(Uri? baseUri = null)
+    {
+        Uri path = UseBlobContainer ? PublishPath : ZipDeployPath;
+        return baseUri is null
+            ? path
+            : new Uri(baseUri, path);
+    }
+
+    public HttpRequestMessage CreateRequestMessage(Uri? baseUri = null)
     {
         HttpRequestMessage request = new(HttpMethod.Post, GetUri(baseUri))
         {
@@ -31,14 +40,6 @@ public record ZipDeployRequest(string UserName, string Password, Stream Content)
 
         AddAuthenticationHeader(request);
         return request;
-    }
-
-    public Uri GetUri(Uri? baseUri = null)
-    {
-        string path = UseBlobContainer ? PublishPath : ZipDeployPath;
-        return baseUri is null
-            ? new Uri(path, UriKind.Relative)
-            : new Uri(baseUri, path);
     }
 
     private StreamContent GetContent()

@@ -11,6 +11,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
 <Project>
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.CreateZipFile" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.ZipDeploy" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
     <_DotNetPublishFiles>
@@ -23,6 +24,18 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       PublishIntermediateTempPath="$(PublishIntermediateTempPath)" Executable="$(_FunctionsExecutable)">
       <Output TaskParameter="CreatedZipPath" PropertyName="ZippedPublishContentsPath"/>
     </CreateZipFile>
+  </Target>
+
+  <Target Name="ZipDeploy" DependsOnTargets="CreateZipFile">
+    <PropertyGroup>
+      <_ZipPublishUrl>$(PublishUrl)</_ZipPublishUrl>
+      <_ZipPublishUrl Condition="'$(_ZipPublishUrl)' == ''">https://$(DeployIisAppPath).scm.azurewebsites.net/</_ZipPublishUrl>
+    </PropertyGroup>
+
+    <ZipDeploy ZipContentsPath="$(ZippedPublishContentsPath)" PublishUrl="$(_ZipPublishUrl)"
+      DeploymentUsername="$(UserName)" DeploymentPassword="$(Password)"
+      UseBlobContainerDeploy="$(UseBlobContainerDeploy)"
+      DotnetSdkVersion="$(NETCoreSdkVersion)" /> <!-- For user agent header -->
   </Target>
 
 </Project>

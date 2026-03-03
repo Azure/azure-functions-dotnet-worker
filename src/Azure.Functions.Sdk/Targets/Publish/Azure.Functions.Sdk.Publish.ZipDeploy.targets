@@ -17,6 +17,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_DotNetPublishFiles>
       ZipDeploy;
     </_DotNetPublishFiles>
+    <PublishAllowInsecureRemoteConnections Condition="'$(PublishAllowInsecureRemoteConnections)' == ''">false</PublishAllowInsecureRemoteConnections>
   </PropertyGroup>
 
   <Target Name="CreateZipFile" DependsOnTargets="_ResolveFunctionExecutable">
@@ -35,6 +36,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <ZipDeploy ZipContentsPath="$(ZippedPublishContentsPath)" PublishUrl="$(_ZipPublishUrl)"
       DeploymentUsername="$(UserName)" DeploymentPassword="$(Password)"
       UseBlobContainerDeploy="$(UseBlobContainerDeploy)"
+      AllowInsecureRemoteConnections="$(PublishAllowInsecureRemoteConnections)"
       DotnetSdkVersion="$(NETCoreSdkVersion)" /> <!-- For user agent header -->
   </Target>
 

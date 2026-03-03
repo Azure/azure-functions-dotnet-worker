@@ -17,7 +17,7 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
     private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(1);
 
     private readonly Logger? _logger = logger;
-    private readonly HttpClient _client = client;
+    private readonly HttpClient _client = Throw.IfNull(client);
 
     public virtual async Task<DeployStatus> ZipDeployAsync(ZipDeployRequest request, CancellationToken cancellation)
     {
@@ -33,7 +33,7 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
             return await PollDeploymentStatusAsync(location, cancellation);
         }
 
-        return DeployStatus.Success;
+        return status.Status;
     }
 
     private async Task<DeployStatus> PollDeploymentStatusAsync(Uri location, CancellationToken cancellation)

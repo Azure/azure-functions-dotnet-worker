@@ -14,7 +14,7 @@ using Microsoft.Build.Framework;
 
 namespace Azure.Functions.Sdk.Tasks.Publish;
 
-public sealed class ZipDeployTask(IFileSystem fileSystem, DeploymentClient? client = null)
+public sealed class ZipDeploy(IFileSystem fileSystem, DeploymentClient? client = null)
     : Microsoft.Build.Utilities.Task, ICancelableTask, IDisposable
 {
     internal static readonly ProductInfoHeaderValue SdkUserAgentHeader = new(
@@ -29,7 +29,9 @@ public sealed class ZipDeployTask(IFileSystem fileSystem, DeploymentClient? clie
     private readonly IFileSystem _fileSystem = Throw.IfNull(fileSystem);
     private DeploymentClient? _deploymentClient = client;
 
-    public ZipDeployTask()
+    private HttpClient? _httpClient; // tracked for disposal, if created by this class.
+
+    public ZipDeploy()
         : this(new FileSystem())
     {
     }
@@ -46,6 +48,8 @@ public sealed class ZipDeployTask(IFileSystem fileSystem, DeploymentClient? clie
     [Required]
     public string PublishUrl { get; set; } = string.Empty;
 
+    public bool AllowInsecureRemoteConnections { get; set; } = false;
+
     public string DotnetSdkVersion { get; set; } = "<unknown>";
 
     public bool UseBlobContainerDeploy { get; set; }
@@ -57,6 +61,7 @@ public sealed class ZipDeployTask(IFileSystem fileSystem, DeploymentClient? clie
 
     public void Dispose()
     {
+        _httpClient?.Dispose();
         _cts.Dispose();
     }
 
@@ -136,12 +141,11 @@ public sealed class ZipDeployTask(IFileSystem fileSystem, DeploymentClient? clie
 
         if (!TryParsePublishUri(out Uri? publishUri))
         {
-            Log.LogErrorFromResources(nameof(Strings.Deploy_InvalidPublishUrl), PublishUrl);
             return false;
         }
 
-        HttpClient client = BuildHttpClient(publishUri);
-        _deploymentClient = new(client, Log);
+        _httpClient = BuildHttpClient(publishUri);
+        _deploymentClient = new(_httpClient, Log);
         return true;
     }
 
@@ -154,7 +158,13 @@ public sealed class ZipDeployTask(IFileSystem fileSystem, DeploymentClient? clie
 
         if (!Uri.TryCreate(PublishUrl, UriKind.Absolute, out uri) || !IsHttp(uri))
         {
-            Log.LogError(nameof(Strings.Deploy_InvalidPublishUrl), PublishUrl);
+            Log.LogErrorFromResources(nameof(Strings.Deploy_InvalidPublishUrl), PublishUrl);
+            return false;
+        }
+
+        if (!AllowInsecureRemoteConnections && uri.Scheme == Uri.UriSchemeHttp)
+        {
+            Log.LogErrorFromResources(nameof(Strings.Deploy_InsecurePublishUrl), PublishUrl);
             return false;
         }
 

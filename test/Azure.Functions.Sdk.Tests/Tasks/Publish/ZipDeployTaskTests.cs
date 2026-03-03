@@ -30,7 +30,7 @@ public sealed class ZipDeployTaskTests
     public void Execute_ZipFileNotFound_ReturnsFalseAndLogsError()
     {
         // Arrange - file does not exist in MockFileSystem
-        using ZipDeployTask task = CreateTask();
+        using ZipDeploy task = CreateTask();
 
         // Act
         bool result = task.Execute();
@@ -54,7 +54,7 @@ public sealed class ZipDeployTaskTests
         });
 
         DeploymentClient client = CreateDeploymentClient(handler);
-        using ZipDeployTask task = CreateTask(client);
+        using ZipDeploy task = CreateTask(client);
 
         // Act
         bool result = task.Execute();
@@ -75,7 +75,7 @@ public sealed class ZipDeployTaskTests
     {
         // Arrange
         _fileSystem.AddFile(TestZipPath, new MockFileData("fake zip content"));
-        using ZipDeployTask task = CreateTask();
+        using ZipDeploy task = CreateTask();
         task.PublishUrl = invalidUrl;
 
         // Act
@@ -102,7 +102,7 @@ public sealed class ZipDeployTaskTests
         });
 
         DeploymentClient client = CreateDeploymentClient(handler);
-        using ZipDeployTask task = CreateTask(client);
+        using ZipDeploy task = CreateTask(client);
         task.PublishUrl = validUrl;
 
         // Act
@@ -128,7 +128,7 @@ public sealed class ZipDeployTaskTests
             Content = CreateStatusContent(status)
         });
         DeploymentClient client = CreateDeploymentClient(handler);
-        using ZipDeployTask task = CreateTask(client);
+        using ZipDeploy task = CreateTask(client);
 
         // Act
         bool result = task.Execute();
@@ -153,7 +153,7 @@ public sealed class ZipDeployTaskTests
         mockClient
             .Setup(c => c.ZipDeployAsync(It.IsAny<ZipDeployRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(status);
-        using ZipDeployTask task = CreateTask(mockClient.Object);
+        using ZipDeploy task = CreateTask(mockClient.Object);
 
         // Act
         bool result = task.Execute();
@@ -182,7 +182,7 @@ public sealed class ZipDeployTaskTests
             };
         });
         DeploymentClient client = CreateDeploymentClient(handler);
-        using ZipDeployTask task = CreateTask(client);
+        using ZipDeploy task = CreateTask(client);
 
         // Act
         bool result = task.Execute();
@@ -219,7 +219,7 @@ public sealed class ZipDeployTaskTests
             };
         });
         DeploymentClient client = CreateDeploymentClient(handler);
-        using ZipDeployTask task = CreateTask(client);
+        using ZipDeploy task = CreateTask(client);
         task.UseBlobContainerDeploy = useBlobContainer;
 
         // Act
@@ -256,7 +256,7 @@ public sealed class ZipDeployTaskTests
                 ct.ThrowIfCancellationRequested();
                 return Task.FromResult(DeployStatus.Success);
             });
-        using ZipDeployTask task = CreateTask(mockClient.Object);
+        using ZipDeploy task = CreateTask(mockClient.Object);
 
         // Act
         task.Cancel();
@@ -274,7 +274,7 @@ public sealed class ZipDeployTaskTests
     public void Dispose_DoesNotThrow()
     {
         // Arrange
-        ZipDeployTask task = CreateTask();
+        ZipDeploy task = CreateTask();
 
         // Act
         Action act = () => task.Dispose();
@@ -287,7 +287,7 @@ public sealed class ZipDeployTaskTests
     public void Dispose_MultipleDispose_DoesNotThrow()
     {
         // Arrange
-        ZipDeployTask task = CreateTask();
+        ZipDeploy task = CreateTask();
         task.Dispose();
 
         // Act - dispose again
@@ -305,7 +305,7 @@ public sealed class ZipDeployTaskTests
     public void Properties_DefaultValues()
     {
         // Arrange & Act
-        using ZipDeployTask task = new(_fileSystem)
+        using ZipDeploy task = new(_fileSystem)
         {
             BuildEngine = _buildEngine.Object,
         };
@@ -330,15 +330,15 @@ public sealed class ZipDeployTaskTests
     public void BuildHttpClient_UserAgentIsSet()
     {
         // Arrange
-        using ZipDeployTask task = CreateTask();
+        using ZipDeploy task = CreateTask();
         task.DotnetSdkVersion = "10.0.100";
 
         // Act
         HttpClient client = task.BuildHttpClient(new Uri(TestPublishUrl));
 
         // Assert
-        client.DefaultRequestHeaders.UserAgent.Should().Contain(ZipDeployTask.SdkUserAgentHeader);
-        client.DefaultRequestHeaders.UserAgent.Should().Contain(ZipDeployTask.OsUserAgentHeader);
+        client.DefaultRequestHeaders.UserAgent.Should().Contain(ZipDeploy.SdkUserAgentHeader);
+        client.DefaultRequestHeaders.UserAgent.Should().Contain(ZipDeploy.OsUserAgentHeader);
         client.DefaultRequestHeaders.UserAgent.Should().Contain(new ProductInfoHeaderValue("Microsoft.NET.Sdk", "10.0.100"));
     }
 
@@ -363,7 +363,7 @@ public sealed class ZipDeployTaskTests
         return new DeploymentClient(httpClient);
     }
 
-    private ZipDeployTask CreateTask(DeploymentClient? client = null)
+    private ZipDeploy CreateTask(DeploymentClient? client = null)
     {
         return new(_fileSystem, client)
         {

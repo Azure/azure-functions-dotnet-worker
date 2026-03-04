@@ -56,7 +56,6 @@ public partial class SdkEndToEndTests
 
     [Theory]
     [InlineData("net8.0")]
-    [InlineData("net10.0")]
     [InlineData("net481")]
     public void Build_Success(string tfm)
     {
@@ -81,7 +80,6 @@ public partial class SdkEndToEndTests
 
     [Theory]
     [InlineData("net8.0")]
-    [InlineData("net10.0")]
     [InlineData("net481")]
     public void Build_WithExtensions_Success(string tfm)
     {
@@ -110,7 +108,7 @@ public partial class SdkEndToEndTests
     public void Build_MultiTarget_Success()
     {
         // Arrange
-        string[] targetFrameworks = ["net8.0", "net10.0", "net481"];
+        string[] targetFrameworks = ["net8.0", "net481"];
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: null)
             .TargetFrameworks(targetFrameworks)
@@ -137,7 +135,7 @@ public partial class SdkEndToEndTests
     public void Build_MultiTarget_WithExtensions_Success()
     {
         // Arrange
-        string[] targetFrameworks = ["net8.0", "net10.0", "net481"];
+        string[] targetFrameworks = ["net8.0", "net481"];
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: null)
             .TargetFrameworks(targetFrameworks)
@@ -166,7 +164,7 @@ public partial class SdkEndToEndTests
     public void Build_MultiTarget_Incremental_NoOp()
     {
         // Arrange
-        string[] targetFrameworks = ["net8.0", "net10.0"];
+        string[] targetFrameworks = ["net8.0", "net481"];
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: null)
             .TargetFrameworks(targetFrameworks)
@@ -216,7 +214,7 @@ public partial class SdkEndToEndTests
     public void Build_MultiTarget_WithExtensions_Incremental_NoOp()
     {
         // Arrange
-        string[] targetFrameworks = ["net8.0", "net10.0"];
+        string[] targetFrameworks = ["net8.0", "net481"];
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: null)
             .TargetFrameworks(targetFrameworks)

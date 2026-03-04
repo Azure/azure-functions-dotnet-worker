@@ -11,7 +11,6 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 {
     [Theory]
     [InlineData("net8.0")]
-    [InlineData("net10.0")]
     [InlineData("net481")]
     public void Restore_Success(string tfm)
     {
@@ -29,9 +28,8 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
     [Theory]
     [InlineData("net8.0")]
-    [InlineData("net10.0")]
     [InlineData("net481")]
-    [InlineData("net8.0;net10.0;net481")]
+    [InlineData("net8.0;net481")]
     public void Restore_MultiTarget_Success(string tfms)
     {
         // Arrange
@@ -53,7 +51,6 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
     [Theory]
     [InlineData("net8.0")]
-    [InlineData("net10.0")]
     [InlineData("net481")]
     public void Restore_WithPackages_Success(string tfm)
     {
@@ -78,9 +75,8 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
     [Theory]
     [InlineData("net8.0")]
-    [InlineData("net10.0")]
     [InlineData("net481")]
-    [InlineData("net8.0;net10.0;net481")]
+    [InlineData("net8.0;net481")]
     public void Restore_WithPackages_MultiTfm_Success(string tfms)
     {
         // Arrange

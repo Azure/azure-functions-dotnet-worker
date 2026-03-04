@@ -14,14 +14,15 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
-        private readonly IOptionsMonitor<WorkerOptions> _workerOptions;
         private readonly IOptionsMonitor<CosmosDBExtensionOptions> _cosmosExtensionOptions;
 
-        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions, IOptionsMonitor<CosmosDBExtensionOptions> cosmosExtensionOptions)
+        public CosmosDBBindingOptionsSetup(
+            IConfiguration configuration,
+            AzureComponentFactory componentFactory,
+            IOptionsMonitor<CosmosDBExtensionOptions> cosmosExtensionOptions)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
-            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _cosmosExtensionOptions = cosmosExtensionOptions ?? throw new ArgumentNullException(nameof(cosmosExtensionOptions));
         }
 

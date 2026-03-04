@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using AwesomeAssertions.Execution;
@@ -63,7 +63,10 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
         _chain
             .ForCondition(Subject.ErrorEvents.Count == 0)
             .BecauseOf(because, becauseArgs)
-            .FailWith("Expected {context:BuildOutput} to have no errors{reason}, but found {0}.", Subject.ErrorEvents.Count);
+            .FailWith(
+                "Expected {context:BuildOutput} to have no errors{reason}, but found {0}{1}",
+                Subject.ErrorEvents.Count,
+                FormatBuildEvents(Subject.ErrorEvents));
         return new AndConstraint<BuildOutputAssertions>(this);
     }
 
@@ -74,7 +77,10 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
         _chain
             .ForCondition(Subject.WarningEvents.Count == 0)
             .BecauseOf(because, becauseArgs)
-            .FailWith("Expected {context:BuildOutput} to have no warnings{reason}, but found {0}.", Subject.WarningEvents.Count);
+            .FailWith(
+                "Expected {context:BuildOutput} to have no warnings{reason}, but found {0}{1}",
+                Subject.WarningEvents.Count,
+                FormatBuildEvents(Subject.WarningEvents));
         return new AndConstraint<BuildOutputAssertions>(this);
     }
 
@@ -85,7 +91,10 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
         _chain
             .ForCondition(Subject.ErrorEvents.Count == 1)
             .BecauseOf(because, becauseArgs)
-            .FailWith("Expected {context:BuildOutput} to have a single error{reason}, but found {0}.", Subject.ErrorEvents.Count);
+            .FailWith(
+                "Expected {context:BuildOutput} to have a single error{reason}, but found {0}{1}",
+                Subject.ErrorEvents.Count,
+                FormatBuildEvents(Subject.ErrorEvents));
         return new AndWhichConstraint<BuildOutputAssertions, BuildErrorEventArgs>(this, Subject.ErrorEvents.Single());
     }
 
@@ -96,8 +105,40 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
         _chain
             .ForCondition(Subject.WarningEvents.Count == 1)
             .BecauseOf(because, becauseArgs)
-            .FailWith("Expected {context:BuildOutput} to have a single warning{reason}, but found {0}.", Subject.WarningEvents.Count);
+            .FailWith(
+                "Expected {context:BuildOutput} to have a single warning{reason}, but found {0}{1}",
+                Subject.WarningEvents.Count,
+                FormatBuildEvents(Subject.WarningEvents));
         return new AndWhichConstraint<BuildOutputAssertions, BuildWarningEventArgs>(this, Subject.WarningEvents.Single());
+    }
+
+    private static string FormatBuildEvents<T>(IEnumerable<T> events)
+        where T : BuildEventArgs
+    {
+        const string divider = "-------------------------------------------------------------";
+        string join = $"{Environment.NewLine}{divider}{Environment.NewLine}";
+        return join + string.Join(join, events.Select(FormatBuildEvent)) + join;
+    }
+
+    private static string? FormatBuildEvent(BuildEventArgs e)
+    {
+        static string Code(BuildEventArgs e)
+        {
+            string c = e switch
+            {
+                BuildErrorEventArgs error => string.IsNullOrEmpty(error.Code)
+                    ? "<no_code>" : error.Code,
+                BuildWarningEventArgs warning => string.IsNullOrEmpty(warning.Code)
+                    ? "<no_code>" : warning.Code,
+                BuildMessageEventArgs message => string.IsNullOrEmpty(message.Code)
+                    ? message.Importance.ToString() : message.Code,
+                _ => "<no_code>",
+            };
+
+            return $"{c}: ";
+        }
+
+        return $"{Code(e)}{e.Message}";
     }
 
     private class Formatter : IValueFormatter

@@ -11,7 +11,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 {
     private string GeneratedProjectDirectory => TestRootPath + "/obj/azure_functions";
     private string GeneratedProjectPath => GeneratedProjectDirectory + "/azure_functions.g.csproj";
-    private string GeneratedHashPath => GeneratedProjectDirectory + "/azure_functions.package.hash";
+    private string GeneratedHashPath => GeneratedProjectDirectory + "/azure_functions.g.csproj.hash";
     private string GeneratedProjectLockFile => GeneratedProjectDirectory + "/obj/project.assets.json";
     private string RestoreMarker => GeneratedProjectDirectory + "/restored.marker";
 

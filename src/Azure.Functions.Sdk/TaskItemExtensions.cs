@@ -14,6 +14,16 @@ public static class TaskItemExtensions
     extension(ITaskItem taskItem)
     {
         /// <summary>
+        /// Gets or sets the "TargetFramework" metadata on the task item.
+        /// </summary>
+        public string TargetFramework
+        {
+            get => taskItem.GetMetadata("TargetFramework") ?? string.Empty;
+            set => taskItem.SetMetadata("TargetFramework", value);
+        }
+
+
+        /// <summary>
         /// Gets or sets the "Version" metadata on the task item.
         /// </summary>
         public string Version

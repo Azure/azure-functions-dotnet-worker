@@ -11,6 +11,7 @@ namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 
 public sealed class ResolveExtensionPackagesTests : IDisposable
 {
+    private const string TargetFramework = "net8.0";
     private readonly TempDirectory _temp = new();
 
     public void Dispose() => _temp.Dispose();
@@ -140,7 +141,8 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         package.Should().HaveItemSpec(webJobs.Name)
             .And.HaveMetadata("Version", webJobs.Version)
             .And.HaveMetadata("SourcePackageId", worker.Name)
-            .And.HaveMetadata("IsImplicitlyDefined", "true");
+            .And.HaveMetadata("IsImplicitlyDefined", "true")
+            .And.HaveMetadata("TargetFramework", TargetFramework);
     }
 
     private static ResolveExtensionPackages CreateTask(
@@ -156,7 +158,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     private string RestoreProject(Action<ProjectCreator>? configure = null)
     {
         ProjectCreator project = ProjectCreator.Templates.NetCoreProject(
-            path: _temp.GetRandomCsproj(), targetFramework: "net8.0", configure: configure);
+            path: _temp.GetRandomCsproj(), targetFramework: TargetFramework, configure: configure);
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
         project.TryGetPropertyValue("ProjectAssetsFile", out string? value);

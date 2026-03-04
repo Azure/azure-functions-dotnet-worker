@@ -6,6 +6,7 @@ using System.IO.Abstractions;
 using System.Text;
 using System.Xml;
 using Microsoft.Build.Framework;
+using NuGet.Frameworks;
 using NuGet.ProjectModel;
 
 namespace Azure.Functions.Sdk.Tasks.Extensions;
@@ -45,23 +46,55 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
     }
 
     [Required]
-    public ITaskItem[] ExtensionPackages { get; set; } = [];
+    public ITaskItem[] Packages { get; set; } = [];
 
     [Required]
-    public string ProjectPath { get; set; } = string.Empty;
-
-    public string? HashFilePath { get; set; }
+    public ITaskItem[] Projects { get; set; } = [];
 
     public override bool Execute()
     {
-        string hash = CalculateHash();
-        if (!ShouldRun(hash))
+        static bool IsTfmMatch(NuGetFramework left, string right)
+        {
+            // TFMs can be specified in different formats (e.g. net8.0 vs net80), so we need to normalize them before comparing.
+            NuGetFramework rightFramework = NuGetFramework.Parse(right);
+            return left.Equals(rightFramework);
+        }
+
+        Dictionary<Project, IEnumerable<ITaskItem>> packagesByTfm = [];
+        foreach (ITaskItem projectItem in Projects)
+        {
+            Project project = Project.Create(projectItem);
+            packagesByTfm[project] = Packages.Where(p => IsTfmMatch(project.Framework, p.TargetFramework));
+        }
+
+        bool success = true;
+        foreach (KeyValuePair<Project, IEnumerable<ITaskItem>> kvp in packagesByTfm)
+        {;
+            if (!Execute(kvp.Key, kvp.Value))
+            {
+                success = false;
+            }
+        }
+
+        return success;
+    }
+
+    private bool Execute(Project project, IEnumerable<ITaskItem> packages)
+    {
+        string hash = CalculateHash(packages);
+        if (!ShouldRun(project, hash))
         {
             return true;
         }
 
-        _fileSystem.File.Delete(ProjectPath);
-        using Stream stream = _fileSystem.File.OpenWrite(ProjectPath);
+        if (_fileSystem.Path.GetDirectoryName(project.Path) is string directory
+            && !_fileSystem.Directory.Exists(directory))
+        {
+            _fileSystem.Directory.CreateDirectory(directory);
+        }
+
+        _fileSystem.File.Delete(project.Path);
+        using Stream stream = _fileSystem.File.OpenWrite(project.Path);
         using XmlWriter writer = XmlWriter.Create(stream, _xmlSettings);
         writer.WriteComment(string.Format(CultureInfo.InvariantCulture, Disclaimer, _time.GetUtcNow(), hash));
         writer.WriteStartElement("Project");
@@ -69,11 +102,11 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
         // Omit version so the outer projects version is implicitly used.
         writer.WriteAttributeString("Sdk", ThisAssembly.Name);
 
-        if (ExtensionPackages.Length > 0)
+        if (packages.Any())
         {
             writer.WriteStartElement("ItemGroup");
 
-            foreach (ITaskItem package in ExtensionPackages)
+            foreach (ITaskItem package in packages)
             {
                 writer.WriteStartElement("PackageReference");
                 writer.WriteAttributeString("Include", package.ItemSpec);
@@ -85,21 +118,21 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
         }
 
         writer.WriteEndElement();
-        UpdateHash(hash);
+        UpdateHash(project, hash);
         return true;
     }
 
-    private bool ShouldRun(string currentHash)
+    private bool ShouldRun(Project project, string currentHash)
     {
-        if (string.IsNullOrEmpty(HashFilePath)
-            || !_fileSystem.File.Exists(HashFilePath)
-            || !_fileSystem.File.Exists(ProjectPath))
+        if (string.IsNullOrEmpty(project.HashPath)
+            || !_fileSystem.File.Exists(project.HashPath)
+            || !_fileSystem.File.Exists(project.Path))
         {
             Log.LogMessage(MessageImportance.Low, Strings.ExtensionProject_DoesNotExist);
             return true;
         }
 
-        string existingHash = _fileSystem.File.ReadAllText(HashFilePath);
+        string existingHash = _fileSystem.File.ReadAllText(project.HashPath);
         if (existingHash != currentHash)
         {
             Log.LogMessage(MessageImportance.Low, Strings.ExtensionProject_HashOutOfDate, existingHash, currentHash);
@@ -112,14 +145,9 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
         }
     }
 
-    private void UpdateHash(string hash)
+    private void UpdateHash(Project project, string hash)
     {
-        if (string.IsNullOrEmpty(HashFilePath))
-        {
-            return;
-        }
-
-        _fileSystem.File.WriteAllText(HashFilePath!, hash);
+        _fileSystem.File.WriteAllText(project.HashPath, hash);
         Log.LogMessage(MessageImportance.Low, Strings.ExtensionProject_FinishedGenerating, hash);
     }
 
@@ -133,7 +161,7 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
     /// - The tooling generating the hash itself (so any change to tooling forces a project update).
     /// - The list of extension packages (identity and version).
     /// </remarks>
-    private string CalculateHash()
+    private string CalculateHash(IEnumerable<ITaskItem> packages)
     {
         using FnvHash64Function algorithm = new();
         using HashObjectWriter hash = new(algorithm);
@@ -143,16 +171,28 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
         hash.WriteNameValue("moduleId", ThisAssembly.ModuleVersionId);
 
         hash.WriteArrayStart("packages");
-        foreach (ITaskItem item in ExtensionPackages)
+        foreach (ITaskItem item in packages)
         {
             hash.WriteObjectStart();
             hash.WriteNameValue("identity", item.ItemSpec);
-            hash.WriteNameValue("version", item.GetMetadata("Version"));
+            hash.WriteNameValue("version", item.Version);
+            hash.WriteNameValue("targetFramework", item.TargetFramework);
             hash.WriteObjectEnd();
         }
 
         hash.WriteArrayEnd();
 
         return hash.GetHash();
+    }
+
+    private record Project(string Path, string HashPath, NuGetFramework Framework)
+    {
+        public static Project Create(ITaskItem item)
+        {
+            string path = item.GetMetadata("ProjectFile");
+            string hashPath = $"{path}.hash";
+            NuGetFramework framework = NuGetFramework.Parse(item.ItemSpec);
+            return new(path, hashPath, framework);
+        }
     }
 }

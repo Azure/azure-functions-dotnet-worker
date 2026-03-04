@@ -139,10 +139,21 @@ internal static class ProjectCreatorExtensions
             return Path.Combine(intermediateOutputPath, subPath ?? string.Empty);
         }
 
-        public string GetFunctionsExtensionProjectDirectory()
+        public string GetFunctionsExtensionProjectDirectory(string? tfm = null)
         {
-            project.TryGetPropertyValue("_AzureFunctionsExtensionProjectDirectory", out string? path);
+            project.TryGetItems("_AzureFunctionsTargetFramework", out IReadOnlyCollection<ProjectItem>? items);
+            if (items is null || items.Count == 0)
+            {
+                throw new InvalidOperationException("Project does not contain any _AzureFunctionsTargetFramework items.");
+            }
+
+            ProjectItem item = string.IsNullOrEmpty(tfm)
+                ? items.Single()
+                : items.Single(x => x.EvaluatedInclude.Equals(tfm, StringComparison.OrdinalIgnoreCase));
+
+            string path = item.GetMetadataValue("ProjectFile");
             path = NormalizeSeparators(path!);
+            path = Path.GetDirectoryName(path)!;
             string root = Path.GetDirectoryName(project.FullPath)!;
             return Path.Combine(root, path);
         }

@@ -6,11 +6,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -415,6 +419,90 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
             Assert.Null(conversionResult.Value);
         }
 
+        [Fact]
+        public async Task ConvertAsync_SinglePOCO_UsesSerializerFromBindingOptions()
+        {
+            // Arrange - mock serializer to verify it's called during deserialization
+            var expected = new ToDoItem { Id = "1", Description = "Custom serializer result" };
+            var mockSerializer = new Mock<ObjectSerializer>();
+            mockSerializer
+                .Setup(s => s.DeserializeAsync(It.IsAny<Stream>(), typeof(ToDoItem), It.IsAny<CancellationToken>()))
+                .Returns(new ValueTask<object>(expected));
+
+            var (converter, mockClient) = CreateConverterWithSerializer(mockSerializer.Object);
+
+            var mockResponse = new Mock<ResponseMessage>();
+            mockResponse.Setup(x => x.Content).Returns(new MemoryStream(Encoding.UTF8.GetBytes("{}")));
+
+            var mockContainer = new Mock<Container>();
+            mockContainer
+                .Setup(m => m.ReadItemStreamAsync("1", It.IsAny<PartitionKey>(), null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockResponse.Object);
+            mockClient
+                .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockContainer.Object);
+
+            var grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(
+                GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
+            var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
+
+            // Act
+            var result = await converter.ConvertAsync(context);
+
+            // Assert - the custom serializer was invoked for deserialization
+            Assert.Equal(ConversionStatus.Succeeded, result.Status);
+            Assert.Same(expected, result.Value);
+            mockSerializer.Verify(
+                s => s.DeserializeAsync(It.IsAny<Stream>(), typeof(ToDoItem), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_CollectionPOCO_UsesSerializerFromBindingOptions()
+        {
+            // Arrange - mock serializer that delegates to a real JsonObjectSerializer
+            var jsonSerializer = new JsonObjectSerializer(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var mockSerializer = new Mock<ObjectSerializer>();
+            mockSerializer
+                .Setup(s => s.DeserializeAsync(It.IsAny<Stream>(), It.IsAny<Type>(), It.IsAny<CancellationToken>()))
+                .Returns((Stream stream, Type type, CancellationToken ct) => jsonSerializer.DeserializeAsync(stream, type, ct));
+
+            var (converter, mockClient) = CreateConverterWithSerializer(mockSerializer.Object);
+
+            var json = @"{""Documents"":[{""Id"":""1"",""Description"":""Item 1""},{""Id"":""2"",""Description"":""Item 2""}],""_rid"":""test="",""_count"":2}";
+            var mockFeedResponse = new Mock<ResponseMessage>();
+            mockFeedResponse.Setup(x => x.StatusCode).Returns(HttpStatusCode.OK);
+            mockFeedResponse.Setup(x => x.Content).Returns(new MemoryStream(Encoding.UTF8.GetBytes(json)));
+
+            var mockFeedIterator = new Mock<FeedIterator>();
+            mockFeedIterator.SetupSequence(x => x.HasMoreResults).Returns(true).Returns(false);
+            mockFeedIterator.Setup(x => x.ReadNextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mockFeedResponse.Object);
+
+            var mockContainer = new Mock<Container>();
+            mockContainer
+                .Setup(m => m.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(), default, It.IsAny<QueryRequestOptions>()))
+                .Returns(mockFeedIterator.Object);
+            mockClient
+                .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockContainer.Object);
+
+            var grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(
+                GetTestBinaryData(query: "SELECT * FROM c"), "CosmosDB");
+            var context = new TestConverterContext(typeof(IEnumerable<ToDoItem>), grpcModelBindingData);
+
+            // Act
+            var result = await converter.ConvertAsync(context);
+
+            // Assert - the tracking serializer was used for collection deserialization
+            Assert.Equal(ConversionStatus.Succeeded, result.Status);
+            var items = Assert.IsAssignableFrom<IList<ToDoItem>>(result.Value);
+            Assert.Equal(2, items.Count);
+            Assert.Equal("Item 1", items[0].Description);
+            mockSerializer.Verify(
+                s => s.DeserializeAsync(It.IsAny<Stream>(), It.IsAny<Type>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
         private BinaryData GetTestBinaryData(string db = "testDb", string container = "testContainer", string connection = "cosmosConnection", string id = "", string partitionKey = "", string query = "", string location = "", string queryParams = "{}")
         {
             string jsonData = $@"{{
@@ -429,6 +517,32 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
                             }}";
 
             return new BinaryData(jsonData);
+        }
+
+        private static (CosmosDBConverter converter, Mock<CosmosClient> mockClient) CreateConverterWithSerializer(
+            ObjectSerializer serializer)
+        {
+            return CreateConverterWithExtensionOptions(new CosmosDBExtensionOptions { Serializer = serializer });
+        }
+
+        private static (CosmosDBConverter converter, Mock<CosmosClient> mockClient) CreateConverterWithExtensionOptions(
+            CosmosDBExtensionOptions extensionOptions)
+        {
+            var mockClient = new Mock<CosmosClient>();
+
+            var mockBindingOptions = new Mock<CosmosDBBindingOptions>();
+            mockBindingOptions.Object.CosmosExtensionOptions = extensionOptions;
+            mockBindingOptions
+                .Setup(m => m.GetClient(It.IsAny<string>()))
+                .Returns(mockClient.Object);
+
+            var mockMonitor = new Mock<IOptionsMonitor<CosmosDBBindingOptions>>();
+            mockMonitor
+                .Setup(m => m.Get(It.IsAny<string>()))
+                .Returns(mockBindingOptions.Object);
+
+            var converter = new CosmosDBConverter(mockMonitor.Object, new Mock<ILogger<CosmosDBConverter>>().Object);
+            return (converter, mockClient);
         }
 
         public class ToDoItem

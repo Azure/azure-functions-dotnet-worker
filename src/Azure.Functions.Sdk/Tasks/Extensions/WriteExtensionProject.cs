@@ -60,15 +60,15 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
             return left.Equals(rightFramework);
         }
 
-        Dictionary<Project, IEnumerable<ITaskItem>> packagesByTfm = [];
+        Dictionary<Project, ITaskItem[]> packagesByTfm = [];
         foreach (ITaskItem projectItem in Projects)
         {
             Project project = Project.Create(projectItem);
-            packagesByTfm[project] = Packages.Where(p => IsTfmMatch(project.Framework, p.TargetFramework));
+            packagesByTfm[project] = [.. Packages.Where(p => IsTfmMatch(project.Framework, p.TargetFramework))];
         }
 
         bool success = true;
-        foreach (KeyValuePair<Project, IEnumerable<ITaskItem>> kvp in packagesByTfm)
+        foreach (KeyValuePair<Project, ITaskItem[]> kvp in packagesByTfm)
         {;
             if (!Execute(kvp.Key, kvp.Value))
             {

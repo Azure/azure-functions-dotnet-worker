@@ -97,9 +97,9 @@ internal static class ProjectCreatorExtensions
 
     extension(ProjectCreator project)
     {
-        public ProjectCreator TargetFrameworks(IEnumerable<string> targetFramework)
+        public ProjectCreator TargetFrameworks(IEnumerable<string> targetFrameworks)
         {
-            string tfm = string.Join(";", targetFramework);
+            string tfm = string.Join(";", targetFrameworks);
             return project.Property("TargetFramework", string.Empty)
                 .Property("TargetFrameworks", tfm);
         }

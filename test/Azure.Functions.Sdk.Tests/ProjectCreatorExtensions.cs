@@ -88,7 +88,7 @@ internal static class ProjectCreatorExtensions
         {
             return ProjectCreator.Templates.SdkCsproj(
                 path: path,
-                targetFramework: targetFramework,
+                targetFramework: targetFramework, // set below
                 projectCreator: configure,
                 projectCollection: projectCollection,
                 globalProperties: GetGlobalProperties(globalProperties));
@@ -97,6 +97,13 @@ internal static class ProjectCreatorExtensions
 
     extension(ProjectCreator project)
     {
+        public ProjectCreator TargetFrameworks(IEnumerable<string> targetFramework)
+        {
+            string tfm = string.Join(";", targetFramework);
+            return project.Property("TargetFramework", string.Empty)
+                .Property("TargetFrameworks", tfm);
+        }
+
         public ProjectCreator ItemPackageReference(NugetPackage package)
         {
             return project.ItemPackageReference(package.Name, package.Version);

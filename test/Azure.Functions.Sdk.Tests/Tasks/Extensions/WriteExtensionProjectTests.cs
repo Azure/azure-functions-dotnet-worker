@@ -11,8 +11,8 @@ namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 public sealed class WriteExtensionProjectTests
 {
     private const string TargetFramework = "net8.0";
-    private const string ProjectPath = "test/output.g.csproj";
-    private const string HashPath = "test/output.g.csproj.hash";
+    private const string ProjectPath = $"test_{TargetFramework}/output.g.csproj";
+    private const string HashPath = $"test_{TargetFramework}/output.g.csproj.hash";
     private readonly Mock<IBuildEngine> _buildEngine = new();
     private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly MockFileSystem _fileSystem = new();
@@ -21,9 +21,6 @@ public sealed class WriteExtensionProjectTests
     public WriteExtensionProjectTests()
     {
         _timeProvider.Setup(x => x.GetUtcNow()).Returns(_fixedTime);
-        
-        // Setup mock file system with directories
-        _fileSystem.AddDirectory("test");
     }
 
     [Fact]
@@ -148,6 +145,44 @@ public sealed class WriteExtensionProjectTests
         ValidateProject(projectContent, [package2]);
     }
 
+    [Fact]
+    public void MultiTarget_GeneratesMultipleProjects()
+    {
+        // Arrange
+        Dictionary<TaskItem, TaskItem[]> items = new()
+        {
+            [CreateProject("net8.0")] = [
+                CreatePackage("TestPackage", "1.0.0", "net8.0"), CreatePackage("TestPackage2", "1.0.0", "net8.0")
+            ],
+            [CreateProject("net10.0")] = [
+                CreatePackage("TestPackage", "1.0.0", "net10.0"), CreatePackage("TestPackage2", "1.0.0", "net10.0")
+            ],
+            [CreateProject("net472")] = [
+                CreatePackage("TestPackage", "2.0.0", "net472"), CreatePackage("TestPackage2", "2.0.0", "net472")
+            ]
+        };
+        WriteExtensionProject task = CreateTask(packages: [..items.SelectMany(x => x.Value)]);
+        task.Projects = [..items.Keys];
+
+        // Act
+        bool result = task.Execute();
+
+        // Assert
+        result.Should().BeTrue();
+        foreach (KeyValuePair<TaskItem, TaskItem[]> kvp in items)
+        {
+            string path = kvp.Key.GetMetadata("ProjectFile");
+            _fileSystem.File.Exists(path).Should().BeTrue();
+            string content = _fileSystem.File.ReadAllText(path);
+            ValidateProject(content, kvp.Value);
+
+            string hashPath = $"{path}.hash";
+            _fileSystem.File.Exists(hashPath).Should().BeTrue();
+            string hash = _fileSystem.File.ReadAllText(hashPath);
+            hash.Should().NotBeNullOrEmpty();
+        }
+    }
+
     private static void ValidateProject(string content, TaskItem[] packages)
     {
         XmlDocument doc = new();
@@ -170,19 +205,24 @@ public sealed class WriteExtensionProjectTests
         }
     }
 
-    private static TaskItem CreatePackage(string id, string version)
+    private static TaskItem CreatePackage(string id, string version, string tfm = TargetFramework)
     {
-        return new(id) { Version = version, TargetFramework = TargetFramework };
+        return new(id) { Version = version, TargetFramework = tfm };
+    }
+
+    private static TaskItem CreateProject(string tfm)
+    {
+        TaskItem project = new(tfm);
+        project.SetMetadata("ProjectFile", $"test_{tfm}/output.g.csproj");
+        return project;
     }
 
     private WriteExtensionProject CreateTask(ITaskItem[]? packages = null)
     {
-        TaskItem project = new(TargetFramework);
-        project.SetMetadata("ProjectFile", ProjectPath);
         return new WriteExtensionProject(_fileSystem, _timeProvider.Object)
         {
             BuildEngine = _buildEngine.Object,
-            Projects = [project],
+            Projects = [CreateProject(TargetFramework)],
             Packages = packages ?? []
         };
     }

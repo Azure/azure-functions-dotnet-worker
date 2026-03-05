@@ -169,6 +169,7 @@ public partial class SdkEndToEndTests
             GetTempCsproj(), targetFramework: null)
             .TargetFrameworks(targetFrameworks)
             .Property("AssemblyName", "MyFunctionApp")
+            .Property("LangVersion", "latest")
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
 
         // Act
@@ -219,6 +220,7 @@ public partial class SdkEndToEndTests
             GetTempCsproj(), targetFramework: null)
             .TargetFrameworks(targetFrameworks)
             .Property("AssemblyName", "MyFunctionApp")
+            .Property("LangVersion", "latest")
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs)
             .ItemPackageReference(NugetPackage.ServiceBus)
             .ItemPackageReference(NugetPackage.Storage);

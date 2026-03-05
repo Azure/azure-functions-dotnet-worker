@@ -9,18 +9,14 @@ namespace Azure.Functions.Sdk.Tests.Integration;
 
 public partial class SdkEndToEndTests : MSBuildSdkTestBase
 {
-    private string GeneratedProjectDirectory => TestRootPath + "/obj/azure_functions";
-    private string GeneratedProjectPath => GeneratedProjectDirectory + "/azure_functions.g.csproj";
-    private string GeneratedHashPath => GeneratedProjectDirectory + "/azure_functions.package.hash";
-    private string GeneratedProjectLockFile => GeneratedProjectDirectory + "/obj/project.assets.json";
-    private string RestoreMarker => GeneratedProjectDirectory + "/restored.marker";
-
-    [Fact]
-    public void Restore_Success()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net481")]
+    public void Restore_Success(string tfm)
     {
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
-            GetTempCsproj());
+            path: GetTempCsproj(), targetFramework: tfm);
 
         // Act
         BuildOutput output = project.Restore();
@@ -30,12 +26,37 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         ValidateProject([]);
     }
 
-    [Fact]
-    public void Restore_WithPackages_Success()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net481")]
+    [InlineData("net8.0;net481")]
+    public void Restore_MultiTarget_Success(string tfms)
+    {
+        // Arrange
+        string[] targetFrameworks = tfms.Split(';');
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: null)
+            .TargetFrameworks(targetFrameworks);
+
+        // Act
+        BuildOutput output = project.Restore();
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        foreach (string tfm in targetFrameworks)
+        {
+            ValidateProject(tfm, []);
+        }
+    }
+
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net481")]
+    public void Restore_WithPackages_Success(string tfm)
     {
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
-            GetTempCsproj())
+            path: GetTempCsproj(), targetFramework: tfm)
             .ItemPackageReference(NugetPackage.ServiceBus)
             .ItemPackageReference(NugetPackage.Storage);
 
@@ -46,10 +67,41 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         output.Should().BeSuccessful().And.HaveNoIssues();
         ValidateProject(
             [
-                .. NugetPackage.ServiceBus.WebJobsPackages,
-                .. NugetPackage.StorageBlobs.WebJobsPackages,
-                .. NugetPackage.StorageQueues.WebJobsPackages,
+                ..NugetPackage.ServiceBus.WebJobsPackages,
+                ..NugetPackage.StorageBlobs.WebJobsPackages,
+                ..NugetPackage.StorageQueues.WebJobsPackages,
             ]);
+    }
+
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net481")]
+    [InlineData("net8.0;net481")]
+    public void Restore_WithPackages_MultiTfm_Success(string tfms)
+    {
+        // Arrange
+        string[] targetFrameworks = tfms.Split(';');
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            path: GetTempCsproj(), targetFramework: null)
+            .TargetFrameworks(targetFrameworks)
+            .ItemPackageReference(NugetPackage.ServiceBus)
+            .ItemPackageReference(NugetPackage.Storage);
+
+        // Act
+        BuildOutput output = project.Restore();
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        foreach (string tfm in targetFrameworks)
+        {
+            ValidateProject(
+                tfm,
+                [
+                    ..NugetPackage.ServiceBus.WebJobsPackages,
+                    ..NugetPackage.StorageBlobs.WebJobsPackages,
+                    ..NugetPackage.StorageQueues.WebJobsPackages,
+                ]);
+        }
     }
 
     [Fact]
@@ -71,8 +123,9 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             .Which.Should().BeSdkMessage((logMessage, "v3"))
             .And.HaveSender("FuncSdkLog");
 
-        File.Exists(GeneratedProjectPath).Should().BeFalse();
-        File.Exists(GeneratedHashPath).Should().BeFalse();
+        GeneratedProject p = GeneratedProject.Create(TestRootPath, null);
+        File.Exists(p.ProjectPath).Should().BeFalse();
+        File.Exists(p.HashPath).Should().BeFalse();
     }
 
     [Fact]
@@ -91,14 +144,15 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         output.Should().BeSuccessful().And.HaveNoIssues();
         ValidateProject(
             [
-                .. NugetPackage.ServiceBus.WebJobsPackages,
-                .. NugetPackage.StorageBlobs.WebJobsPackages,
-                .. NugetPackage.StorageQueues.WebJobsPackages,
+                ..NugetPackage.ServiceBus.WebJobsPackages,
+                ..NugetPackage.StorageBlobs.WebJobsPackages,
+                ..NugetPackage.StorageQueues.WebJobsPackages,
             ]);
 
-        FileInfo generated = new(GeneratedProjectPath);
-        FileInfo hash = new(GeneratedHashPath);
-        FileInfo marker = new(RestoreMarker);
+        GeneratedProject p = GeneratedProject.Create(TestRootPath, null);
+        FileInfo generated = new(p.ProjectPath);
+        FileInfo hash = new(p.HashPath);
+        FileInfo marker = new(p.RestoreMarker);
 
         DateTime generatedWrite = generated.LastWriteTimeUtc;
         DateTime hashWrite = hash.LastWriteTimeUtc;
@@ -138,16 +192,10 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             .And.HaveSender("FuncSdkLog");
     }
 
-    private void ValidateProject(params NugetPackage[] packages)
+    private static void ValidateProjectContents(GeneratedProject project, params NugetPackage[] packages)
     {
-        ValidateProjectContents(packages);
-        ValidateProjectRestored();
-    }
-
-    private void ValidateProjectContents(params NugetPackage[] packages)
-    {
-        File.Exists(GeneratedHashPath).Should().BeTrue();
-        FileInfo file = new(GeneratedProjectPath);
+        File.Exists(project.HashPath).Should().BeTrue();
+        FileInfo file = new(project.ProjectPath);
         file.Exists.Should().BeTrue();
 
         using Stream stream = file.OpenRead();
@@ -171,11 +219,38 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         }
     }
 
-    private void ValidateProjectRestored()
+    private static void ValidateProjectRestored(GeneratedProject project)
     {
-        Action read = () => LockFile.Read(GeneratedProjectLockFile);
+        Action read = () => LockFile.Read(project.AssetsPath);
         read.Should().NotThrow();
 
-        File.Exists(RestoreMarker).Should().BeTrue();
+        File.Exists(project.RestoreMarker).Should().BeTrue();
+    }
+
+    private void ValidateProject(params NugetPackage[] packages)
+    {
+        ValidateProject(tfm: null, packages);
+    }
+
+    private void ValidateProject(string? tfm, params NugetPackage[] packages)
+    {
+        GeneratedProject project = GeneratedProject.Create(TestRootPath, tfm);
+        ValidateProjectContents(project, packages);
+        ValidateProjectRestored(project);
+    }
+
+    private record GeneratedProject(string ProjectPath, string HashPath, string AssetsPath, string RestoreMarker)
+    { 
+        public static GeneratedProject Create(string rootPath, string? tfm)
+        {
+            string directory = string.IsNullOrEmpty(tfm)
+                ? $"{rootPath}/obj/azure_functions"
+                : $"{rootPath}/obj/azure_functions_{tfm}";
+            return new(
+                ProjectPath: $"{directory}/azure_functions.g.csproj",
+                HashPath: $"{directory}/azure_functions.g.csproj.hash",
+                AssetsPath: $"{directory}/obj/project.assets.json",
+                RestoreMarker: $"{directory}/restored.marker");
+        }
     }
 }

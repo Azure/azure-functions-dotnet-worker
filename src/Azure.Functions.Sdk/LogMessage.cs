@@ -62,6 +62,9 @@ internal readonly struct LogMessage
     public static readonly LogMessage Warning_ExtensionsNotRestored
         = new(nameof(Strings.AZFW0108_Warning_ExtensionsNotRestored));
 
+    public static readonly LogMessage Warning_ExtensionPackageTargetFrameworkMissing
+        = new(nameof(Strings.AZFW0109_Warning_ExtensionPackageTargetFrameworkMissing));
+
     /// <summary>
     /// Initializes a new instance of the <see cref="LogMessage"/> struct.
     /// Parses the <see cref="Level"/> and <see cref="Code"/> properties from the given <paramref name="id"/>.
@@ -150,6 +153,7 @@ internal readonly struct LogMessage
             nameof(Error_UnknownFunctionsVersion) => Error_UnknownFunctionsVersion,
             nameof(Warning_UnsupportedTargetFramework) => Warning_UnsupportedTargetFramework,
             nameof(Warning_ExtensionsNotRestored) => Warning_ExtensionsNotRestored,
+            nameof(Warning_ExtensionPackageTargetFrameworkMissing) => Warning_ExtensionPackageTargetFrameworkMissing,
             _ => throw new ArgumentException($"Log message with id '{id}' not found.", nameof(id)),
         };
     }

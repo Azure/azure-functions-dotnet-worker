@@ -28,7 +28,7 @@ public sealed class ValidateExtensionPackagesTests
     public void InvalidVersion_Error()
     {
         // Arrange
-        ITaskItem package1 = CreatePackage("PackageA", "NotAValidVersion");
+        ITaskItem package1 = CreatePackage("PackageA", "NotAValidVersion", "net10.0");
         ValidateExtensionPackages task = CreateTask(package1);
 
         // Act
@@ -44,7 +44,7 @@ public sealed class ValidateExtensionPackagesTests
     public void DuplicatePackage_Warning()
     {
         // Arrange
-        ITaskItem package1 = CreatePackage("PackageA", "1.0.0");
+        ITaskItem package1 = CreatePackage("PackageA", "1.0.0", "net10.0");
         ValidateExtensionPackages task = CreateTask(package1, package1);
 
         // Act
@@ -60,8 +60,8 @@ public sealed class ValidateExtensionPackagesTests
     public void ConflictingPackage_Error()
     {
         // Arrange
-        ITaskItem package1 = CreatePackage("PackageA", "1.0.0");
-        ITaskItem package2 = CreatePackage("PackageA", "1.1.0");
+        ITaskItem package1 = CreatePackage("PackageA", "1.0.0", "net10.0");
+        ITaskItem package2 = CreatePackage("PackageA", "1.1.0", "net10.0");
         ValidateExtensionPackages task = CreateTask(package1, package2);
 
         // Act
@@ -77,8 +77,8 @@ public sealed class ValidateExtensionPackagesTests
     public void UniquePackages_Added()
     {
         // Arrange
-        ITaskItem package1 = CreatePackage("PackageA", "1.0.0");
-        ITaskItem package2 = CreatePackage("PackageB", "2.0.0");
+        ITaskItem package1 = CreatePackage("PackageA", "1.0.0", "net10.0");
+        ITaskItem package2 = CreatePackage("PackageB", "2.0.0", "net10.0");
         ValidateExtensionPackages task = CreateTask(package1, package2);
 
         // Act
@@ -90,9 +90,42 @@ public sealed class ValidateExtensionPackagesTests
         _buildEngine.VerifyNoOtherCalls();
     }
 
-    private static TaskItem CreatePackage(string id, string version)
+    [Fact]
+    public void PackageMissingTfm_Warning()
     {
-        return new(id) { Version = version };
+        // Arrange
+        ITaskItem package1 = CreatePackage("PackageA", "1.0.0", string.Empty);
+        ValidateExtensionPackages task = CreateTask(package1);
+
+        // Act
+        bool result = task.Execute();
+
+        // Assert
+        result.Should().BeTrue();
+        task.FilteredPackages.Should().BeEmpty();
+        _buildEngine.VerifyLog(LogMessage.Warning_ExtensionPackageTargetFrameworkMissing, "PackageA");
+    }
+
+    [Fact]
+    public void SamePackage_DifferentTfm_NoConflict()
+    {
+        // Arrange
+        ITaskItem package1 = CreatePackage("PackageA", "1.0.0", "net9.0");
+        ITaskItem package2 = CreatePackage("PackageA", "1.0.0", "net10.0");
+        ValidateExtensionPackages task = CreateTask(package1, package2);
+
+        // Act
+        bool result = task.Execute();
+
+        // Assert
+        result.Should().BeTrue();
+        task.FilteredPackages.Should().BeEquivalentTo([package1, package2]);
+        _buildEngine.VerifyNoOtherCalls();
+    }
+
+    private static TaskItem CreatePackage(string id, string version, string tfm)
+    {
+        return new(id) { Version = version, TargetFramework = tfm };
     }
 
     private ValidateExtensionPackages CreateTask(params ITaskItem[] packages)

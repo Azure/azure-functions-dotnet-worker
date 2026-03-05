@@ -6,11 +6,13 @@ using System.IO.Abstractions.TestingHelpers;
 using Azure.Functions.Sdk.Tests;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
+using NuGet.Frameworks;
 
 namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 
 public sealed class ResolveExtensionPackagesTests : IDisposable
 {
+    private const string TargetFramework = "net8.0";
     private readonly TempDirectory _temp = new();
 
     public void Dispose() => _temp.Dispose();
@@ -97,7 +99,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         // Assert
         result.Should().BeTrue();
         task.ExtensionPackages.Should().ContainSingle();
-        ValidatePackage(task.ExtensionPackages[0], NugetPackage.ServiceBus);
+        ValidatePackage(task.ExtensionPackages[0], NugetPackage.ServiceBus, TargetFramework);
     }
 
     [Fact]
@@ -119,9 +121,40 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         result.Should().BeTrue();
         task.ExtensionPackages.Should().HaveCount(3);
 
-        ValidatePackage(task.ExtensionPackages[0], NugetPackage.ServiceBus);
-        ValidatePackage(task.ExtensionPackages[1], NugetPackage.StorageBlobs);
-        ValidatePackage(task.ExtensionPackages[2], NugetPackage.StorageQueues);
+        ValidatePackage(task.ExtensionPackages[0], NugetPackage.ServiceBus, TargetFramework);
+        ValidatePackage(task.ExtensionPackages[1], NugetPackage.StorageBlobs, TargetFramework);
+        ValidatePackage(task.ExtensionPackages[2], NugetPackage.StorageQueues, TargetFramework);
+    }
+
+    [Fact]
+    public void MultiTarget_ScansAllTargetFrameworks()
+    {
+        string[] tfms = ["net10.0", "net8.0", "net481"];
+        string restore = RestoreProject(project =>
+        {
+            project.TargetFrameworks(tfms);
+            project.ItemPackageReference(NugetPackage.ServiceBus);
+            project.ItemPackageReference(NugetPackage.Storage);
+        });
+
+        ResolveExtensionPackages task = CreateTask(restore);
+
+        // Act
+        bool result = task.Execute();
+
+        // Assert
+        result.Should().BeTrue();
+        task.ExtensionPackages.Should().HaveCount(9);
+
+        foreach (string tfm in tfms)
+        {
+            string normalized = NuGetFramework.Parse(tfm).ToString(); // normalize tfm string
+            var filtered = task.ExtensionPackages.Where(p => p.GetMetadata("TargetFramework") == normalized).ToList();
+            filtered.Should().HaveCount(3);
+            ValidatePackage(filtered[0], NugetPackage.ServiceBus, normalized);
+            ValidatePackage(filtered[1], NugetPackage.StorageBlobs, normalized);
+            ValidatePackage(filtered[2], NugetPackage.StorageQueues, normalized);
+        }
     }
 
     [Fact]
@@ -134,13 +167,14 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         task.Dispose();
     }
 
-    private static void ValidatePackage(ITaskItem package, WorkerPackage worker)
+    private static void ValidatePackage(ITaskItem package, WorkerPackage worker, string tfm)
     {
         NugetPackage webJobs = worker.WebJobsPackages.Should().ContainSingle().Which;
         package.Should().HaveItemSpec(webJobs.Name)
             .And.HaveMetadata("Version", webJobs.Version)
             .And.HaveMetadata("SourcePackageId", worker.Name)
-            .And.HaveMetadata("IsImplicitlyDefined", "true");
+            .And.HaveMetadata("IsImplicitlyDefined", "true")
+            .And.HaveMetadata("TargetFramework", tfm);
     }
 
     private static ResolveExtensionPackages CreateTask(
@@ -156,7 +190,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     private string RestoreProject(Action<ProjectCreator>? configure = null)
     {
         ProjectCreator project = ProjectCreator.Templates.NetCoreProject(
-            path: _temp.GetRandomCsproj(), targetFramework: "net8.0", configure: configure);
+            path: _temp.GetRandomCsproj(), targetFramework: TargetFramework, configure: configure);
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
         project.TryGetPropertyValue("ProjectAssetsFile", out string? value);

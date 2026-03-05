@@ -15,9 +15,33 @@ public class ValidateExtensionPackages : Microsoft.Build.Utilities.Task
 
     public override bool Execute()
     {
-        // key=identity, value=version
+        List<ITaskItem> uniquePackages = [];
+        foreach (IGrouping<string, ITaskItem> packages in ExtensionPackages.GroupBy(p => p.TargetFramework))
+        {
+            if (string.IsNullOrEmpty(packages.Key))
+            {
+                string packageList = string.Join($"{Environment.NewLine}  ", packages.Select(p => p.ItemSpec));
+                Log.LogMessage(
+                    LogMessage.Warning_ExtensionPackageTargetFrameworkMissing,
+                    packageList);
+            }
+            else
+            {
+                uniquePackages.AddRange(Validate(packages));
+            }
+        }
+
+        FilteredPackages = [.. uniquePackages];
+        return !Log.HasLoggedErrors;
+    }
+
+    private IEnumerable<ITaskItem> Validate(IEnumerable<ITaskItem> extensionPackages)
+    {
+        // Validate that there are no duplicate packages with different versions.
+        // This can occur when multiple projects reference the same extension with different versions.
+        // We want to catch this and log an error, as it will cause runtime failures.
         Dictionary<string, ITaskItem> uniquePackages = new(StringComparer.OrdinalIgnoreCase);
-        foreach (ITaskItem package in ExtensionPackages)
+        foreach (ITaskItem package in extensionPackages)
         {
             if (uniquePackages.TryGetValue(package.ItemSpec, out ITaskItem? existingPackage))
             {
@@ -50,7 +74,6 @@ public class ValidateExtensionPackages : Microsoft.Build.Utilities.Task
             }
         }
 
-        FilteredPackages = [.. uniquePackages.Values];
-        return !Log.HasLoggedErrors;
+        return uniquePackages.Values;
     }
 }

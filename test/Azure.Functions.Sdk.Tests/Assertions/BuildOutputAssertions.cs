@@ -64,9 +64,8 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
             .ForCondition(Subject.ErrorEvents.Count == 0)
             .BecauseOf(because, becauseArgs)
             .FailWith(
-                "Expected {context:BuildOutput} to have no errors{reason}, but found {0}{1}",
-                Subject.ErrorEvents.Count,
-                FormatBuildEvents(Subject.ErrorEvents));
+                "Expected {context:BuildOutput} to have no errors{reason}, but found: {0}",
+                Subject.ErrorEvents);
         return new AndConstraint<BuildOutputAssertions>(this);
     }
 
@@ -78,9 +77,8 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
             .ForCondition(Subject.WarningEvents.Count == 0)
             .BecauseOf(because, becauseArgs)
             .FailWith(
-                "Expected {context:BuildOutput} to have no warnings{reason}, but found {0}{1}",
-                Subject.WarningEvents.Count,
-                FormatBuildEvents(Subject.WarningEvents));
+                "Expected {context:BuildOutput} to have no warnings{reason}, but found {0}",
+                Subject.WarningEvents);
         return new AndConstraint<BuildOutputAssertions>(this);
     }
 
@@ -92,9 +90,8 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
             .ForCondition(Subject.ErrorEvents.Count == 1)
             .BecauseOf(because, becauseArgs)
             .FailWith(
-                "Expected {context:BuildOutput} to have a single error{reason}, but found {0}{1}",
-                Subject.ErrorEvents.Count,
-                FormatBuildEvents(Subject.ErrorEvents));
+                "Expected {context:BuildOutput} to have a single error{reason}, but found {0}",
+                Subject.ErrorEvents);
         return new AndWhichConstraint<BuildOutputAssertions, BuildErrorEventArgs>(this, Subject.ErrorEvents.Single());
     }
 
@@ -106,48 +103,65 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
             .ForCondition(Subject.WarningEvents.Count == 1)
             .BecauseOf(because, becauseArgs)
             .FailWith(
-                "Expected {context:BuildOutput} to have a single warning{reason}, but found {0}{1}",
-                Subject.WarningEvents.Count,
-                FormatBuildEvents(Subject.WarningEvents));
+                "Expected {context:BuildOutput} to have a single warning{reason}, but found {0}",
+                Subject.WarningEvents);
         return new AndWhichConstraint<BuildOutputAssertions, BuildWarningEventArgs>(this, Subject.WarningEvents.Single());
-    }
-
-    private static string FormatBuildEvents<T>(IEnumerable<T> events)
-        where T : BuildEventArgs
-    {
-        const string divider = "-------------------------------------------------------------";
-        string join = $"{Environment.NewLine}{divider}{Environment.NewLine}";
-        return join + string.Join(join, events.Select(FormatBuildEvent)) + join;
-    }
-
-    private static string? FormatBuildEvent(BuildEventArgs e)
-    {
-        static string Code(BuildEventArgs e)
-        {
-            string c = e switch
-            {
-                BuildErrorEventArgs error => string.IsNullOrEmpty(error.Code)
-                    ? "<no_code>" : error.Code,
-                BuildWarningEventArgs warning => string.IsNullOrEmpty(warning.Code)
-                    ? "<no_code>" : warning.Code,
-                BuildMessageEventArgs message => string.IsNullOrEmpty(message.Code)
-                    ? message.Importance.ToString() : message.Code,
-                _ => "<no_code>",
-            };
-
-            return $"{c}: ";
-        }
-
-        return $"{Code(e)}{e.Message}";
     }
 
     private class Formatter : IValueFormatter
     {
-        public bool CanHandle(object value) => value is BuildOutput;
+        public bool CanHandle(object value) => value is BuildOutput or IEnumerable<BuildEventArgs>;
 
         public void Format(object value, FormattedObjectGraph formattedGraph, FormattingContext context, FormatChild formatChild)
         {
-            BuildOutput output = (BuildOutput)value;
+            switch (value)
+            {
+                case IEnumerable<BuildEventArgs> events:
+                    FormatBuildEvents(events, formattedGraph);
+                    break;
+                case BuildOutput output:
+                    FormatBuildOutput(output, formattedGraph, context);
+                    break;
+            }
+        }
+
+        private static void FormatBuildEvents(IEnumerable<BuildEventArgs> events, FormattedObjectGraph formattedGraph)
+        {
+            const string divider = "-------------------------------------------------------------";
+            string separator = $"{Environment.NewLine}{divider}{Environment.NewLine}";
+            formattedGraph.AddFragment($"{events.Count()} events:");
+            foreach (BuildEventArgs e in events)
+            {
+                formattedGraph.AddFragment(separator);
+                formattedGraph.AddFragment(FormatBuildEvent(e));
+            }
+
+            formattedGraph.AddFragment(separator);
+        }
+
+        private static string? FormatBuildEvent(BuildEventArgs e)
+        {
+            static string Code(BuildEventArgs e)
+            {
+                string c = e switch
+                {
+                    BuildErrorEventArgs error => string.IsNullOrEmpty(error.Code)
+                        ? "<no_code>" : error.Code,
+                    BuildWarningEventArgs warning => string.IsNullOrEmpty(warning.Code)
+                        ? "<no_code>" : warning.Code,
+                    BuildMessageEventArgs message => string.IsNullOrEmpty(message.Code)
+                        ? message.Importance.ToString() : message.Code,
+                    _ => "<no_code>",
+                };
+
+                return $"{c}: ";
+            }
+
+            return $"{Code(e)}{e.Message}";
+        }
+
+        private static void FormatBuildOutput(BuildOutput output, FormattedObjectGraph formattedGraph, FormattingContext context)
+        {
             if (context.UseLineBreaks)
             {
                 formattedGraph.AddLine($"[BuildOutput] Succeeded: {output.Succeeded}");

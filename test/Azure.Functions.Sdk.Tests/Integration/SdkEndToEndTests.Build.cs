@@ -196,7 +196,8 @@ public partial class SdkEndToEndTests
         foreach (string tfm in targetFrameworks)
         {
             string outputPath = GetMultiTargetOutputPath(project, tfm);
-            ValidateConfig(Path.Combine(outputPath, "worker.config.json"), "dotnet", "MyFunctionApp.dll");
+            (string exe, string entry) = GetExpectedExecutableAndArguments("MyFunctionApp", tfm);
+            ValidateConfig(Path.Combine(outputPath, "worker.config.json"), exe, entry);
             ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
             ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
 
@@ -249,7 +250,8 @@ public partial class SdkEndToEndTests
         foreach (string tfm in targetFrameworks)
         {
             string outputPath = GetMultiTargetOutputPath(project, tfm);
-            ValidateConfig(Path.Combine(outputPath, "worker.config.json"), "dotnet", "MyFunctionApp.dll");
+            (string exe, string entry) = GetExpectedExecutableAndArguments("MyFunctionApp", tfm);
+            ValidateConfig(Path.Combine(outputPath, "worker.config.json"), exe, entry);
             ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
             ValidateExtensionJson(outputPath, ExpectedExtensions);
 

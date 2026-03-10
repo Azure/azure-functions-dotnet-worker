@@ -1,11 +1,17 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Linq;
+
 namespace Microsoft.Azure.Functions.Worker.Diagnostics;
 
 internal static class TraceConstants
 {
-   public static class ActivityAttributes
+    public const string OTel_1_37_0_SchemaVersion = "https://opentelemetry.io/schemas/1.37.0";
+    public const string OTel_1_17_0_SchemaVersion = "https://opentelemetry.io/schemas/1.17.0";
+
+    public static class ActivityAttributes
     {
         public static readonly string Version = typeof(ActivityAttributes).Assembly.GetName().Version?.ToString() ?? string.Empty;
         public const string Name = "Microsoft.Azure.Functions.Worker";
@@ -27,7 +33,8 @@ internal static class TraceConstants
         // v1.17.0
         public const string InvocationId = "faas.execution";
         public const string SchemaUrl = "az.schema_url";
-        public const string SchemaVersion = "https://opentelemetry.io/schemas/1.17.0";
+
+        internal static ImmutableArray<string> All = ImmutableArray.Create(InvocationId, SchemaUrl);
     }
 
     public static class OTelAttributes_1_37_0
@@ -37,7 +44,20 @@ internal static class TraceConstants
         public const string FunctionName = "faas.name";
         public const string Instance = "faas.instance";
         public const string SchemaUrl = "schema.url";
-        public const string SchemaVersion = "https://opentelemetry.io/schemas/1.37.0";
+
+        internal static ImmutableArray<string> All = ImmutableArray.Create(InvocationId, FunctionName, Instance, SchemaUrl);
+    }
+
+    public static class KnownAttributes
+    {
+        /// <summary>
+        /// Returns protected attribute names that are set by Azure functions that should not be overriden.
+        /// </summary>
+        public static readonly ImmutableHashSet<string> All =
+            OTelAttributes_1_17_0.All
+                .Concat(OTelAttributes_1_37_0.All)
+                .Concat(InternalKeys.All)
+                .ToImmutableHashSet();
     }
 
     public static class InternalKeys
@@ -46,6 +66,14 @@ internal static class TraceConstants
         public const string FunctionName = "AzureFunctions_FunctionName";
         public const string HostInstanceId = "HostInstanceId";
         public const string AzFuncLiveLogsSessionId = "#AzFuncLiveLogsSessionId";
+
+        internal static ImmutableArray<string> All = ImmutableArray.Create(FunctionInvocationId, FunctionName, 
+            HostInstanceId, AzFuncLiveLogsSessionId);
+    }
+
+    public static class FunctionContextKeys
+    {
+        public const string FunctionContextItemsKey = "AzureFunctions_ActivityTags";
     }
 
     public static class CapabilityFlags

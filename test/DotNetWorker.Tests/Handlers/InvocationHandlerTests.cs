@@ -288,6 +288,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             await handler.InvokeAsync(request);
         }
 
+        [Fact]
         public async Task InvokeAsync_TagsInFunctionInvocationContextItems_AreIncludedInInvocationResponse()
         {
             // Arrange

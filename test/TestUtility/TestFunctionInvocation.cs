@@ -3,14 +3,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+
+#nullable enable
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class TestFunctionInvocation : FunctionInvocation
     {
-        public TestFunctionInvocation(string id = null, string functionId = null)
+        public TestFunctionInvocation(string id = null, string functionId = null, IReadOnlyDictionary<string, string>? baggage = null)
         {
             if (id is not null)
             {
@@ -30,10 +33,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 { TraceConstants.InternalKeys.AzFuncLiveLogsSessionId, Guid.NewGuid().ToString() },
             };
 
-            Dictionary<string, string> baggage = new Dictionary<string, string>
+            if (baggage is null)
             {
-                { "TestBaggageKey", "TestBaggageValue" }
-            };
+                baggage = ImmutableDictionary<string, string>.Empty;
+            }
 
             TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString(), attributes, baggage);
         }

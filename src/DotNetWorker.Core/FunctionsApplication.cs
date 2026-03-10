@@ -25,6 +25,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ILogger<FunctionsApplication> _logger;
         private readonly IWorkerDiagnostics _diagnostics;
         private readonly IFunctionTelemetryProvider _functionTelemetryProvider;
+        private readonly IBaggagePropagator _baggagePropagator;
 
         public FunctionsApplication(
             FunctionExecutionDelegate functionExecutionDelegate,
@@ -32,7 +33,8 @@ namespace Microsoft.Azure.Functions.Worker
             IOptions<WorkerOptions> workerOptions,
             ILogger<FunctionsApplication> logger,
             IWorkerDiagnostics diagnostics,
-            IFunctionTelemetryProvider functionTelemetryProvider)
+            IFunctionTelemetryProvider functionTelemetryProvider,
+            IBaggagePropagator baggagePropagator)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
@@ -40,6 +42,7 @@ namespace Microsoft.Azure.Functions.Worker
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
             _functionTelemetryProvider = functionTelemetryProvider ?? throw new ArgumentNullException(nameof(functionTelemetryProvider));
+            _baggagePropagator = baggagePropagator ?? throw new ArgumentNullException(nameof(baggagePropagator));
         }
 
         public FunctionContext CreateContext(IInvocationFeatures features, CancellationToken token = default)
@@ -74,6 +77,11 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
+                if (invokeActivity is not null && context.TraceContext.Baggage.Count > 0)
+                {
+                    _baggagePropagator.SetBaggage(context.TraceContext.Baggage);
+                }
+
                 await _functionExecutionDelegate(context);
             }
             catch (Exception ex)
@@ -86,6 +94,11 @@ namespace Microsoft.Azure.Functions.Worker
             }
             finally
             {
+                if (invokeActivity is not null && context.TraceContext.Baggage.Count > 0)
+                {
+                    _baggagePropagator.ClearBaggage(context.TraceContext.Baggage);
+                }
+
                 var tags = invokeActivity?.Tags;
 
                 if (tags is not null && context.Items is not null)

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -101,6 +102,111 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             await Assert.ThrowsAsync<InvalidOperationException>(() => app.InvokeFunctionAsync(context));
         }
 
+        [Fact]
+        public async Task InvokeAsync_SetsBaggageWhenPresent()
+        {
+            // Arrange
+            var baggage = new Dictionary<string, string>
+            {
+                { "userId", "12345" },
+                { "requestId", "abc-def" }
+            };
+            var context = new TestFunctionContext(baggage: baggage);
+            var baggagePropagator = new Mock<IBaggagePropagator>();
+
+
+            using ActivityListener listener = CreateListener(activity => { });
+            using var parentActivity = new Activity("test-parent").Start();
+
+            static Task Invoke(FunctionContext context) => Task.CompletedTask;
+
+            var app = CreateApplicationWithBaggagePropagator(Invoke, baggagePropagator.Object);
+
+            // Act
+            await app.InvokeFunctionAsync(context);
+
+            // Assert
+            baggagePropagator.Verify(x => x.SetBaggage(baggage), Times.Once);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_ClearsBaggageAfterInvocation()
+        {
+            // Arrange
+            var baggage = new Dictionary<string, string> { { "key", "value" } };
+            var context = new TestFunctionContext(baggage: baggage);
+            var baggagePropagator = new Mock<IBaggagePropagator>();
+
+
+            using ActivityListener listener = CreateListener(activity => { });
+            using var parentActivity = new Activity("test-parent").Start();
+
+            static Task Invoke(FunctionContext context) => Task.CompletedTask;
+
+            var app = CreateApplicationWithBaggagePropagator(Invoke, baggagePropagator.Object);
+
+            // Act
+            await app.InvokeFunctionAsync(context);
+
+            // Assert
+            baggagePropagator.Verify(x => x.ClearBaggage(baggage), Times.Once);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_ClearsBaggageOnException()
+        {
+            // Arrange
+            var baggage = new Dictionary<string, string> { { "key", "value" } };
+            var context = new TestFunctionContext(baggage: baggage);
+            var baggagePropagator = new Mock<IBaggagePropagator>();
+
+            using ActivityListener listener = CreateListener(activity => { });
+            using var parentActivity = new Activity("test-parent").Start();
+
+            static Task InvokeWithError(FunctionContext context)
+            {
+                throw new InvalidOperationException("boom!");
+            }
+
+            var app = CreateApplicationWithBaggagePropagator(InvokeWithError, baggagePropagator.Object);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => app.InvokeFunctionAsync(context));
+            baggagePropagator.Verify(x => x.ClearBaggage(baggage), Times.Once);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_DoesNotSetBaggageWhenEmpty()
+        {
+            // Arrange
+            var context = new TestFunctionContext(); // No baggage
+            var baggagePropagator = new Mock<IBaggagePropagator>();
+
+            static Task Invoke(FunctionContext context) => Task.CompletedTask;
+
+            var app = CreateApplicationWithBaggagePropagator(Invoke, baggagePropagator.Object);
+
+            // Act
+            await app.InvokeFunctionAsync(context);
+
+            // Assert
+            baggagePropagator.Verify(x => x.SetBaggage(It.IsAny<IEnumerable<KeyValuePair<string, string>>>()), Times.Never);
+            baggagePropagator.Verify(x => x.ClearBaggage(It.IsAny<IEnumerable<KeyValuePair<string, string>>>()), Times.Never);
+        }
+
+        private static FunctionsApplication CreateApplicationWithBaggagePropagator(
+            FunctionExecutionDelegate invoke,
+            IBaggagePropagator baggagePropagator)
+        {
+            var options = new OptionsWrapper<WorkerOptions>(new WorkerOptions());
+            var contextFactory = new Mock<IFunctionContextFactory>();
+            var diagnostics = new Mock<IWorkerDiagnostics>();
+            var telemetryProvider = new TelemetryProviderV1_17_0();
+            var logger = NullLogger<FunctionsApplication>.Instance;
+
+            return new FunctionsApplication(invoke, contextFactory.Object, options, logger, diagnostics.Object, telemetryProvider, baggagePropagator);
+        }
+
         private static void AssertActivity(Activity activity, FunctionContext context)
         {
             Assert.Equal("Invoke", activity.DisplayName);
@@ -115,8 +221,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var contextFactory = new Mock<IFunctionContextFactory>();
             var diagnostics = new Mock<IWorkerDiagnostics>();
             var telemetryProvider = new TelemetryProviderV1_17_0();
+            var baggagePropagator = new Mock<IBaggagePropagator>();
 
-            return new FunctionsApplication(invoke, contextFactory.Object, options, logger, diagnostics.Object, telemetryProvider);
+            return new FunctionsApplication(invoke, contextFactory.Object, options, logger, diagnostics.Object, telemetryProvider, baggagePropagator.Object);
         }
 
         private static ActivityListener CreateListener(Action<Activity> onStopped)

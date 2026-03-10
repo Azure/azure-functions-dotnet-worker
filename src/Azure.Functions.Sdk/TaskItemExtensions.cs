@@ -60,6 +60,21 @@ public static class TaskItemExtensions
         }
 
         /// <summary>
+        /// Gets the target path for this extension file to copy to.
+        /// </summary>
+        /// <returns>The target path for the functions output.</returns>
+        public string GetFunctionsTargetPath()
+        {
+            string target = taskItem.GetMetadata("DestinationSubPath");
+            if (string.IsNullOrEmpty(target))
+            {
+                target = Path.GetFileName(taskItem.ItemSpec);
+            }
+
+            return Path.Combine(Constants.ExtensionsOutputFolder, target);
+        }
+
+        /// <summary>
         /// Tries to get the NuGet package ID from the task item.
         /// </summary>
         /// <param name="packageId">The package ID, if found.</param>

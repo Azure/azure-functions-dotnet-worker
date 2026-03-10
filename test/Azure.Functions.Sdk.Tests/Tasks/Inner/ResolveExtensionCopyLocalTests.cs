@@ -29,9 +29,11 @@ public sealed class ResolveExtensionCopyLocalTests
 
         bool result = task.Execute();
 
+
         result.Should().BeTrue();
         task.ExtensionsCopyLocal.Should().ContainSingle()
-            .Which.Should().HaveItemSpec("MyExtension.dll");
+            .Which.Should().HaveItemSpec("MyExtension.dll")
+            .And.HaveMetadata("TargetPath", Path.Combine(Constants.ExtensionsOutputFolder, "MyExtension.dll"));
     }
 
     [Fact]
@@ -110,7 +112,8 @@ public sealed class ResolveExtensionCopyLocalTests
 
         result.Should().BeTrue();
         task.ExtensionsCopyLocal.Should().ContainSingle()
-            .Which.Should().HaveItemSpec("MyExtension.dll");
+            .Which.Should().HaveItemSpec("MyExtension.dll")
+            .And.HaveMetadata("TargetPath", Path.Combine(Constants.ExtensionsOutputFolder, "MyExtension.dll"));
     }
 
     [Fact]
@@ -126,7 +129,8 @@ public sealed class ResolveExtensionCopyLocalTests
 
         result.Should().BeTrue();
         task.ExtensionsCopyLocal.Should().ContainSingle()
-            .Which.Should().HaveItemSpec("MyExtension.dll");
+            .Which.Should().HaveItemSpec("MyExtension.dll")
+            .And.HaveMetadata("TargetPath", Path.Combine(Constants.ExtensionsOutputFolder, "MyExtension.dll"));
     }
 
     [Fact]
@@ -192,8 +196,10 @@ public sealed class ResolveExtensionCopyLocalTests
 
         result.Should().BeTrue();
         task.ExtensionsCopyLocal.Should().HaveCount(2);
-        task.ExtensionsCopyLocal[0].Should().HaveItemSpec("Extension.dll");
-        task.ExtensionsCopyLocal[1].Should().HaveItemSpec("AnotherExtension.dll");
+        task.ExtensionsCopyLocal[0].Should().HaveItemSpec("Extension.dll")
+            .And.HaveMetadata("TargetPath", Path.Combine(Constants.ExtensionsOutputFolder, "Extension.dll"));
+        task.ExtensionsCopyLocal[1].Should().HaveItemSpec("AnotherExtension.dll")
+            .And.HaveMetadata("TargetPath", Path.Combine(Constants.ExtensionsOutputFolder, "AnotherExtension.dll"));
     }
 
     [Fact]

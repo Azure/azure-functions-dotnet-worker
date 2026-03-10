@@ -91,7 +91,7 @@ public static class TaskItemExtensions
                 return false;
             }
 
-            // 6. Return path combined with Constants.ExtensionsOutputFolder.
+            // 5. Return path combined with Constants.ExtensionsOutputFolder.
             targetPath = Path.Combine(Constants.ExtensionsOutputFolder, target);
             return true;
         }

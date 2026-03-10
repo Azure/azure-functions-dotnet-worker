@@ -188,11 +188,11 @@ public partial class SdkEndToEndTests
         string outputPath = project.GetOutputPath();
         ValidateConfig(
             Path.Combine(outputPath, "worker.config.json"),
-            "{WorkerRoot}MyFunctionApp.exe",
-            "MyFunctionApp.exe");
+            "dotnet",
+            "MyFunctionApp.dll");
 
-        ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
-        ValidateExtensionJson(outputPath, ExpectedExtensions);
+        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
     }
 
     [Fact]

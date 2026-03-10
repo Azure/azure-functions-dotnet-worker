@@ -17,10 +17,11 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests
             var baggage = new Dictionary<string, string> { { "key1", "value1" } };
 
             // Act
-            propagator.SetBaggage(baggage);
-
-            // Assert
-            Assert.Equal("value1", Baggage.GetBaggage("key1"));
+            using (propagator.SetBaggage(baggage))
+            {
+                // Assert
+                Assert.Equal("value1", Baggage.GetBaggage("key1"));
+            }
         }
 
         [Fact]
@@ -36,12 +37,13 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests
             };
 
             // Act
-            propagator.SetBaggage(baggage);
-
-            // Assert
-            Assert.Equal("value1", Baggage.GetBaggage("key1"));
-            Assert.Equal("value2", Baggage.GetBaggage("key2"));
-            Assert.Equal("value3", Baggage.GetBaggage("key3"));
+            using (propagator.SetBaggage(baggage))
+            {
+                // Assert
+                Assert.Equal("value1", Baggage.GetBaggage("key1"));
+                Assert.Equal("value2", Baggage.GetBaggage("key2"));
+                Assert.Equal("value3", Baggage.GetBaggage("key3"));
+            }
         }
 
         [Fact]
@@ -52,34 +54,18 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests
             var baggage = new Dictionary<string, string>();
 
             // Act
-            propagator.SetBaggage(baggage);
-
-            // Assert - no exception thrown
-            Assert.Empty(baggage);
+            using (propagator.SetBaggage(baggage))
+            {
+                // Assert - no exception thrown
+                Assert.Empty(baggage);
+            }
         }
 
         [Fact]
-        public void ClearBaggage_RemovesSingleBaggageItem()
+        public void SetBaggage_DisposingScope_ClearsAllBaggage()
         {
             // Arrange
             var propagator = new DefaultBaggagePropagator();
-            Baggage.SetBaggage("key1", "value1");
-            var baggage = new Dictionary<string, string> { { "key1", "value1" } };
-
-            // Act
-            propagator.ClearBaggage(baggage);
-
-            // Assert
-            Assert.Null(Baggage.GetBaggage("key1"));
-        }
-
-        [Fact]
-        public void ClearBaggage_RemovesMultipleBaggageItems()
-        {
-            // Arrange
-            var propagator = new DefaultBaggagePropagator();
-            Baggage.SetBaggage("key1", "value1");
-            Baggage.SetBaggage("key2", "value2");
             var baggage = new Dictionary<string, string>
             {
                 { "key1", "value1" },
@@ -87,7 +73,11 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests
             };
 
             // Act
-            propagator.ClearBaggage(baggage);
+            var scope = propagator.SetBaggage(baggage);
+            Assert.Equal("value1", Baggage.GetBaggage("key1"));
+            Assert.Equal("value2", Baggage.GetBaggage("key2"));
+
+            scope?.Dispose();
 
             // Assert
             Assert.Null(Baggage.GetBaggage("key1"));
@@ -95,17 +85,20 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests
         }
 
         [Fact]
-        public void ClearBaggage_HandlesEmptyBaggage()
+        public void SetBaggage_UsingStatement_AutomaticallyClearsBaggage()
         {
             // Arrange
             var propagator = new DefaultBaggagePropagator();
-            var baggage = new Dictionary<string, string>();
+            var baggage = new Dictionary<string, string> { { "key1", "value1" } };
 
             // Act
-            propagator.ClearBaggage(baggage);
+            using (propagator.SetBaggage(baggage))
+            {
+                Assert.Equal("value1", Baggage.GetBaggage("key1"));
+            }
 
-            // Assert - no exception thrown
-            Assert.Empty(baggage);
+            // Assert - baggage cleared after scope
+            Assert.Null(Baggage.GetBaggage("key1"));
         }
     }
 }

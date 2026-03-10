@@ -113,7 +113,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
             var context = new TestFunctionContext(baggage: baggage);
             var baggagePropagator = new Mock<IBaggagePropagator>();
-
+            var mockDisposable = new Mock<IDisposable>();
+            baggagePropagator.Setup(x => x.SetBaggage(baggage)).Returns(mockDisposable.Object);
 
             using ActivityListener listener = CreateListener(activity => { });
             using var parentActivity = new Activity("test-parent").Start();
@@ -130,13 +131,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async Task InvokeAsync_ClearsBaggageAfterInvocation()
+        public async Task InvokeAsync_DisposesBaggageScopeAfterInvocation()
         {
             // Arrange
             var baggage = new Dictionary<string, string> { { "key", "value" } };
             var context = new TestFunctionContext(baggage: baggage);
             var baggagePropagator = new Mock<IBaggagePropagator>();
-
+            var mockDisposable = new Mock<IDisposable>();
+            baggagePropagator.Setup(x => x.SetBaggage(baggage)).Returns(mockDisposable.Object);
 
             using ActivityListener listener = CreateListener(activity => { });
             using var parentActivity = new Activity("test-parent").Start();
@@ -149,16 +151,18 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             await app.InvokeFunctionAsync(context);
 
             // Assert
-            baggagePropagator.Verify(x => x.ClearBaggage(baggage), Times.Once);
+            mockDisposable.Verify(x => x.Dispose(), Times.Once);
         }
 
         [Fact]
-        public async Task InvokeAsync_ClearsBaggageOnException()
+        public async Task InvokeAsync_DisposesBaggageScopeOnException()
         {
             // Arrange
             var baggage = new Dictionary<string, string> { { "key", "value" } };
             var context = new TestFunctionContext(baggage: baggage);
             var baggagePropagator = new Mock<IBaggagePropagator>();
+            var mockDisposable = new Mock<IDisposable>();
+            baggagePropagator.Setup(x => x.SetBaggage(baggage)).Returns(mockDisposable.Object);
 
             using ActivityListener listener = CreateListener(activity => { });
             using var parentActivity = new Activity("test-parent").Start();
@@ -172,7 +176,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => app.InvokeFunctionAsync(context));
-            baggagePropagator.Verify(x => x.ClearBaggage(baggage), Times.Once);
+            mockDisposable.Verify(x => x.Dispose(), Times.Once);
         }
 
         [Fact]
@@ -191,7 +195,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Assert
             baggagePropagator.Verify(x => x.SetBaggage(It.IsAny<IEnumerable<KeyValuePair<string, string>>>()), Times.Never);
-            baggagePropagator.Verify(x => x.ClearBaggage(It.IsAny<IEnumerable<KeyValuePair<string, string>>>()), Times.Never);
         }
 
         private static FunctionsApplication CreateApplicationWithBaggagePropagator(

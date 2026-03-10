@@ -74,14 +74,12 @@ namespace Microsoft.Azure.Functions.Worker
         {
             using var logScope = _logger.BeginScope(_functionTelemetryProvider.GetScopeAttributes(context).ToList());
             using Activity? invokeActivity = _functionTelemetryProvider.StartActivityForInvocation(context);
+            using var baggageScope = invokeActivity is not null && context.TraceContext.Baggage.Count > 0
+                ? _baggagePropagator.SetBaggage(context.TraceContext.Baggage)
+                : null;
 
             try
             {
-                if (invokeActivity is not null && context.TraceContext.Baggage.Count > 0)
-                {
-                    _baggagePropagator.SetBaggage(context.TraceContext.Baggage);
-                }
-
                 await _functionExecutionDelegate(context);
             }
             catch (Exception ex)
@@ -94,11 +92,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
             finally
             {
-                if (invokeActivity is not null && context.TraceContext.Baggage.Count > 0)
-                {
-                    _baggagePropagator.ClearBaggage(context.TraceContext.Baggage);
-                }
-
                 var tags = invokeActivity?.Tags;
 
                 if (tags is not null && context.Items is not null)

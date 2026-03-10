@@ -10,19 +10,21 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
     internal class DefaultBaggagePropagator : IBaggagePropagator
     {
-        public void SetBaggage(IEnumerable<KeyValuePair<string, string>> baggage)
+        public IDisposable? SetBaggage(IEnumerable<KeyValuePair<string, string>> baggage)
         {
             foreach (var kv in baggage)
             {
                 Baggage.SetBaggage(kv.Key, kv.Value);
             }
+
+            return new BaggageScope();      
         }
 
-        public void ClearBaggage(IEnumerable<KeyValuePair<string, string>> baggage)
+        private sealed class BaggageScope : IDisposable
         {
-            foreach (var kv in baggage)
+            public void Dispose()
             {
-                Baggage.RemoveBaggage(kv.Key);
+                Baggage.ClearBaggage();
             }
         }
     }

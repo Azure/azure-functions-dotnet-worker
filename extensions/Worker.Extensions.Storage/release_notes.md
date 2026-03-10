@@ -6,12 +6,13 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage <version>
 
-- <entry>
+- Update `Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs` to `6.8.1`
+- Update `Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues` to `5.5.4`
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.8.1
 
-- <entry>
+- Update `Microsoft.Azure.WebJobs.Extensions.Storage.Blobs` to `5.3.7`
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.5.4
 
-- <entry>
+- Update `Microsoft.Azure.WebJobs.Extensions.Storage.Queues` to `5.3.7`

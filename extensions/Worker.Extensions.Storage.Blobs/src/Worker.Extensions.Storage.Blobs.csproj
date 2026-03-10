@@ -6,7 +6,7 @@
     <Description>Azure Blob Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>6.8.0</VersionPrefix>
+    <VersionPrefix>6.8.1</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.3.6" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.3.7" />
   </ItemGroup>
 
 </Project>

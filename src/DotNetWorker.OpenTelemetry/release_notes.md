@@ -2,4 +2,4 @@
 
 ### Microsoft.Azure.Functions.Worker.OpenTelemetry <version>
 
-- <entry>
+- Add support for propagating OpenTelemetry baggage to the worker (#3319).

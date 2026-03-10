@@ -60,18 +60,40 @@ public static class TaskItemExtensions
         }
 
         /// <summary>
-        /// Gets the target path for this extension file to copy to.
+        /// Tries to get the target path for this extension file to copy to.
         /// </summary>
-        /// <returns>The target path for the functions output.</returns>
-        public string GetFunctionsTargetPath()
+        /// <param name="targetPath">The target path for the functions output.</param>
+        /// <returns><c>true</c> if the target path was successfully resolved; <c>false</c> otherwise.</returns>
+        public bool TryGetFunctionsTargetPath(out string targetPath)
         {
-            string target = taskItem.GetMetadata("DestinationSubPath");
+            // TODO: Consider support for absolute paths.
+            // The logic today is assuming all items have relative paths.
+
+            // 1. If TargetPath is set, use it.
+            string target = taskItem.GetMetadata("TargetPath");
+
+            // 2. If TargetPath is null or empty, use DestinationSubPath.
+            if (string.IsNullOrEmpty(target))
+            {
+                target = taskItem.GetMetadata("DestinationSubPath");
+            }
+
+            // 3. If DestinationSubPath is null or empty, use Path.GetFileName.
             if (string.IsNullOrEmpty(target))
             {
                 target = Path.GetFileName(taskItem.ItemSpec);
             }
 
-            return Path.Combine(Constants.ExtensionsOutputFolder, target);
+            // 4. If path is absolute, reject it.
+            if (Path.IsPathRooted(target))
+            {
+                targetPath = string.Empty;
+                return false;
+            }
+
+            // 6. Return path combined with Constants.ExtensionsOutputFolder.
+            targetPath = Path.Combine(Constants.ExtensionsOutputFolder, target);
+            return true;
         }
 
         /// <summary>

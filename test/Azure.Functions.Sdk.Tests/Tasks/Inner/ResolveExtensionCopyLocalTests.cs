@@ -215,6 +215,48 @@ public sealed class ResolveExtensionCopyLocalTests
         task.ExtensionsCopyLocal.Should().BeEmpty();
     }
 
+    [Fact]
+    public void IncludedItem_WithTargetPath_UsesTargetPath()
+    {
+        TaskItem file = new TaskItem("MyExtension.dll");
+        file.SetMetadata("TargetPath", "custom/MyExtension.dll");
+        ResolveExtensionCopyLocal task = CreateTask(copyLocalFiles: [file]);
+
+        task.Execute();
+
+        string expected = Path.Combine(".azurefunctions", "custom/MyExtension.dll");
+        task.ExtensionsCopyLocal.Should().ContainSingle()
+            .Which.Should().HaveMetadata("TargetPath", expected);
+    }
+
+    [Fact]
+    public void IncludedItem_WithRootedTargetPath_Excluded()
+    {
+        TaskItem file = new TaskItem("MyExtension.dll");
+        file.SetMetadata("TargetPath", Path.Combine(Path.GetTempPath(), "MyExtension.dll"));
+        ResolveExtensionCopyLocal task = CreateTask(copyLocalFiles: [file]);
+
+        bool result = task.Execute();
+
+        result.Should().BeTrue();
+        task.ExtensionsCopyLocal.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void IncludedItem_TargetPathTakesPrecedenceOverDestinationSubPath()
+    {
+        TaskItem file = new TaskItem("MyExtension.dll");
+        file.SetMetadata("TargetPath", "fromTargetPath/MyExtension.dll");
+        file.SetMetadata("DestinationSubPath", "fromDestSub/MyExtension.dll");
+        ResolveExtensionCopyLocal task = CreateTask(copyLocalFiles: [file]);
+
+        task.Execute();
+
+        string expected = Path.Combine(".azurefunctions", "fromTargetPath/MyExtension.dll");
+        task.ExtensionsCopyLocal.Should().ContainSingle()
+            .Which.Should().HaveMetadata("TargetPath", expected);
+    }
+
     private static TaskItem CreateCopyLocalFile(string itemSpec, string? destinationSubPath = null)
     {
         TaskItem item = new TaskItem(itemSpec);

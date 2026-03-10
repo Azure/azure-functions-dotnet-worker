@@ -53,9 +53,10 @@ public class ResolveExtensionCopyLocal : Microsoft.Build.Utilities.Task
         List<ITaskItem> extensionsCopyLocal = [];
         foreach (ITaskItem item in CopyLocalFiles)
         {
-            if (ShouldIncludeItem(item, runtimeAssemblies, runtimePackages))
+            if (ShouldIncludeItem(item, runtimeAssemblies, runtimePackages)
+                && item.TryGetFunctionsTargetPath(out string targetPath))
             {
-                item.SetMetadata("TargetPath", item.GetFunctionsTargetPath());
+                item.SetMetadata("TargetPath", targetPath);
                 extensionsCopyLocal.Add(item);
             }
         }

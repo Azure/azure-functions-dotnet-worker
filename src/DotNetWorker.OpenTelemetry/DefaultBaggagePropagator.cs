@@ -17,11 +17,17 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                 Baggage.SetBaggage(kv.Key, kv.Value);
             }
 
-            return new BaggageScope();      
+            return BaggageScope.Instance;      
         }
 
         private sealed class BaggageScope : IDisposable
         {
+            public static readonly BaggageScope Instance = new BaggageScope();
+
+            private BaggageScope()
+            {
+            }
+
             public void Dispose()
             {
                 Baggage.ClearBaggage();

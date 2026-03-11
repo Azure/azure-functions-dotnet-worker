@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Storage 6.8.1
 
 - Update `Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs` to `6.8.1`
 - Update `Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues` to `5.5.4`

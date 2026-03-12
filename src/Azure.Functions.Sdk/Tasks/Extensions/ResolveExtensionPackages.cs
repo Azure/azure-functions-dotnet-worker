@@ -121,6 +121,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
                 string path = _fileSystem.Path.Combine(packagePath, assembly.Path);
                 if (TryGetExtensionReference(path, library, out ITaskItem? ext))
                 {
+                    ext.TargetFramework = target.TargetFramework.ToString();
                     yield return ext;
                 }
             }

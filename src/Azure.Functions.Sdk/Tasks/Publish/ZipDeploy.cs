@@ -8,10 +8,6 @@ using System.Runtime.InteropServices;
 using Azure.Functions.Sdk.ZipDeploy;
 using Microsoft.Build.Framework;
 
-// IMPORTANT: Do not modify this file directly with major changes
-// This file is a copy from this project (with minor updates) -- https://github.com/Azure/azure-functions-vs-build-sdk/blob/b0e54a832a92119e00a2b1796258fcf88e0d6109/src/Microsoft.NET.Sdk.Functions.MSBuild/Microsoft.NET.Sdk.Functions.MSBuild.csproj
-// Please make any changes upstream first.
-
 namespace Azure.Functions.Sdk.Tasks.Publish;
 
 public sealed class ZipDeploy(IFileSystem fileSystem, DeploymentClient? client = null)

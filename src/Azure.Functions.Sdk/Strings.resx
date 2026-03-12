@@ -162,6 +162,9 @@
   <data name="Deploy_InvalidPublishUrl" xml:space="preserve">
     <value>The publish url '{0}' is invalid. Publish url must be an absolute HTTP or HTTPS url.</value>
   </data>
+  <data name="Deploy_InsecurePublishUrl" xml:space="preserve">
+    <value>The publish url '{0}' is insecure. Please use an HTTPS url. To allow insecure connections, set the 'PublishAllowInsecureRemoteConnections' property to 'true'.</value>
+  </data>
   <data name="Deploy_PollFailure" xml:space="preserve">
     <value>Failed to poll '{0}'. HTTP Status: {1}. Retry count {2}/{3}</value>
   </data>

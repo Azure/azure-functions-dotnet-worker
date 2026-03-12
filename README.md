@@ -3,14 +3,12 @@
 |Branch|Status|
 |---|---|
 |main|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/.NET%20Worker/.NET%20Worker?branchName=main)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=main)|
-|release/1.x|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/.NET%20Worker/.NET%20Worker?branchName=release%2F1.x)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=release%2F1.x)|
-
 
 # Azure Functions .NET Worker
 
-Welcome to the Azure Functions .NET Worker Repository. Introduced in 2020, Azure Functions' **Isolated Worker Model** moves function execution into a separate language worker process. Isolating function execution from the Azure Functions runtime allows you to have full control over your application's dependencies and easily incorporate advanced .NET features such as middleware and dependency injection.
+Welcome to the Azure Functions .NET Worker Repository. Azure Functions' **Isolated Worker Model** is the recommended model for .NET functions. It moves function execution into a separate language worker process, giving you full control over your application's dependencies and enabling advanced .NET features such as middleware and dependency injection.
 
-A .NET Isolated worker process function works differently from a .NET in-process function. For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](samples/FunctionApp/Program.cs) that starts the worker.
+With the Isolated Worker Model, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](samples/FunctionApp/Program.cs) that starts the worker.
 
 ## Binding Model
 
@@ -57,12 +55,12 @@ Please see our [Guide for running C# Azure Functions in an isolated worker proce
 
 3. If necessary, use `az account set` to select the subscription you want to use.
   
-4. Create a resource group, Storage account, and Azure Functions app. If you would like to use an existing Windows .NET Core 3 function app, please skip this step.
+4. Create a resource group, Storage account, and Azure Functions app. If you would like to use an existing Azure Functions app, please skip this step.
 
     ```bash
     az group create --name AzureFunctionsQuickstart-rg --location westeurope
     az storage account create --name <STORAGE_NAME> --location westeurope --resource-group AzureFunctionsQuickstart-rg --sku Standard_LRS
-    az functionapp create --resource-group AzureFunctionsQuickstart-rg --consumption-plan-location westeurope --runtime dotnet-isolated --functions-version 3 --name <APP_NAME> --storage-account <STORAGE_NAME>
+    az functionapp create --resource-group AzureFunctionsQuickstart-rg --consumption-plan-location westeurope --runtime dotnet-isolated --functions-version 4 --name <APP_NAME> --storage-account <STORAGE_NAME>
     ```
 
 ### Deploy the app
@@ -73,10 +71,6 @@ Please see our [Guide for running C# Azure Functions in an isolated worker proce
     ```bash
     func azure functionapp publish <APP_NAME>
     ```
-
-## Known issues
-
-* Optimizations are not all in place in the consumption plan and you may experience longer cold starts.
 
 ## Feedback
 

@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Azure;
@@ -15,14 +14,15 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
-        private readonly IOptionsMonitor<WorkerOptions> _workerOptions;
         private readonly IOptionsMonitor<CosmosDBExtensionOptions> _cosmosExtensionOptions;
 
-        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions, IOptionsMonitor<CosmosDBExtensionOptions> cosmosExtensionOptions)
+        public CosmosDBBindingOptionsSetup(
+            IConfiguration configuration,
+            AzureComponentFactory componentFactory,
+            IOptionsMonitor<CosmosDBExtensionOptions> cosmosExtensionOptions)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
-            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _cosmosExtensionOptions = cosmosExtensionOptions ?? throw new ArgumentNullException(nameof(cosmosExtensionOptions));
         }
 
@@ -44,7 +44,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             options.ConnectionName = connectionName;
-
             if (!string.IsNullOrWhiteSpace(connectionSection.Value))
             {
                 options.ConnectionString = connectionSection.Value;

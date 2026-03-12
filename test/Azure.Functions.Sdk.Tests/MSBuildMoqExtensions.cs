@@ -12,7 +12,7 @@ namespace Moq;
 internal static class MSBuildMoqExtensions
 {
     public static void VerifyLog(
-        this Mock<IBuildEngine> mock, LogMessage message, params string[] args)
+        this Mock<IBuildEngine> mock, LogMessage message, params object[] args)
     {
         if (message.Level == LogLevel.Error)
         {
@@ -29,7 +29,7 @@ internal static class MSBuildMoqExtensions
     }
 
     public static void VerifyLog(
-        this Mock<IBuildEngine> mock, LogLevel level, string message, params string[] args)
+        this Mock<IBuildEngine> mock, LogLevel level, string message, params object[] args)
     {
         message = string.Format(CultureInfo.InvariantCulture, message, args);
         if (level == LogLevel.Error)
@@ -46,7 +46,7 @@ internal static class MSBuildMoqExtensions
         }
     }
 
-    private static BuildErrorEventArgs MatchError(LogMessage message, string[] args)
+    private static BuildErrorEventArgs MatchError(LogMessage message, object[] args)
     {
         return Match.Create<BuildErrorEventArgs>(e =>
         {
@@ -64,7 +64,7 @@ internal static class MSBuildMoqExtensions
         });
     }
 
-    private static BuildWarningEventArgs MatchWarning(LogMessage message, string[] args)
+    private static BuildWarningEventArgs MatchWarning(LogMessage message, object[] args)
     {
         return Match.Create<BuildWarningEventArgs>(e =>
         {
@@ -82,7 +82,7 @@ internal static class MSBuildMoqExtensions
         });
     }
 
-    private static BuildMessageEventArgs MatchMessage(LogMessage message, string[] args)
+    private static BuildMessageEventArgs MatchMessage(LogMessage message, object[] args)
     {
         return Match.Create<BuildMessageEventArgs>(e =>
         {

@@ -54,35 +54,14 @@ public partial class SdkEndToEndTests
         ..NugetPackage.Storage.WebJobsPackages,
     ];
 
-    [Fact]
-    public void Build_NetCore()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net481")]
+    public void Build_Success(string tfm)
     {
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
-            GetTempCsproj(), targetFramework: "net8.0")
-            .Property("AssemblyName", "MyFunctionApp")
-            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
-
-        // Act
-        BuildOutput output = project.Build(restore: true);
-
-        // Assert
-        output.Should().BeSuccessful().And.HaveNoIssues();
-        string outputPath = project.GetOutputPath();
-        ValidateConfig(
-            Path.Combine(outputPath, "worker.config.json"),
-            "dotnet",
-            "MyFunctionApp.dll");
-        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
-        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
-    }
-
-    [Fact]
-    public void Build_NetFx()
-    {
-        // Arrange
-        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
-            GetTempCsproj(), targetFramework: "net481")
+            GetTempCsproj(), targetFramework: tfm)
             .Property("AssemblyName", "MyFunctionApp")
             .Property("LangVersion", "latest")
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
@@ -93,46 +72,20 @@ public partial class SdkEndToEndTests
         // Assert
         output.Should().BeSuccessful().And.HaveNoIssues();
         string outputPath = project.GetOutputPath();
-        ValidateConfig(
-            Path.Combine(outputPath, "worker.config.json"),
-            "{WorkerRoot}MyFunctionApp.exe",
-            "MyFunctionApp.exe");
+        (string exe, string entry) = GetExpectedExecutableAndArguments("MyFunctionApp", tfm);
+        ValidateConfig(Path.Combine(outputPath, "worker.config.json"), exe, entry);
         ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
         ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
     }
 
-    [Fact]
-    public void Build_NetCore_WithExtensions()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net481")]
+    public void Build_WithExtensions_Success(string tfm)
     {
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
-            GetTempCsproj(), targetFramework: "net8.0")
-            .Property("AssemblyName", "MyFunctionApp")
-            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs)
-            .ItemPackageReference(NugetPackage.ServiceBus)
-            .ItemPackageReference(NugetPackage.Storage);
-
-        // Act
-        BuildOutput output = project.Build(restore: true);
-
-        // Assert
-        output.Should().BeSuccessful().And.HaveNoIssues();
-        string outputPath = project.GetOutputPath();
-        ValidateConfig(
-            Path.Combine(outputPath, "worker.config.json"),
-            "dotnet",
-            "MyFunctionApp.dll");
-
-        ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
-        ValidateExtensionJson(outputPath, ExpectedExtensions);
-    }
-
-    [Fact]
-    public void Build_NetFx_WithExtensions()
-    {
-        // Arrange
-        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
-            GetTempCsproj(), targetFramework: "net481")
+            GetTempCsproj(), targetFramework: tfm)
             .Property("AssemblyName", "MyFunctionApp")
             .Property("LangVersion", "latest")
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs)
@@ -145,13 +98,172 @@ public partial class SdkEndToEndTests
         // Assert
         output.Should().BeSuccessful().And.HaveNoIssues();
         string outputPath = project.GetOutputPath();
-        ValidateConfig(
-            Path.Combine(outputPath, "worker.config.json"),
-            "{WorkerRoot}MyFunctionApp.exe",
-            "MyFunctionApp.exe");
-
+        (string exe, string entry) = GetExpectedExecutableAndArguments("MyFunctionApp", tfm);
+        ValidateConfig(Path.Combine(outputPath, "worker.config.json"), exe, entry);
         ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
         ValidateExtensionJson(outputPath, ExpectedExtensions);
+    }
+
+    [Fact]
+    public void Build_MultiTarget_Success()
+    {
+        // Arrange
+        string[] targetFrameworks = ["net8.0", "net481"];
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: null)
+            .TargetFrameworks(targetFrameworks)
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("LangVersion", "latest")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        foreach (string tfm in targetFrameworks)
+        {
+            string outputPath = GetMultiTargetOutputPath(project, tfm);
+            (string exe, string entry) = GetExpectedExecutableAndArguments("MyFunctionApp", tfm);
+            ValidateConfig(Path.Combine(outputPath, "worker.config.json"), exe, entry);
+            ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+            ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
+        }
+    }
+
+    [Fact]
+    public void Build_MultiTarget_WithExtensions_Success()
+    {
+        // Arrange
+        string[] targetFrameworks = ["net8.0", "net481"];
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: null)
+            .TargetFrameworks(targetFrameworks)
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("LangVersion", "latest")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs)
+            .ItemPackageReference(NugetPackage.ServiceBus)
+            .ItemPackageReference(NugetPackage.Storage);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        foreach (string tfm in targetFrameworks)
+        {
+            string outputPath = GetMultiTargetOutputPath(project, tfm);
+            (string exe, string entry) = GetExpectedExecutableAndArguments("MyFunctionApp", tfm);
+            ValidateConfig(Path.Combine(outputPath, "worker.config.json"), exe, entry);
+            ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
+            ValidateExtensionJson(outputPath, ExpectedExtensions);
+        }
+    }
+
+    [Fact]
+    public void Build_MultiTarget_Incremental_NoOp()
+    {
+        // Arrange
+        string[] targetFrameworks = ["net8.0", "net481"];
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: null)
+            .TargetFrameworks(targetFrameworks)
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("LangVersion", "latest")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+
+        Dictionary<string, (DateTime config, DateTime deps, DateTime extJson)> timestamps = [];
+        foreach (string tfm in targetFrameworks)
+        {
+            string outputPath = GetMultiTargetOutputPath(project, tfm);
+            FileInfo config = new(Path.Combine(outputPath, "worker.config.json"));
+            FileInfo deps = new(Path.Combine(outputPath, "function.deps.json"));
+            FileInfo extJson = new(Path.Combine(outputPath, "extensions.json"));
+            timestamps[tfm] = (config.LastWriteTimeUtc, deps.LastWriteTimeUtc, extJson.LastWriteTimeUtc);
+        }
+
+        // Act 2: Incremental build
+        BuildOutput output2 = project.Build();
+
+        // Assert 2: Verify no changes were made
+        output2.Should().BeSuccessful().And.HaveNoIssues();
+        foreach (string tfm in targetFrameworks)
+        {
+            string outputPath = GetMultiTargetOutputPath(project, tfm);
+            (string exe, string entry) = GetExpectedExecutableAndArguments("MyFunctionApp", tfm);
+            ValidateConfig(Path.Combine(outputPath, "worker.config.json"), exe, entry);
+            ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+            ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
+
+            (DateTime configWrite, DateTime depsWrite, DateTime extJsonWrite) = timestamps[tfm];
+
+            new FileInfo(Path.Combine(outputPath, "worker.config.json"))
+                .LastWriteTimeUtc.Should().Be(configWrite);
+            new FileInfo(Path.Combine(outputPath, "function.deps.json"))
+                .LastWriteTimeUtc.Should().Be(depsWrite);
+            new FileInfo(Path.Combine(outputPath, "extensions.json"))
+                .LastWriteTimeUtc.Should().Be(extJsonWrite);
+        }
+    }
+
+    [Fact]
+    public void Build_MultiTarget_WithExtensions_Incremental_NoOp()
+    {
+        // Arrange
+        string[] targetFrameworks = ["net8.0", "net481"];
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: null)
+            .TargetFrameworks(targetFrameworks)
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("LangVersion", "latest")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs)
+            .ItemPackageReference(NugetPackage.ServiceBus)
+            .ItemPackageReference(NugetPackage.Storage);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+
+        Dictionary<string, (DateTime config, DateTime deps, DateTime extJson)> timestamps = [];
+        foreach (string tfm in targetFrameworks)
+        {
+            string outputPath = GetMultiTargetOutputPath(project, tfm);
+            FileInfo config = new(Path.Combine(outputPath, "worker.config.json"));
+            FileInfo deps = new(Path.Combine(outputPath, "function.deps.json"));
+            FileInfo extJson = new(Path.Combine(outputPath, "extensions.json"));
+            timestamps[tfm] = (config.LastWriteTimeUtc, deps.LastWriteTimeUtc, extJson.LastWriteTimeUtc);
+        }
+
+        // Act 2: Incremental build
+        BuildOutput output2 = project.Build();
+
+        // Assert 2: Verify no changes were made
+        output2.Should().BeSuccessful().And.HaveNoIssues();
+        foreach (string tfm in targetFrameworks)
+        {
+            string outputPath = GetMultiTargetOutputPath(project, tfm);
+            (string exe, string entry) = GetExpectedExecutableAndArguments("MyFunctionApp", tfm);
+            ValidateConfig(Path.Combine(outputPath, "worker.config.json"), exe, entry);
+            ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
+            ValidateExtensionJson(outputPath, ExpectedExtensions);
+
+            (DateTime configWrite, DateTime depsWrite, DateTime extJsonWrite) = timestamps[tfm];
+
+            new FileInfo(Path.Combine(outputPath, "worker.config.json"))
+                .LastWriteTimeUtc.Should().Be(configWrite);
+            new FileInfo(Path.Combine(outputPath, "function.deps.json"))
+                .LastWriteTimeUtc.Should().Be(depsWrite);
+            new FileInfo(Path.Combine(outputPath, "extensions.json"))
+                .LastWriteTimeUtc.Should().Be(extJsonWrite);
+        }
     }
 
     [Theory]
@@ -320,6 +432,26 @@ public partial class SdkEndToEndTests
                     $"./{Constants.ExtensionsOutputFolder}/{ext.Assembly}",
                     "Hint path should point to correct location.");
         }
+    }
+
+    private static (string Executable, string EntryPoint) GetExpectedExecutableAndArguments(
+        string assembly, string tfm)
+    {
+        // netfx
+        if (tfm.StartsWith("net4", StringComparison.OrdinalIgnoreCase))
+        {
+            return ($"{{WorkerRoot}}{assembly}.exe", $"{assembly}.exe");
+        }
+        else
+        {
+            return ("dotnet", $"{assembly}.dll");
+        }
+    }
+
+    private static string GetMultiTargetOutputPath(ProjectCreator project, string tfm)
+    {
+        string root = project.GetOutputPath();
+        return Path.Combine(root, tfm);
     }
 
     private class WebJobsExtensions

@@ -154,13 +154,16 @@ public partial class SdkEndToEndTests
         ValidateExtensionJson(outputPath, ExpectedExtensions);
     }
 
-    [Fact]
-    public void Build_NoRestoreHook_Warning()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Build_NoRestoreHook_Warning(bool buildingInsideVisualStudio)
     {
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: "net8.0")
             .Property("AssemblyName", "MyFunctionApp")
+            .Property("BuildingInsideVisualStudio", buildingInsideVisualStudio.ToString())
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
 
         // restore, then delete the project to simulate no restore hook having run
@@ -171,9 +174,25 @@ public partial class SdkEndToEndTests
         BuildOutput output = project.Build(restore: false);
 
         // Assert
-        output.Should().BeSuccessful().And.HaveSingleWarning()
-            .Which.Should().BeSdkMessage(LogMessage.Warning_ExtensionsNotRestored)
-            .And.HaveSender("FuncSdkLog");
+        if (buildingInsideVisualStudio)
+        {
+            output.Should().BeSuccessful().And.HaveNoIssues();
+        }
+        else
+        {
+            output.Should().BeSuccessful().And.HaveSingleWarning()
+                .Which.Should().BeSdkMessage(LogMessage.Warning_ExtensionsNotRestored)
+                .And.HaveSender("FuncSdkLog");
+        }
+
+        string outputPath = project.GetOutputPath();
+        ValidateConfig(
+            Path.Combine(outputPath, "worker.config.json"),
+            "dotnet",
+            "MyFunctionApp.dll");
+
+        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
     }
 
     [Fact]

@@ -93,7 +93,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Target Name="_VerifyRestoredFunctionsExtensions" Condition="'$(DesignTimeBuild)' != 'true'"
     BeforeTargets="BeforeBuild"
     Inputs="$(_AzureFunctionsExtensionProjectPath);$(ProjectAssetsFile)" Outputs="$(_AzureFunctionsExtensionRestoredMarker)">
-    <FuncSdkLog Resource="Warning_ExtensionsNotRestored" />
+    <!-- Visual Studio does restore manually via design-time-build outputs. We have no way to hook into it and will have to rely on build fallback. -->
+    <FuncSdkLog Resource="Warning_ExtensionsNotRestored" Condition="'$(BuildingInsideVisualStudio)' != 'true'" />
     <CallTarget Targets="GenerateFunctionsExtensionProject"/>
   </Target>
 

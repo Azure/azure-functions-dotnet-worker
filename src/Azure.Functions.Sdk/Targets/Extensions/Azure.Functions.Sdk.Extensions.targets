@@ -17,9 +17,27 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.WriteExtensionMetadata" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
-    <_FunctionsPackageHashPath>$(_AzureFunctionsExtensionProjectDirectory)azure_functions.package.hash</_FunctionsPackageHashPath>
     <_FunctionsIntermediateExtensionJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionJsonPath>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworks)' == ''">
+    <_AzureFunctionsTargetFramework Include="$(TargetFramework)"
+      ProjectFile="$(BaseIntermediateOutputPath)azure_functions/$(_AzureFunctionsExtensionProjectName)"
+      MarkerFile="$(BaseIntermediateOutputPath)azure_functions/restored.marker" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworks)' != '' AND '$(TargetFramework)' != ''">
+    <_AzureFunctionsTargetFramework Include="$(TargetFramework)"
+      ProjectFile="$(BaseIntermediateOutputPath)azure_functions_$(TargetFramework)/$(_AzureFunctionsExtensionProjectName)"
+      MarkerFile="$(BaseIntermediateOutputPath)azure_functions_$(TargetFramework)/restored.marker" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworks)' != '' AND '$(TargetFramework)' == ''">
+    <_AzureFunctionsTargetFramework Include="$(TargetFrameworks)" />
+    <_AzureFunctionsTargetFramework Update="@(_AzureFunctionsTargetFramework)"
+      ProjectFile="$(BaseIntermediateOutputPath)azure_functions_%(Identity)/$(_AzureFunctionsExtensionProjectName)"
+      MarkerFile="$(BaseIntermediateOutputPath)azure_functions_%(Identity)/restored.marker" />
+  </ItemGroup>
 
   <Target Name="GenerateFunctionsExtensionProject" Condition="'$(DesignTimeBuild)' != 'true'"
     DependsOnTargets="CollectExtensionPackages;WriteExtensionProject;RestoreExtensionProject"
@@ -34,7 +52,13 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     BeforeTargets="GetCopyToPublishDirectoryItems" />
 
   <Target Name="CollectExtensionPackages" Returns="@(_AzureFunctionPackageReference)">
-    <ResolveExtensionPackages ProjectAssetsFile="$(ProjectAssetsFile)">
+    <PropertyGroup>
+      <!-- In multi-targeting, $(ProjectAssetsFile) is not available, so we backfill it. -->
+      <_ProjectAssetsFile>$(ProjectAssetsFile)</_ProjectAssetsFile>
+      <_ProjectAssetsFile Condition="'$(_ProjectAssetsFile)' == ''">$(BaseIntermediateOutputPath)project.assets.json</_ProjectAssetsFile>
+    </PropertyGroup>
+
+    <ResolveExtensionPackages ProjectAssetsFile="$(_ProjectAssetsFile)">
       <Output TaskParameter="ExtensionPackages" ItemName="_AzureFunctionPackageReference" />
     </ResolveExtensionPackages>
   </Target>
@@ -44,19 +68,17 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <ValidateExtensionPackages ExtensionPackages="@(_AzureFunctionPackageReference)">
       <Output TaskParameter="FilteredPackages" ItemName="_ValidatedAzureFunctionPackageReference" />
     </ValidateExtensionPackages>
-    <MakeDir Directories="$(_AzureFunctionsExtensionProjectDirectory)" Condition="!Exists('$(_AzureFunctionsExtensionProjectDirectory)')" />
-    <WriteExtensionProject ExtensionPackages="@(_ValidatedAzureFunctionPackageReference)" ProjectPath="$(_AzureFunctionsExtensionProjectPath)"
-      HashFilePath="$(_FunctionsPackageHashPath)" />
+    <WriteExtensionProject Projects="@(_AzureFunctionsTargetFramework)" Packages="@(_ValidatedAzureFunctionPackageReference)" />
   </Target>
 
   <Target Name="RestoreExtensionProject">
-    <MSBuild Projects="$(_AzureFunctionsExtensionProjectPath)" Targets="Restore"
+    <MSBuild Projects="@(_AzureFunctionsTargetFramework->'%(ProjectFile)')" Targets="Restore"
       RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources)" />
-    <Touch Files="$(_AzureFunctionsExtensionRestoredMarker)" AlwaysCreate="True" />
+    <Touch Files="@(_AzureFunctionsTargetFramework->'%(MarkerFile)')" AlwaysCreate="True" />
   </Target>
 
   <Target Name="GetFunctionsExtensionFiles" Returns="@(_FunctionsExtensionsOutputItems)">
-    <MSBuild Projects="$(_AzureFunctionsExtensionProjectPath)" Targets="ResolveFunctionsExtensionFiles"
+    <MSBuild Projects="@(_AzureFunctionsTargetFramework->'%(ProjectFile)')" Targets="ResolveFunctionsExtensionFiles"
       RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)">
       <Output TaskParameter="TargetOutputs" ItemName="_FunctionsExtensionsOutputItems" />
     </MSBuild>
@@ -92,7 +114,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   -->
   <Target Name="_VerifyRestoredFunctionsExtensions" Condition="'$(DesignTimeBuild)' != 'true'"
     BeforeTargets="BeforeBuild"
-    Inputs="$(_AzureFunctionsExtensionProjectPath);$(ProjectAssetsFile)" Outputs="$(_AzureFunctionsExtensionRestoredMarker)">
+    Inputs="@(_AzureFunctionsTargetFramework->'%(ProjectFile)');$(ProjectAssetsFile)" Outputs="@(_AzureFunctionsTargetFramework->'%(MarkerFile)')">
     <!-- Visual Studio does restore manually via design-time-build outputs. We have no way to hook into it and will have to rely on build fallback. -->
     <FuncSdkLog Resource="Warning_ExtensionsNotRestored" Condition="'$(BuildingInsideVisualStudio)' != 'true'" />
     <CallTarget Targets="GenerateFunctionsExtensionProject"/>

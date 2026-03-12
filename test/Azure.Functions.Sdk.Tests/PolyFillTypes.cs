@@ -69,6 +69,9 @@ namespace System.IO
         {
             public static string GetRelativePath(string fromPath, string toPath)
             {
+                Throw.IfNullOrEmpty(fromPath);
+                Throw.IfNullOrEmpty(toPath);
+
                 // Ensure paths end with a separator if they are directories
                 if (!fromPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
                 {

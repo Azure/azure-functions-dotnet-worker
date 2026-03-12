@@ -51,6 +51,11 @@
     <None Include="Targets/**" Pack="true" CamelCasePath="true" PackagePath="targets/" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Not part of net472 usings for some reason. -->
+    <Using Include="System.Net.Http" Condition="'$(TargetFramework)' == 'net472'"/>
+  </ItemGroup>
+
   <Target Name="_IncludeToolExtensions" BeforeTargets="_GetPackageFiles">
     <MSBuild Targets="GetTargetPath" Projects="$(MetadataLoaderExtensionProject)">
       <Output TaskParameter="TargetOutputs" ItemName="MetadataLoaderExtensionAssembly" />

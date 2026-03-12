@@ -13,6 +13,8 @@
     <Using Include="AwesomeAssertions" />
     <Using Include="Moq" />
     <Using Include="Xunit" />
+    <!-- Not part of net472 usings for some reason. -->
+    <Using Include="System.Net.Http" Condition="'$(TargetFramework)' == 'net472'"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -91,7 +91,7 @@ public sealed class ValidateExtensionPackagesTests
     }
 
     [Fact]
-    public void PackageMissingTfm_Warning()
+    public void PackageMissingTfm_Error()
     {
         // Arrange
         ITaskItem package1 = CreatePackage("PackageA", "1.0.0", string.Empty);
@@ -101,9 +101,9 @@ public sealed class ValidateExtensionPackagesTests
         bool result = task.Execute();
 
         // Assert
-        result.Should().BeTrue();
+        result.Should().BeFalse();
         task.FilteredPackages.Should().BeEmpty();
-        _buildEngine.VerifyLog(LogMessage.Warning_ExtensionPackageTargetFrameworkMissing, "PackageA");
+        _buildEngine.VerifyLog(LogMessage.Error_ExtensionPackageTargetFrameworkMissing, "PackageA");
     }
 
     [Fact]

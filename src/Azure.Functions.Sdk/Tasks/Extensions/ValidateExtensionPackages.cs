@@ -22,8 +22,9 @@ public class ValidateExtensionPackages : Microsoft.Build.Utilities.Task
             {
                 string packageList = string.Join($"{Environment.NewLine}  ", packages.Select(p => p.ItemSpec));
                 Log.LogMessage(
-                    LogMessage.Warning_ExtensionPackageTargetFrameworkMissing,
+                    LogMessage.Error_ExtensionPackageTargetFrameworkMissing,
                     packageList);
+                return false;
             }
             else
             {

@@ -64,9 +64,9 @@ internal readonly struct LogMessage
 
     public static readonly LogMessage Error_ExtensionPackageTargetFrameworkMissing
         = new(nameof(Strings.AZFW0109_Error_ExtensionPackageTargetFrameworkMissing));
-
+    
     public static readonly LogMessage Warning_GeneratedProjectShouldNotBeBuilt
-        = new(nameof(Strings.Warning_GeneratedProjectShouldNotBeBuilt));
+        = new(nameof(Strings.AZFW0110_Warning_GeneratedProjectShouldNotBeBuilt));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LogMessage"/> struct.

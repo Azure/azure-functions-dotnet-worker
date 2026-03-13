@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
 
@@ -20,6 +21,8 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                 // Tells the host to no longer emit telemetry on behalf of the worker.
                 .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities[OpenTelemetryConstants.WorkerOTelEnabled] = bool.TrueString)
                 .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities[OpenTelemetryConstants.WorkerOTelSchemaVersion] = OpenTelemetryConstants.WorkerDefaultSchemaVersion);
+
+            builder.Services.AddSingleton<IBaggagePropagator, DefaultBaggagePropagator>();
 
             builder.ConfigureResource((resourceBuilder) =>
             {

@@ -10,6 +10,7 @@ using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Core.Diagnostics.Telemetry;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -84,7 +85,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.TryAddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.TryAddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
-            
+
+            // Otel baggage propagator
+            services.TryAddSingleton<IBaggagePropagator>(NullBaggagePropagator.Instance);
+
             if (configure != null)
             {
                 services.Configure(configure);

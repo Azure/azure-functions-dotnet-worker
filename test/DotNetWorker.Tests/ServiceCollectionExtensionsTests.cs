@@ -1,8 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
+using Microsoft.Azure.Functions.Worker.Core.Diagnostics.Telemetry;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -83,5 +85,20 @@ public class ServiceCollectionExtensionsTests
             services.AddFunctionsWorkerCore();
             services.AddFunctionsWorkerCore();
         });
+    }
+
+    [Fact]
+    public void AddFunctionsWorkerCore_RegistersNullBaggagePropagatorByDefault()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        services.AddFunctionsWorkerCore();
+        var provider = services.BuildServiceProvider();
+
+        // Assert
+        var baggagePropagator = provider.GetRequiredService<IBaggagePropagator>();
+        Assert.IsType<NullBaggagePropagator>(baggagePropagator);
     }
 }

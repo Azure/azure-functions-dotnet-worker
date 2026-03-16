@@ -57,6 +57,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
         }
 
+        public TestFunctionContext(IReadOnlyDictionary<string, string>? baggage = null)
+            : this(new TestFunctionDefinition(), new TestFunctionInvocation(baggage: baggage), CancellationToken.None)
+        {
+        }
+
         public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation, CancellationToken cancellationToken, IInvocationFeatures features = null, IServiceProvider serviceProvider = null)
         {
             FunctionDefinition = functionDefinition;

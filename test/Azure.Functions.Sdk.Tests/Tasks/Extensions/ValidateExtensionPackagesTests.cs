@@ -103,7 +103,10 @@ public sealed class ValidateExtensionPackagesTests
         // Assert
         result.Should().BeFalse();
         task.FilteredPackages.Should().BeEmpty();
-        _buildEngine.VerifyLog(LogMessage.Error_ExtensionPackageTargetFrameworkMissing, "PackageA");
+        _buildEngine.VerifyLog(
+            NuGet.Common.LogLevel.Error,
+            Strings.ValidatePackages_TargetFrameworkMissing,
+            "PackageA/1.0.0");
     }
 
     [Fact]

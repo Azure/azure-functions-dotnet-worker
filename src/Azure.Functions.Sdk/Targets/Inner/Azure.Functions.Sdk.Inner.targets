@@ -12,6 +12,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Inner.ResolveExtensionCopyLocal" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).FuncSdkLog" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
 
@@ -38,6 +39,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <TargetPath>$([System.IO.Path]::Combine(.azurefunctions, function.deps.json))</TargetPath>
       </FunctionsExtensionFiles>
     </ItemGroup>
+  </Target>
+
+  <Target Name="Build">
+    <FuncSdkLog Resource="Warning_GeneratedProjectShouldNotBeBuilt" />
   </Target>
 
 </Project>

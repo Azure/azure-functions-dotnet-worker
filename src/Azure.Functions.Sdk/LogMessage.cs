@@ -59,11 +59,17 @@ internal readonly struct LogMessage
     public static readonly LogMessage Warning_UnsupportedTargetFramework
         = new(nameof(Strings.AZFW0107_Warning_UnsupportedTargetFramework));
 
+    /// <summary>
+    /// Log message for when extensions have not been restored.
+    /// </summary>
     public static readonly LogMessage Warning_ExtensionsNotRestored
         = new(nameof(Strings.AZFW0108_Warning_ExtensionsNotRestored));
 
-    public static readonly LogMessage Warning_ExtensionPackageTargetFrameworkMissing
-        = new(nameof(Strings.AZFW0109_Warning_ExtensionPackageTargetFrameworkMissing));
+    /// <summary>
+    /// Log message for when a generated project is built, but shouldn't be.
+    /// </summary>
+    public static readonly LogMessage Warning_GeneratedProjectShouldNotBeBuilt
+        = new(nameof(Strings.AZFW0109_Warning_GeneratedProjectShouldNotBeBuilt));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LogMessage"/> struct.
@@ -153,7 +159,7 @@ internal readonly struct LogMessage
             nameof(Error_UnknownFunctionsVersion) => Error_UnknownFunctionsVersion,
             nameof(Warning_UnsupportedTargetFramework) => Warning_UnsupportedTargetFramework,
             nameof(Warning_ExtensionsNotRestored) => Warning_ExtensionsNotRestored,
-            nameof(Warning_ExtensionPackageTargetFrameworkMissing) => Warning_ExtensionPackageTargetFrameworkMissing,
+            nameof(Warning_GeneratedProjectShouldNotBeBuilt) => Warning_GeneratedProjectShouldNotBeBuilt,
             _ => throw new ArgumentException($"Log message with id '{id}' not found.", nameof(id)),
         };
     }

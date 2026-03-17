@@ -15,15 +15,15 @@ public class ValidateExtensionPackages : Microsoft.Build.Utilities.Task
 
     public override bool Execute()
     {
+        Log.TaskResources = Strings.ResourceManager;
         List<ITaskItem> uniquePackages = [];
         foreach (IGrouping<string, ITaskItem> packages in ExtensionPackages.GroupBy(p => p.TargetFramework))
         {
             if (string.IsNullOrEmpty(packages.Key))
             {
-                string packageList = string.Join($"{Environment.NewLine}  ", packages.Select(p => p.ItemSpec));
-                Log.LogMessage(
-                    LogMessage.Warning_ExtensionPackageTargetFrameworkMissing,
-                    packageList);
+                string packageList = string.Join($"{Environment.NewLine}  ", packages.Select(p => $"{p.ItemSpec}/{p.Version}"));
+                Log.LogErrorFromResources(nameof(Strings.ValidatePackages_TargetFrameworkMissing), packageList);
+                return false;
             }
             else
             {

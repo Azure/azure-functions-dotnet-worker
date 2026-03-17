@@ -144,8 +144,8 @@
   <data name="AZFW0108_Warning_ExtensionsNotRestored" xml:space="preserve">
     <value>The Functions extensions project was not restored prior to build. Falling back to restore-during-build for the Functions extensions project. This may cause issues in some build environments.</value>
   </data>
-  <data name="AZFW0109_Warning_ExtensionPackageTargetFrameworkMissing" xml:space="preserve">
-    <value>Target framework is missing for extension package(s):\r\n  {0}</value>
+  <data name="AZFW0109_Warning_GeneratedProjectShouldNotBeBuilt" xml:space="preserve">
+    <value>This project is not intended to be built directly. It is only used as an intermediate target for packaging Azure Functions projects.</value>
   </data>
   <data name="Deploy_AsyncDeployment" xml:space="preserve">
     <value>Asynchronous deployment. Polling status at {0}</value>
@@ -215,5 +215,8 @@
   </data>
   <data name="Zip_PathNotRooted" xml:space="preserve">
     <value>The path '{0}' is not rooted. Please provide an absolute path for {1}.</value>
+  </data>
+  <data name="ValidatePackages_TargetFrameworkMissing" xml:space="preserve">
+    <value>Target framework is missing for extension package(s):\r\n  {0}</value>
   </data>
 </root>

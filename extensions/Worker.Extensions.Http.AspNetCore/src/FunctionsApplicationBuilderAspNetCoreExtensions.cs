@@ -28,6 +28,7 @@ public static class FunctionsApplicationBuilderAspNetCoreExtensions
     /// <param name="builder">The <see cref="FunctionsApplicationBuilder"/> to configure.</param>
     /// <param name="configureWorker">The worker configure callback.</param>
     /// <returns>The <see cref="FunctionsApplicationBuilder"/> for chaining.</returns>
+    /// <exception cref="ArgumentNullException">Throws when configureWorker is null.</exception>
     public static FunctionsApplicationBuilder ConfigureFunctionsWebApplication(this FunctionsApplicationBuilder builder, Action<IFunctionsWorkerApplicationBuilder> configureWorker)
     {
         ArgumentNullException.ThrowIfNull(configureWorker);
@@ -41,6 +42,7 @@ public static class FunctionsApplicationBuilderAspNetCoreExtensions
     /// <param name="builder">The <see cref="FunctionsApplicationBuilder"/> to configure.</param>
     /// <param name="configureWorker">The worker configure callback receiving the host builder context.</param>
     /// <returns>The <see cref="FunctionsApplicationBuilder"/> for chaining.</returns>
+    /// <exception cref="ArgumentNullException">Throws when configureWorker is null.</exception>
     public static FunctionsApplicationBuilder ConfigureFunctionsWebApplication(this FunctionsApplicationBuilder builder, Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configureWorker)
     {
         ArgumentNullException.ThrowIfNull(configureWorker);

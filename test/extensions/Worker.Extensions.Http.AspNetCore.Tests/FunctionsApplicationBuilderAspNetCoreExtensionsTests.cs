@@ -53,9 +53,11 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             Assert.Single(httpProxyingMiddlewares);
             Assert.Single(coordinators);
 
-            // Also verify end-to-end resolution works
+            // Also verify end-to-end resolution yields single instances
             var host = builder.Build();
-            VerifyRegistrationOfAspNetCoreIntegrationServices(host);
+            Assert.Single(host.Services.GetServices<FunctionsEndpointDataSource>());
+            Assert.Single(host.Services.GetServices<FunctionsHttpProxyingMiddleware>());
+            Assert.Single(host.Services.GetServices<IHttpCoordinator>());
             Assert.Equal(2, callbackCount);
         }
 
@@ -77,7 +79,7 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
         {
             public Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
             {
-                return Task.CompletedTask;
+                return next(context);
             }
         }
     }

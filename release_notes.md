@@ -18,4 +18,3 @@
 
 - Update protobuf version to v1.12.0-protofile and add support for propagating tags from the worker to the functions host (#3303).
 - Update protobuf version to v1.13.0-protofile to add support for propagating OpenTelemetry baggage to the worker (#3319).
-

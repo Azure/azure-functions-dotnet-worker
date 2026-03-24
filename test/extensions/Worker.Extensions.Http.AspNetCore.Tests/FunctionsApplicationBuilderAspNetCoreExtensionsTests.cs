@@ -38,6 +38,22 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
+        public void ConfigureFunctionsWebApplication_WithNullAction_ThrowsArgumentNullException()
+        {
+            var builder = FunctionsApplication.CreateBuilder([]);
+            Assert.Throws<ArgumentNullException>("configureWorker",
+                () => builder.ConfigureFunctionsWebApplication((Action<IFunctionsWorkerApplicationBuilder>)null!));
+        }
+
+        [Fact]
+        public void ConfigureFunctionsWebApplication_WithNullContextAction_ThrowsArgumentNullException()
+        {
+            var builder = FunctionsApplication.CreateBuilder([]);
+            Assert.Throws<ArgumentNullException>("configureWorker",
+                () => builder.ConfigureFunctionsWebApplication((Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder>)null!));
+        }
+
+        [Fact]
         public void ConfigureFunctionsWebApplication_WithActionCalledTwice_AspNetCoreServicesRegisteredOnce()
         {
             var callbackCount = 0;

@@ -4,10 +4,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Kafka;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [InputConverter(typeof(KafkaRecordConverter))]
     [BindingCapabilities(KnownBindingCapabilities.FunctionLevelRetry)]
     public sealed class KafkaTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {

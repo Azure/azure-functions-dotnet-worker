@@ -1,0 +1,33 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+syntax = "proto3";
+package azure.functions.kafka;
+option csharp_namespace = "Microsoft.Azure.Functions.Worker.Extensions.Kafka.Proto";
+
+// Represents a single Kafka record aligned with the Apache Kafka specification.
+// This schema must stay in sync with the host-side KafkaRecordProto.proto in
+// Microsoft.Azure.WebJobs.Extensions.Kafka.
+message KafkaRecordProto {
+    string topic = 1;
+    int32 partition = 2;
+    int64 offset = 3;
+    bytes key = 4;
+    bytes value = 5;
+    KafkaTimestampProto timestamp = 6;
+    repeated KafkaHeaderProto headers = 7;
+    optional int32 leader_epoch = 8;
+
+    // Reserved for future fields. Do not reuse field numbers.
+    reserved 9 to 15;
+}
+
+message KafkaTimestampProto {
+    int64 unix_timestamp_ms = 1;
+    int32 type = 2; // 0=NotAvailable, 1=CreateTime, 2=LogAppendTime
+}
+
+message KafkaHeaderProto {
+    string key = 1;
+    bytes value = 2;
+}

@@ -21,6 +21,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.25.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.60.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.19.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Proto\KafkaRecordProto.proto" GrpcServices="None" Access="internal" />
+  </ItemGroup>
+
+  <ItemGroup>
     <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Kafka" Version="4.1.4" />
   </ItemGroup>
 

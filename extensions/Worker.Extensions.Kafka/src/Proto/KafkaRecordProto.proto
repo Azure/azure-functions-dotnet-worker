@@ -12,8 +12,8 @@ message KafkaRecordProto {
     string topic = 1;
     int32 partition = 2;
     int64 offset = 3;
-    bytes key = 4;
-    bytes value = 5;
+    optional bytes key = 4;
+    optional bytes value = 5;
     KafkaTimestampProto timestamp = 6;
     repeated KafkaHeaderProto headers = 7;
     optional int32 leader_epoch = 8;
@@ -29,5 +29,5 @@ message KafkaTimestampProto {
 
 message KafkaHeaderProto {
     string key = 1;
-    bytes value = 2;
+    optional bytes value = 2;
 }

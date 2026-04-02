@@ -62,15 +62,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Kafka
                     $"Unexpected content type '{binding.ContentType}'. Expected '{ExpectedContentType}'.");
             }
 
-            var proto = KafkaRecordProto.Parser.ParseFrom(binding.Content);
+            var proto = KafkaRecordProto.Parser.ParseFrom(binding.Content.ToArray());
 
             return new KafkaRecord
             {
                 Topic = proto.Topic,
                 Partition = proto.Partition,
                 Offset = proto.Offset,
-                Key = proto.Key.IsEmpty ? null : proto.Key.ToByteArray(),
-                Value = proto.Value.IsEmpty ? null : proto.Value.ToByteArray(),
+                Key = proto.HasKey ? proto.Key.ToByteArray() : null,
+                Value = proto.HasValue ? proto.Value.ToByteArray() : null,
                 LeaderEpoch = proto.HasLeaderEpoch ? proto.LeaderEpoch : (int?)null,
                 Timestamp = proto.Timestamp != null
                     ? new KafkaTimestamp
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Kafka
                 Headers = proto.Headers.Select(h => new KafkaHeader
                 {
                     Key = h.Key,
-                    Value = h.Value.IsEmpty ? null : h.Value.ToByteArray(),
+                    Value = h.HasValue ? h.Value.ToByteArray() : null,
                 }).ToArray(),
             };
         }

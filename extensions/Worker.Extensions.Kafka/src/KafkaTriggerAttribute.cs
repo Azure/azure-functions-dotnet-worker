@@ -11,6 +11,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Kafka;
 namespace Microsoft.Azure.Functions.Worker
 {
     [InputConverter(typeof(KafkaRecordConverter))]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     [BindingCapabilities(KnownBindingCapabilities.FunctionLevelRetry)]
     public sealed class KafkaTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {

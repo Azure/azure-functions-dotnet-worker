@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup Condition="$(DotnetVersion) != 'netfx'">
     <TargetFramework>net8.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
@@ -17,6 +18,7 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
@@ -25,28 +27,16 @@
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="host.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="local.settings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-    </None>
-    <None Update="proxies.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Update="proxies.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Use version 2.2.0 for .NET Framework 4.8 -->
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" Condition="'$(TargetFramework)' == 'net48'" />
-    <!-- Use version 8.0.1 for .NET Core or other target frameworks -->
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.8" Condition="'$(TargetFramework)' != 'net48'" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
-    <PackageReference Condition="$(TestBuild) != 'true'" Include="Microsoft.Azure.Functions.Worker" Version="2.1.0" />
     <PackageReference Include="System.Text.Json" Version="10.0.0" />
   </ItemGroup>
+
 </Project>

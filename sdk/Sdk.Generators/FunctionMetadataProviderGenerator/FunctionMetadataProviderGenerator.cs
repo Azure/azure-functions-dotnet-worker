@@ -59,7 +59,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = entryAssemblyFunctions.Concat(dependentAssemblyFunctions).ToList();
 
-            // Check for duplicate function names (case-insensitive, matching host behavior)
+            // Case-insensitive: the host treats function names as case-insensitive
             var duplicateGroups = functionMetadataInfo
                 .Where(f => f.Name is not null)
                 .GroupBy(f => f.Name, StringComparer.OrdinalIgnoreCase)

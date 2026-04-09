@@ -260,111 +260,111 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                     languageVersion: languageVersion);
             }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp7_3)]
-        [InlineData(LanguageVersion.CSharp8)]
-        [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersion.Latest)]
-        public async Task DuplicateFunctionNamesFails(LanguageVersion languageVersion)
-        {
-            var inputCode = @"using System;
-                using System.Threading.Tasks;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
-
-                namespace FunctionApp
-                {
-                    public class FunctionClassA
-                    {
-                        [Function(""MyFunc"")]
-                        public string RunA([HttpTrigger(""get"")] string req)
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-
-                    public class FunctionClassB
-                    {
-                        [Function(""MyFunc"")]
-                        public string RunB([HttpTrigger(""get"")] string req)
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }";
-
-            string? expectedGeneratedFileName = null;
-            string? expectedOutput = null;
-
-            var expectedDiagnosticResults = new List<DiagnosticResult>
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task DuplicateFunctionNamesFails(LanguageVersion languageVersion)
             {
-                new DiagnosticResult(DiagnosticDescriptors.DuplicateFunctionName)
-                    .WithArguments("MyFunc", "FunctionApp.FunctionClassA.RunA, FunctionApp.FunctionClassB.RunB")
-            };
+                var inputCode = @"using System;
+                    using System.Threading.Tasks;
+                    using Microsoft.Azure.Functions.Worker;
+                    using Microsoft.Azure.Functions.Worker.Http;
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput,
-                expectedDiagnosticResults,
-                languageVersion: languageVersion);
-        }
+                    namespace FunctionApp
+                    {
+                        public class FunctionClassA
+                        {
+                            [Function(""MyFunc"")]
+                            public string RunA([HttpTrigger(""get"")] string req)
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp7_3)]
-        [InlineData(LanguageVersion.CSharp8)]
-        [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersion.Latest)]
-        public async Task DuplicateFunctionNamesCaseInsensitiveFails(LanguageVersion languageVersion)
-        {
-            var inputCode = @"using System;
-                using System.Threading.Tasks;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
+                        public class FunctionClassB
+                        {
+                            [Function(""MyFunc"")]
+                            public string RunB([HttpTrigger(""get"")] string req)
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
+                    }";
 
-                namespace FunctionApp
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                var expectedDiagnosticResults = new List<DiagnosticResult>
                 {
-                    public class FunctionClassA
-                    {
-                        [Function(""MyFunc"")]
-                        public string RunA([HttpTrigger(""get"")] string req)
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
+                    new DiagnosticResult(DiagnosticDescriptors.DuplicateFunctionName)
+                        .WithArguments("MyFunc", "FunctionApp.FunctionClassA.RunA, FunctionApp.FunctionClassB.RunB")
+                };
 
-                    public class FunctionClassB
-                    {
-                        [Function(""myfunc"")]
-                        public string RunB([HttpTrigger(""get"")] string req)
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }";
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    expectedDiagnosticResults,
+                    languageVersion: languageVersion);
+            }
 
-            string? expectedGeneratedFileName = null;
-            string? expectedOutput = null;
-
-            var expectedDiagnosticResults = new List<DiagnosticResult>
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task DuplicateFunctionNamesCaseInsensitiveFails(LanguageVersion languageVersion)
             {
-                new DiagnosticResult(DiagnosticDescriptors.DuplicateFunctionName)
-                    .WithArguments("MyFunc", "FunctionApp.FunctionClassA.RunA, FunctionApp.FunctionClassB.RunB")
-            };
+                var inputCode = @"using System;
+                    using System.Threading.Tasks;
+                    using Microsoft.Azure.Functions.Worker;
+                    using Microsoft.Azure.Functions.Worker.Http;
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput,
-                expectedDiagnosticResults,
-                languageVersion: languageVersion);
-        }
+                    namespace FunctionApp
+                    {
+                        public class FunctionClassA
+                        {
+                            [Function(""MyFunc"")]
+                            public string RunA([HttpTrigger(""get"")] string req)
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
+
+                        public class FunctionClassB
+                        {
+                            [Function(""myfunc"")]
+                            public string RunB([HttpTrigger(""get"")] string req)
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
+                    }";
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                var expectedDiagnosticResults = new List<DiagnosticResult>
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.DuplicateFunctionName)
+                        .WithArguments("MyFunc", "FunctionApp.FunctionClassA.RunA, FunctionApp.FunctionClassB.RunB")
+                };
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    expectedDiagnosticResults,
+                    languageVersion: languageVersion);
+            }
         }
     }
 }

@@ -61,6 +61,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             // Check for duplicate function names (case-insensitive, matching host behavior)
             var duplicateGroups = functionMetadataInfo
+                .Where(f => f.Name is not null)
                 .GroupBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
                 .Where(g => g.Count() > 1)
                 .ToList();

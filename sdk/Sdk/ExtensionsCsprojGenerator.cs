@@ -46,15 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal string GetCsProjContent()
         {
             string extensionReferences = GetExtensionReferences();
-            string targetFramework = Constants.Net80;
-
-            if (_targetFrameworkIdentifier.Equals(Constants.NetCoreApp, StringComparison.OrdinalIgnoreCase))
-            {
-                if (_azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) || _targetFrameworkVersion.Equals(Constants.NetCoreVersion31, StringComparison.OrdinalIgnoreCase))
-                {
-                    targetFramework = Constants.NetCoreApp31;
-                }
-            }
+            string targetFramework = GetTargetFramework();
 
             string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.6.0";
 
@@ -77,6 +69,27 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     </Target>
 </Project>
 ";
+        }
+
+        private string GetTargetFramework()
+        {
+            if (_targetFrameworkIdentifier.Equals(Constants.NetCoreApp, StringComparison.OrdinalIgnoreCase))
+            {
+                if (_azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase)
+                    || _targetFrameworkVersion.Equals(Constants.NetCoreVersion31, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Constants.NetCoreApp31;
+                }
+
+                // Generic derivation: "v9.0" -> "net9.0", "v10.0" -> "net10.0"
+                string versionString = _targetFrameworkVersion.TrimStart('v', 'V');
+                if (Version.TryParse(versionString, out Version? version) && version.Major >= 5)
+                {
+                    return $"net{version.Major}.{version.Minor}";
+                }
+            }
+
+            return Constants.Net80;
         }
 
         private string GetExtensionReferences()

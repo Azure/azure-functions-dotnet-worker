@@ -74,6 +74,39 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             Assert.Equal(first, second);
         }
 
+        [Theory]
+        [InlineData("v8.0", "net8.0")]
+        [InlineData("v9.0", "net9.0")]
+        [InlineData("v10.0", "net10.0")]
+        public void GetCsProjContent_UsesCorrectTargetFramework_ForNewerTfms(string targetFrameworkVersion, string expectedTfm)
+        {
+            // Regression test for https://github.com/Azure/azure-functions-dotnet-worker/issues/3317
+            // The generated WorkerExtensions.csproj must match the project's TFM.
+            Dictionary<string, string> extensions = new()
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.24.0" },
+            };
+
+            var generator = new ExtensionsCsprojGenerator(extensions, "test.csproj", "v4", Constants.NetCoreApp, targetFrameworkVersion);
+            string content = generator.GetCsProjContent();
+
+            Assert.Contains($"<TargetFramework>{expectedTfm}</TargetFramework>", content);
+            Assert.Contains($"'$(TargetFramework)' != '{expectedTfm}'", content);
+        }
+
+        [Fact]
+        public void GetCsProjContent_FallsBackToNet80_ForNonNetCoreApp()
+        {
+            Dictionary<string, string> extensions = new()
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.24.0" },
+            };
+
+            var generator = new ExtensionsCsprojGenerator(extensions, "test.csproj", "v4", ".NETFramework", "v4.7.2");
+            string content = generator.GetCsProjContent();
+            Assert.Contains("<TargetFramework>net8.0</TargetFramework>", content);
+        }
+
         [Fact]
         public async Task Generate_Updates()
         {

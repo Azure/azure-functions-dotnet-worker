@@ -8,6 +8,10 @@
 
 - Reversal of change to suppress generation of functions.metadata file
 
+### Microsoft.Azure.Functions.Worker.Sdk <version>
+
+- Fixed WorkerExtensions.csproj to use the project's actual target framework instead of always defaulting to net8.0 (#3317)
+
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
 - <entry>

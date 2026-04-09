@@ -69,5 +69,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 
+        public static DiagnosticDescriptor DuplicateFunctionName { get; }
+                = Create(id: "AZFW0014",
+                    title: "Duplicate function name.",
+                    messageFormat: "The function name '{0}' is used by multiple functions. Function names must be unique. Duplicate entry points: {1}",
+                    category: "FunctionMetadataGeneration",
+                    severity: DiagnosticSeverity.Error);
+
     }
 }

@@ -95,6 +95,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
             set
             {
+                Remove(key);
                 TryAddWithoutValidation(key, (IEnumerable<string>)value);
             }
         }
@@ -142,6 +143,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
             set
             {
+                Remove(key);
                 TryAddWithoutValidation(key, (IEnumerable<string>)value);
             }
         }

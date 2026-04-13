@@ -79,12 +79,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name="_GenerateWorkerConfig" Condition="'$(NoBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'"
-    DependsOnTargets="_PrepareWorkerConfig;_CoreGenerateWorkerConfig"
-    BeforeTargets="GetCopyToOutputDirectoryItems;GetCopyToPublishDirectoryItems" />
+    DependsOnTargets="_PrepareWorkerConfig;_CoreGenerateWorkerConfig" />
 
   <Target Name="_PrepareWorkerConfig" Condition="'$(DesignTimeBuild)' != 'true'"
-    DependsOnTargets="_ResolveFunctionExecutable;_PreGenerateWorkerConfig"
-    BeforeTargets="GetCopyToOutputDirectoryItems;GetCopyToPublishDirectoryItems" />
+    DependsOnTargets="_ResolveFunctionExecutable;_PreGenerateWorkerConfig" />
 
   <Target Name="_ResolveFunctionExecutable" Returns="$(_FunctionsExecutable)">
     <PropertyGroup>
@@ -103,12 +101,39 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <ItemGroup>
       <_WorkerConfig Include="$(_WorkerConfigOutputPath)" TargetPath="$(_WorkerConfigFileName)" />
-      <ContentWithTargetPath Include="@(_WorkerConfig)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 
   <Target Name="_CoreGenerateWorkerConfig" Inputs="@(IntermediateAssembly)" Outputs="$(_WorkerConfigOutputPath)">
     <GenerateWorkerConfig Executable="$(_FunctionsExecutable)" EntryPoint="$(TargetFileName)" OutputPath="$(_WorkerConfigOutputPath)" />
+  </Target>
+
+  <!--
+    Copies the generated worker.config.json to the output directory using a manual Copy step
+    instead of ContentWithTargetPath, to prevent P2P references from collecting this file.
+  -->
+  <Target Name="_CopyWorkerConfigToOutput"
+    AfterTargets="CopyFilesToOutputDirectory"
+    DependsOnTargets="_GenerateWorkerConfig"
+    Inputs="$(_WorkerConfigOutputPath)"
+    Outputs="$(OutputPath)$(_WorkerConfigFileName)"
+    Condition="'$(NoBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
+    <Copy SourceFiles="$(_WorkerConfigOutputPath)" DestinationFiles="$(OutputPath)$(_WorkerConfigFileName)" SkipUnchangedFiles="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
+
+  <!--
+    Adds worker.config.json to ResolvedFileToPublish for the publish pipeline.
+    Sources from the intermediate output path; for NoBuild, the file must exist from a prior build.
+  -->
+  <Target Name="_AddWorkerConfigToPublish"
+    BeforeTargets="ComputeFilesToPublish"
+    DependsOnTargets="_PrepareWorkerConfig"
+    Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="$(_WorkerConfigOutputPath)" RelativePath="$(_WorkerConfigFileName)" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
   </Target>
 
 </Project>

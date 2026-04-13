@@ -117,11 +117,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     AfterTargets="CopyFilesToOutputDirectory"
     DependsOnTargets="PrepareFunctionsExtensionPayload"
     Condition="'$(NoBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
-    <Copy SourceFiles="@(_FunctionsExtensionsOutputItems)" DestinationFiles="@(_FunctionsExtensionsOutputItems->'$(OutputPath)%(TargetPath)')"
+    <Copy SourceFiles="@(_FunctionsExtensionsOutputItems)" DestinationFiles="@(_FunctionsExtensionsOutputItems->'$(TargetDir)%(TargetPath)')"
           SkipUnchangedFiles="true">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
-    <Copy SourceFiles="$(_FunctionsIntermediateExtensionJsonPath)" DestinationFiles="$(OutputPath)$(_FunctionsExtensionsJsonName)"
+    <Copy SourceFiles="$(_FunctionsIntermediateExtensionJsonPath)" DestinationFiles="$(TargetDir)$(_FunctionsExtensionsJsonName)"
           SkipUnchangedFiles="true">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>

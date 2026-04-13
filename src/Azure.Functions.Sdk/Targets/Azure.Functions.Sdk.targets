@@ -116,9 +116,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     AfterTargets="CopyFilesToOutputDirectory"
     DependsOnTargets="_GenerateWorkerConfig"
     Inputs="$(_WorkerConfigOutputPath)"
-    Outputs="$(OutputPath)$(_WorkerConfigFileName)"
+    Outputs="$(TargetDir)$(_WorkerConfigFileName)"
     Condition="'$(NoBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
-    <Copy SourceFiles="$(_WorkerConfigOutputPath)" DestinationFiles="$(OutputPath)$(_WorkerConfigFileName)" SkipUnchangedFiles="true">
+    <Copy SourceFiles="$(_WorkerConfigOutputPath)" DestinationFiles="$(TargetDir)$(_WorkerConfigFileName)" SkipUnchangedFiles="true">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
   </Target>

@@ -15,6 +15,14 @@ jobs:
         imageName: '1es-windows-2022'
         osName: 'windows'
 
+  templateContext:
+    outputParentDirectory: $(Build.ArtifactStagingDirectory)
+    outputs:
+    - output: pipelineArtifact
+      displayName: Publish logs
+      path: $(Build.ArtifactStagingDirectory)/log
+      artifact: logs_$(System.JobAttempt)
+
   pool:
     name: ${{ parameters.poolName }}
     image: $(imageName)

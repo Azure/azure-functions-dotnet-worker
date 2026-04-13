@@ -252,48 +252,31 @@ public class EndToEndTests
         Assert.DoesNotContain(resource.Attributes, a => a.Key == "azure.functions.site.update_id");
     }
 
-    [Fact]
-    public void ResourceDetector_OtelServiceName_SkipsServiceName()
-    {
-        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
-        {
-            { "WEBSITE_SITE_NAME", "appName" },
-            { "OTEL_SERVICE_NAME", "my-custom-service" }
-        });
+    public static IEnumerable<object[]> ServiceNameSkippedData =>
+    [
+        // OTEL_SERVICE_NAME in Azure
+        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "OTEL_SERVICE_NAME", "my-custom-service" } }],
+        // OTEL_SERVICE_NAME locally
+        [new Dictionary<string, string> { { "OTEL_SERVICE_NAME", "my-custom-service" } }],
+        // OTEL_RESOURCE_ATTRIBUTES[service.name] in Azure
+        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "OTEL_RESOURCE_ATTRIBUTES", "service.name=my-custom-service,other.key=value" } }],
+        // OTEL_RESOURCE_ATTRIBUTES[service.name] locally
+        [new Dictionary<string, string> { { "OTEL_RESOURCE_ATTRIBUTES", "service.name=my-custom-service" } }],
+        // OTEL_SERVICE_NAME takes priority over OTEL_RESOURCE_ATTRIBUTES
+        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "OTEL_SERVICE_NAME", "from-env" }, { "OTEL_RESOURCE_ATTRIBUTES", "service.name=from-attributes" } }],
+        // Leading/trailing whitespace around pair is trimmed
+        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "OTEL_RESOURCE_ATTRIBUTES", "other.key=value, service.name=my-custom-service" } }],
+    ];
 
+    [Theory]
+    [MemberData(nameof(ServiceNameSkippedData))]
+    public void ResourceDetector_ServiceName_SkippedWhenConfigured(Dictionary<string, string> envVars)
+    {
+        using var _ = new TestScopedEnvironmentVariable(envVars);
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
         Resource resource = detector.Detect();
 
         Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
-    }
-
-    [Fact]
-    public void ResourceDetector_OtelResourceAttributes_ServiceName_SkipsServiceName()
-    {
-        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
-        {
-            { "WEBSITE_SITE_NAME", "appName" },
-            { "OTEL_RESOURCE_ATTRIBUTES", "service.name=my-custom-service,other.key=value" }
-        });
-
-        FunctionsResourceDetector detector = new FunctionsResourceDetector();
-        Resource resource = detector.Detect();
-
-        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
-    }
-
-    [Fact]
-    public void ResourceDetector_OtelResourceAttributes_ServiceVersion_SkipsServiceVersion()
-    {
-        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
-        {
-            { "OTEL_RESOURCE_ATTRIBUTES", "service.version=1.2.3" }
-        });
-
-        FunctionsResourceDetector detector = new FunctionsResourceDetector();
-        Resource resource = detector.Detect();
-
-        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.version");
     }
 
     [Fact]
@@ -312,53 +295,18 @@ public class EndToEndTests
         Assert.Equal("appName", resource.Attributes.FirstOrDefault(a => a.Key == "service.name").Value);
     }
 
-    [Fact]
-    public void ResourceDetector_OtelServiceName_SkipsServiceName_WhenLocal()
+    [Theory]
+    [InlineData(false)] // locally
+    [InlineData(true)]  // in Azure
+    public void ResourceDetector_OtelResourceAttributes_ServiceVersion_SkipsServiceVersion(bool inAzure)
     {
-        using var _ = new TestScopedEnvironmentVariable("OTEL_SERVICE_NAME", "my-custom-service");
-
-        FunctionsResourceDetector detector = new FunctionsResourceDetector();
-        Resource resource = detector.Detect();
-
-        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
-    }
-
-    [Fact]
-    public void ResourceDetector_OtelResourceAttributes_ServiceName_SkipsServiceName_WhenLocal()
-    {
-        using var _ = new TestScopedEnvironmentVariable("OTEL_RESOURCE_ATTRIBUTES", "service.name=my-custom-service");
-
-        FunctionsResourceDetector detector = new FunctionsResourceDetector();
-        Resource resource = detector.Detect();
-
-        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
-    }
-
-    [Fact]
-    public void ResourceDetector_OtelServiceName_TakesPriorityOver_OtelResourceAttributes()
-    {
-        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        var envVars = new Dictionary<string, string> { { "OTEL_RESOURCE_ATTRIBUTES", "service.version=1.2.3" } };
+        if (inAzure)
         {
-            { "WEBSITE_SITE_NAME", "appName" },
-            { "OTEL_SERVICE_NAME", "from-env" },
-            { "OTEL_RESOURCE_ATTRIBUTES", "service.name=from-attributes" }
-        });
+            envVars["WEBSITE_SITE_NAME"] = "appName";
+        }
 
-        FunctionsResourceDetector detector = new FunctionsResourceDetector();
-        Resource resource = detector.Detect();
-
-        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
-    }
-
-    [Fact]
-    public void ResourceDetector_OtelResourceAttributes_ServiceVersion_SkipsServiceVersion_WhenInAzure()
-    {
-        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
-        {
-            { "WEBSITE_SITE_NAME", "appName" },
-            { "OTEL_RESOURCE_ATTRIBUTES", "service.version=1.2.3" }
-        });
-
+        using var _ = new TestScopedEnvironmentVariable(envVars);
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
         Resource resource = detector.Detect();
 
@@ -389,13 +337,15 @@ public class EndToEndTests
         Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.resource_id");
     }
 
-    [Fact]
-    public void ResourceDetector_CloudResourceId_NotAddedWhenResourceGroupMissing()
+    [Theory]
+    [InlineData("WEBSITE_OWNER_NAME", "AAAAA-AAAAA-AAAAA-AAA+appName-EastUSwebspace")] // missing resource group
+    [InlineData("WEBSITE_RESOURCE_GROUP", "rg")]                                        // missing owner name
+    public void ResourceDetector_CloudResourceId_NotAddedWhenEnvVarMissing(string presentEnvVar, string value)
     {
         using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
         {
             { "WEBSITE_SITE_NAME", "appName" },
-            { "WEBSITE_OWNER_NAME", "AAAAA-AAAAA-AAAAA-AAA+appName-EastUSwebspace" }
+            { presentEnvVar, value }
         });
 
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
@@ -405,29 +355,22 @@ public class EndToEndTests
     }
 
     [Fact]
-    public void ResourceDetector_CloudResourceId_NotAddedWhenOwnerNameMissing()
+    public void ResourceDetector_ProcessId_IsInt()
     {
-        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
-        {
-            { "WEBSITE_SITE_NAME", "appName" },
-            { "WEBSITE_RESOURCE_GROUP", "rg" }
-        });
-
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
         Resource resource = detector.Detect();
 
-        Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.resource_id");
+        var processId = resource.Attributes.FirstOrDefault(a => a.Key == "process.pid").Value;
+        Assert.IsType<long>(processId);
+        Assert.Equal(Process.GetCurrentProcess().Id, (int)(long)processId);
     }
 
     [Fact]
-    public void ResourceDetector_OtelResourceAttributes_TrimsWhitespaceAroundPairs()
+    public void ResourceDetector_OtelResourceAttributes_EmptyValue_TreatedAsConfigured()
     {
-        // OTel spec doesn't allow spaces around '=', but leading/trailing whitespace on a pair is tolerated.
-        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
-        {
-            { "WEBSITE_SITE_NAME", "appName" },
-            { "OTEL_RESOURCE_ATTRIBUTES", "other.key=value, service.name=my-custom-service" }
-        });
+        // A key with an empty value (service.name=) is still treated as explicitly configured —
+        // the OTel SDK will set service.name to empty from OTEL_RESOURCE_ATTRIBUTES.
+        using var _ = new TestScopedEnvironmentVariable("OTEL_RESOURCE_ATTRIBUTES", "service.name=");
 
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
         Resource resource = detector.Detect();

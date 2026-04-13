@@ -12,10 +12,10 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 
     public sealed class FunctionsResourceDetector : IResourceDetector
     {
-        private static readonly string s_assemblyVersion =
+        private static readonly string AssemblyVersion =
             typeof(FunctionsResourceDetector).Assembly.GetName().Version?.ToString() ?? "unknown";
 
-        private static readonly int s_processId = Process.GetCurrentProcess().Id;
+        private static readonly int ProcessId = Process.GetCurrentProcess().Id;
 
         public Resource Detect()
         {
@@ -23,8 +23,8 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
             {
                 var attributes = new List<KeyValuePair<string, object>>(capacity: 10)
                 {
-                    new(ResourceSemanticConventions.AISDKPrefix, $"{OpenTelemetryConstants.SDKPrefix}:{s_assemblyVersion}"),
-                    new(ResourceSemanticConventions.ProcessId, s_processId)
+                    new(ResourceSemanticConventions.AISDKPrefix, $"{OpenTelemetryConstants.SDKPrefix}:{AssemblyVersion}"),
+                    new(ResourceSemanticConventions.ProcessId, ProcessId)
                 };
 
                 string? siteName = Environment.GetEnvironmentVariable(OpenTelemetryConstants.SiteNameEnvVar);

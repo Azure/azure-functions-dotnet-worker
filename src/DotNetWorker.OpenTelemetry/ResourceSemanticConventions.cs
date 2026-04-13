@@ -21,5 +21,11 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 
         // AI
         internal const string AISDKPrefix = "ai.sdk.prefix";
+
+        // Deployment
+        internal const string DeploymentEnvironmentName = "deployment.environment.name";
+
+        // Azure Functions
+        internal const string SiteUpdateId = "azure.functions.site.update_id";
     }
 }

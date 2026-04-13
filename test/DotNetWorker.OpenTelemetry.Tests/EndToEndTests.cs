@@ -175,6 +175,7 @@ public class EndToEndTests
         Assert.Equal(4, resource.Attributes.Count());
         Assert.Equal("testhost", resource.Attributes.FirstOrDefault(a => a.Key == "service.name").Value);
         Assert.Contains("dotnetiso", resource.Attributes.FirstOrDefault(a => a.Key == "ai.sdk.prefix").Value as string);
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "deployment.environment.name");
     }
 
     [Fact]
@@ -187,6 +188,251 @@ public class EndToEndTests
         Assert.Equal($"/subscriptions/AAAAA-AAAAA-AAAAA-AAA/resourceGroups/rg/providers/Microsoft.Web/sites/appName"
             , resource.Attributes.FirstOrDefault(a => a.Key == "cloud.resource_id").Value);
         Assert.Equal($"EastUS", resource.Attributes.FirstOrDefault(a => a.Key == "cloud.region").Value);
+        Assert.Equal("appName", resource.Attributes.FirstOrDefault(a => a.Key == "service.name").Value);
+    }
+
+    [Fact]
+    public void ResourceDetector_SiteUpdateId_AddedWhenInAzure()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "WEBSITE_RESOURCE_GROUP", "rg" },
+            { "WEBSITE_OWNER_NAME", "AAAAA-AAAAA-AAAAA-AAA+appName-EastUSwebspace" },
+            { "REGION_NAME", "EastUS" },
+            { "FUNCTIONS_SITE_UPDATE_ID", "update-123" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.Equal("update-123", resource.Attributes.FirstOrDefault(a => a.Key == "azure.functions.site.update_id").Value);
+    }
+
+    [Fact]
+    public void ResourceDetector_SlotName_AddedAsDeploymentEnvironmentName()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "WEBSITE_SLOT_NAME", "staging" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.Equal("staging", resource.Attributes.FirstOrDefault(a => a.Key == "deployment.environment.name").Value);
+    }
+    
+    [Fact]
+    public void ResourceDetector_SlotName_NotAddedWhenLocal()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SLOT_NAME", "staging" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "deployment.environment.name");
+    }
+
+    [Fact]
+    public void ResourceDetector_SiteUpdateId_NotAddedWhenLocal()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "FUNCTIONS_SITE_UPDATE_ID", "update-123" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "azure.functions.site.update_id");
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelServiceName_SkipsServiceName()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "OTEL_SERVICE_NAME", "my-custom-service" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelResourceAttributes_ServiceName_SkipsServiceName()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "OTEL_RESOURCE_ATTRIBUTES", "service.name=my-custom-service,other.key=value" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelResourceAttributes_ServiceVersion_SkipsServiceVersion()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "OTEL_RESOURCE_ATTRIBUTES", "service.version=1.2.3" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.version");
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelResourceAttributes_KeyMatching_CaseSensitive()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "OTEL_RESOURCE_ATTRIBUTES", "Service.Name=my-custom-service" }
+        });
+
+        // Keys are case-sensitive; "Service.Name" should NOT match "service.name"
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.Equal("appName", resource.Attributes.FirstOrDefault(a => a.Key == "service.name").Value);
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelServiceName_SkipsServiceName_WhenLocal()
+    {
+        using var _ = new TestScopedEnvironmentVariable("OTEL_SERVICE_NAME", "my-custom-service");
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelResourceAttributes_ServiceName_SkipsServiceName_WhenLocal()
+    {
+        using var _ = new TestScopedEnvironmentVariable("OTEL_RESOURCE_ATTRIBUTES", "service.name=my-custom-service");
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelServiceName_TakesPriorityOver_OtelResourceAttributes()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "OTEL_SERVICE_NAME", "from-env" },
+            { "OTEL_RESOURCE_ATTRIBUTES", "service.name=from-attributes" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelResourceAttributes_ServiceVersion_SkipsServiceVersion_WhenInAzure()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "OTEL_RESOURCE_ATTRIBUTES", "service.version=1.2.3" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.version");
+    }
+
+    [Fact]
+    public void ResourceDetector_CloudAttributes_AddedWhenInAzure()
+    {
+        using var _ = new TestScopedEnvironmentVariable("WEBSITE_SITE_NAME", "appName");
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.Equal("azure", resource.Attributes.FirstOrDefault(a => a.Key == "cloud.provider").Value);
+        Assert.Equal("azure_functions", resource.Attributes.FirstOrDefault(a => a.Key == "cloud.platform").Value);
+    }
+
+    [Fact]
+    public void ResourceDetector_CloudAttributes_NotAddedWhenLocal()
+    {
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.provider");
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.platform");
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.region");
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.resource_id");
+    }
+
+    [Fact]
+    public void ResourceDetector_CloudResourceId_NotAddedWhenResourceGroupMissing()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "WEBSITE_OWNER_NAME", "AAAAA-AAAAA-AAAAA-AAA+appName-EastUSwebspace" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.resource_id");
+    }
+
+    [Fact]
+    public void ResourceDetector_CloudResourceId_NotAddedWhenOwnerNameMissing()
+    {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "WEBSITE_RESOURCE_GROUP", "rg" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.resource_id");
+    }
+
+    [Fact]
+    public void ResourceDetector_OtelResourceAttributes_TrimsWhitespaceAroundPairs()
+    {
+        // OTel spec doesn't allow spaces around '=', but leading/trailing whitespace on a pair is tolerated.
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", "appName" },
+            { "OTEL_RESOURCE_ATTRIBUTES", "other.key=value, service.name=my-custom-service" }
+        });
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
     }
 
     private static IDisposable SetupDefaultEnvironmentVariables()

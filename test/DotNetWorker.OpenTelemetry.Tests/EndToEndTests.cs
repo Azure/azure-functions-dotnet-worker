@@ -169,6 +169,13 @@ public class EndToEndTests
     [Fact]
     public void ResourceDetectorLocalDevelopment()
     {
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_SITE_NAME", null! },
+            { "OTEL_SERVICE_NAME", null! },
+            { "OTEL_RESOURCE_ATTRIBUTES", null! }
+        });
+
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
         Resource resource = detector.Detect();
 
@@ -398,7 +405,9 @@ public class EndToEndTests
             { "WEBSITE_SITE_NAME", "appName" },
             { "WEBSITE_RESOURCE_GROUP", "rg" },
             { "WEBSITE_OWNER_NAME", "AAAAA-AAAAA-AAAAA-AAA+appName-EastUSwebspace" },
-            { "REGION_NAME", "EastUS" }
+            { "REGION_NAME", "EastUS" },
+            { "OTEL_SERVICE_NAME", null! },
+            { "OTEL_RESOURCE_ATTRIBUTES", null! }
         });
     }
 

@@ -15,8 +15,6 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
         private static readonly string AssemblyVersion =
             typeof(FunctionsResourceDetector).Assembly.GetName().Version?.ToString() ?? "unknown";
 
-        private static readonly int ProcessId = Process.GetCurrentProcess().Id;
-
         public Resource Detect()
         {
             try
@@ -24,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                 var attributes = new List<KeyValuePair<string, object>>(capacity: 10)
                 {
                     new(ResourceSemanticConventions.AISDKPrefix, $"{OpenTelemetryConstants.SDKPrefix}:{AssemblyVersion}"),
-                    new(ResourceSemanticConventions.ProcessId, ProcessId)
+                    new(ResourceSemanticConventions.ProcessId, Process.GetCurrentProcess().Id)
                 };
 
                 string? siteName = Environment.GetEnvironmentVariable(OpenTelemetryConstants.SiteNameEnvVar);

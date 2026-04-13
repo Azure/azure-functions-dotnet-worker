@@ -378,6 +378,19 @@ public class EndToEndTests
         Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
     }
 
+    [Fact]
+    public void ResourceDetector_OtelResourceAttributes_WhitespaceOnly_NotTreatedAsConfigured()
+    {
+        // A whitespace-only value with 3+ spaces passes the Length > 2 guard but Trim() + IndexOf('=')
+        // correctly returns false — no '=' found means the key is not matched.
+        using var _ = new TestScopedEnvironmentVariable("OTEL_RESOURCE_ATTRIBUTES", "   ");
+
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.Contains(resource.Attributes, a => a.Key == "service.name");
+    }
+
     private static IDisposable SetupDefaultEnvironmentVariables()
     {
         return new TestScopedEnvironmentVariable(new Dictionary<string, string>

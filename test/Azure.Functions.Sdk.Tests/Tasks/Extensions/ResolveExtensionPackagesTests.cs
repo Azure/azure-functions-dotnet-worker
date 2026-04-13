@@ -4,6 +4,7 @@
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using Azure.Functions.Sdk.Tests;
+using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
 using NuGet.Frameworks;
@@ -190,7 +191,10 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     private string RestoreProject(Action<ProjectCreator>? configure = null)
     {
         ProjectCreator project = ProjectCreator.Templates.NetCoreProject(
-            path: _temp.GetRandomCsproj(), targetFramework: TargetFramework, configure: configure);
+            path: _temp.GetRandomCsproj(),
+            targetFramework: TargetFramework,
+            configure: configure,
+            projectCollection: TestHelpers.CreateBinaryLoggerCollection());
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
         project.TryGetPropertyValue("ProjectAssetsFile", out string? value);

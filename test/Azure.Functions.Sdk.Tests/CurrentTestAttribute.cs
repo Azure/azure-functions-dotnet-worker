@@ -45,4 +45,18 @@ public sealed class CurrentTestAttribute :
 
         return className + "." + method.Name;
     }
+
+    public static bool TryGetTestName(out string? testName)
+    {
+        try
+        {
+            testName = GetTestName();
+            return !string.IsNullOrEmpty(testName);
+        }
+        catch (InvalidOperationException)
+        {
+            testName = null;
+            return false;
+        }
+    }
 }

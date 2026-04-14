@@ -77,7 +77,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     public void NonExtensionPackages_Empty()
     {
         // Arrange
-        string restore = RestoreProject(project =>
+        string restore = RestoreProject(configure: project =>
         {
             project.ItemPackageReference("System.Text.Json", "8.0.6");
         });
@@ -96,7 +96,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     public void SinglePackage_ReturnsExtensionPackage()
     {
         // Arrange
-        string restore = RestoreProject(project =>
+        string restore = RestoreProject(configure: project =>
         {
             project.ItemPackageReference(NugetPackage.ServiceBus);
         });
@@ -116,7 +116,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     public void MultiplePackages_ReturnsExtensionPackages()
     {
         // Arrange
-        string restore = RestoreProject(project =>
+        string restore = RestoreProject(configure: project =>
         {
             project.ItemPackageReference(NugetPackage.ServiceBus);
             project.ItemPackageReference(NugetPackage.Storage);
@@ -140,7 +140,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     public void MultiTarget_ScansAllTargetFrameworks()
     {
         string[] tfms = ["net10.0", "net8.0", "net481"];
-        string restore = RestoreProject(project =>
+        string restore = RestoreProject(tfm: null,configure: project =>
         {
             project.TargetFrameworks(tfms);
             project.ItemPackageReference(NugetPackage.ServiceBus);
@@ -197,11 +197,11 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         };
     }
 
-    private string RestoreProject(Action<ProjectCreator>? configure = null)
+    private string RestoreProject(string? tfm = TargetFramework, Action<ProjectCreator>? configure = null)
     {
         ProjectCreator project = ProjectCreator.Templates.NetCoreProject(
             path: _temp.GetRandomCsproj(),
-            targetFramework: TargetFramework,
+            targetFramework: tfm,
             configure: configure,
             projectCollection: _collection.Value);
 

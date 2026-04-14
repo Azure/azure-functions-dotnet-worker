@@ -8,6 +8,7 @@ using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
 using NuGet.Frameworks;
+using Xunit.Sdk;
 
 namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 
@@ -15,8 +16,13 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 {
     private const string TargetFramework = "net8.0";
     private readonly TempDirectory _temp = new();
+    private readonly ProjectCollection _collection = TestHelpers.CreateBinaryLoggerCollection();
 
-    public void Dispose() => _temp.Dispose();
+    public void Dispose()
+    {
+        _collection.Dispose();
+        _temp.Dispose();
+    }
 
     [Fact]
     public void LockFileDoesNotExist_Fails()
@@ -194,7 +200,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
             path: _temp.GetRandomCsproj(),
             targetFramework: TargetFramework,
             configure: configure,
-            projectCollection: TestHelpers.CreateBinaryLoggerCollection());
+            projectCollection: _collection);
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
         project.TryGetPropertyValue("ProjectAssetsFile", out string? value);

@@ -21,7 +21,7 @@ jobs:
     - output: pipelineArtifact
       displayName: Publish logs
       path: $(Build.ArtifactStagingDirectory)/log
-      artifact: logs_$(System.JobAttempt)
+      artifact: logs_$(osName)_$(System.JobAttempt)
       condition: always()
 
   pool:
@@ -35,6 +35,10 @@ jobs:
   steps:
 
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
+    
+  - pwsh: |
+      New-Item -ItemType Directory -Force -Path $(Build.ArtifactStagingDirectory)/log
+    displayName: Create log directory
 
   - task: DotNetCoreCLI@2
     displayName: Run Tests

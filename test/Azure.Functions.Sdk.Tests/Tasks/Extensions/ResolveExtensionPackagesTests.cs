@@ -8,7 +8,6 @@ using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
 using NuGet.Frameworks;
-using Xunit.Sdk;
 
 namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 

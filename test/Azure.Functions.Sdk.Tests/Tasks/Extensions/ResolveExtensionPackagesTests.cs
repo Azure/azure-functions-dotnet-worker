@@ -15,11 +15,15 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 {
     private const string TargetFramework = "net8.0";
     private readonly TempDirectory _temp = new();
-    private readonly ProjectCollection _collection = TestHelpers.CreateBinaryLoggerCollection();
+    private readonly Lazy<ProjectCollection> _collection = new(() => TestHelpers.CreateBinaryLoggerCollection());
 
     public void Dispose()
     {
-        _collection.Dispose();
+        if (_collection.IsValueCreated)
+        {
+            _collection.Value.Dispose();
+        }
+
         _temp.Dispose();
     }
 
@@ -199,7 +203,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
             path: _temp.GetRandomCsproj(),
             targetFramework: TargetFramework,
             configure: configure,
-            projectCollection: _collection);
+            projectCollection: _collection.Value);
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
         project.TryGetPropertyValue("ProjectAssetsFile", out string? value);

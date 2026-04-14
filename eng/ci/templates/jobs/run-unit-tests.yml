@@ -22,6 +22,7 @@ jobs:
       displayName: Publish logs
       path: $(Build.ArtifactStagingDirectory)/log
       artifact: logs_$(System.JobAttempt)
+      condition: always()
 
   pool:
     name: ${{ parameters.poolName }}

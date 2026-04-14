@@ -59,6 +59,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = entryAssemblyFunctions.Concat(dependentAssemblyFunctions).ToList();
 
+            // Case-insensitive: the host treats function names as case-insensitive
+            var duplicateGroups = functionMetadataInfo
+                .Where(f => f.Name is not null)
+                .GroupBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
+                .Where(g => g.Count() > 1)
+                .ToList();
+
+            foreach (var group in duplicateGroups)
+            {
+                var entryPoints = string.Join(", ", group.Select(f => f.EntryPoint));
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DiagnosticDescriptors.DuplicateFunctionName, Location.None, group.Key, entryPoints));
+            }
+
+            if (duplicateGroups.Count > 0)
+            {
+                return;
+            }
+
             // Proceed to generate the file if function metadata info was successfully returned
             if (functionMetadataInfo.Count > 0)
             {

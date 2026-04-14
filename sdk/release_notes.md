@@ -10,4 +10,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
-- <entry>
+- Added compile-time duplicate function name detection (AZFW0017) (#3158)

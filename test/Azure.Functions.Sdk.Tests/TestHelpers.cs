@@ -7,6 +7,12 @@ namespace Azure.Functions.Sdk.Tests;
 
 internal static class TestHelpers
 {
+#if NETFRAMEWORK
+    private const string TargetFramework = "netfx";
+#else
+    private const string TargetFramework = "net10";
+#endif
+
     public static string CurrentTestName
     {
         get
@@ -25,7 +31,7 @@ internal static class TestHelpers
         get
         {
             string root = Environment.GetEnvironmentVariable("BUILD_ARTIFACTSTAGINGDIRECTORY") ?? string.Empty;
-            return Path.Combine(root, "log", "test");
+            return Path.Combine(root, "log", "test", TargetFramework);
         }
     }
 

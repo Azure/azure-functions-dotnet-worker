@@ -128,6 +128,21 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <!--
+    Cleans Functions extension artifacts that CoreClean does not track:
+    the generated extension project directory, intermediate extensions.json,
+    and the .azurefunctions output directory.
+  -->
+  <Target Name="_CleanFunctionsExtensions" AfterTargets="CoreClean">
+    <ItemGroup>
+      <_FunctionsProjectDirToClean Include="@(_AzureFunctionsTargetFramework->'%(ProjectFile)')" />
+    </ItemGroup>
+    <RemoveDir Directories="@(_FunctionsProjectDirToClean->'%(RootDir)%(Directory)')" />
+    <Delete Files="$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)" TreatErrorsAsWarnings="true" />
+    <Delete Files="$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName).hash" TreatErrorsAsWarnings="true" />
+    <RemoveDir Directories="$(TargetDir).azurefunctions" />
+  </Target>
+
+  <!--
     Until there is a consistent post-restore hook which gives a guarantee to run our targets after restore,
     _VerifyRestoredFunctionsExtensions will verify the restore hook has run. If extension restore hook has not
     run, this will emit a warning and try to perform the restore hook during build.

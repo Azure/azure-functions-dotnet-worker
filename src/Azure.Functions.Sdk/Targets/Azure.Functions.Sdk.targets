@@ -136,4 +136,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </ItemGroup>
   </Target>
 
+  <!-- Cleans intermediate worker.config.json that CoreClean does not track. -->
+  <Target Name="_CleanWorkerConfig" AfterTargets="CoreClean">
+    <Delete Files="$(IntermediateOutputPath)worker.config.json" TreatErrorsAsWarnings="true" />
+  </Target>
+
 </Project>

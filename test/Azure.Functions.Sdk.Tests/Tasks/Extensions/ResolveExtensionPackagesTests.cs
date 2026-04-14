@@ -139,7 +139,11 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     [Fact]
     public void MultiTarget_ScansAllTargetFrameworks()
     {
+#if NETFRAMEWORK
+        string[] tfms = ["net8.0", "net481"]; // netfx msbuild is old on the CI machine. Does not yet support net10.0.
+#else
         string[] tfms = ["net10.0", "net8.0", "net481"];
+#endif
         string restore = RestoreProject(tfm: null,configure: project =>
         {
             project.TargetFrameworks(tfms);
@@ -202,8 +206,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         ProjectCreator project = ProjectCreator.Templates.NetCoreProject(
             path: _temp.GetRandomCsproj(),
             targetFramework: tfm,
-            configure: configure,
-            projectCollection: _collection.Value);
+            configure: configure);
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
         project.TryGetPropertyValue("ProjectAssetsFile", out string? value);

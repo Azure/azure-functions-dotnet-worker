@@ -158,7 +158,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 
         // Assert
         result.Should().BeTrue();
-        task.ExtensionPackages.Should().HaveCount(9);
+        task.ExtensionPackages.Should().HaveCount(tfms.Length * 3);
 
         foreach (string tfm in tfms)
         {

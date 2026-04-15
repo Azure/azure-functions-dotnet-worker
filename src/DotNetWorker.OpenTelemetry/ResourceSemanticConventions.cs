@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
     internal static class ResourceSemanticConventions
@@ -21,5 +17,11 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 
         // AI
         internal const string AISDKPrefix = "ai.sdk.prefix";
+
+        // Deployment
+        internal const string DeploymentEnvironmentName = "deployment.environment.name";
+
+        // Azure Functions
+        internal const string SiteUpdateId = "azure.functions.site.update_id";
     }
 }

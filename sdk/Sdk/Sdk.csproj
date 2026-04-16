@@ -13,7 +13,12 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <FunctionsGeneratorOutputPath>..\FunctionMetadataLoaderExtension\bin\$(Configuration)\netstandard2.0\</FunctionsGeneratorOutputPath>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 
   <Import Project="..\..\build\Common.props" />
 

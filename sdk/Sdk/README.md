@@ -39,6 +39,7 @@ Three Roslyn source generators run at compile time:
 | AZFW0009 | Error | `SupportsDeferredBinding` applied to an output binding |
 | AZFW0010 | Warning | Parameter type not supported by the binding attribute |
 | AZFW0011 | Error | Blob container path requires an iterable type or `BlobContainerClient` |
+| AZFW0017 | Error | Duplicate function name — function names must be unique across the app |
 
 ## Configuration
 

@@ -80,5 +80,27 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             var setCookieValues = response.Headers["Set-Cookie"];
             Assert.Equal(3, setCookieValues.Count);
         }
+
+        /// <summary>
+        /// Verifies that assigning StringValues.Empty via the indexer removes the
+        /// header entirely, matching ASP.NET Core's HeaderDictionary contract.
+        /// See https://github.com/dotnet/aspnetcore/blob/main/src/Http/Http/src/HeaderDictionary.cs.
+        /// </summary>
+        [Fact]
+        public void IndexerSetter_WithEmptyValue_ShouldRemoveHeader()
+        {
+            // Arrange
+            var httpContext = new DefaultHttpContext();
+            var headers = new AspNetCoreHttpResponseHeadersCollection(httpContext.Response);
+            IHeaderDictionary headerDict = headers;
+            headerDict["X-Test"] = new StringValues("value1");
+
+            // Act - set to empty
+            headerDict["X-Test"] = StringValues.Empty;
+
+            // Assert - header should be removed, not retained as an empty entry
+            Assert.False(headerDict.ContainsKey("X-Test"));
+            Assert.Equal(StringValues.Empty, headerDict["X-Test"]);
+        }
     }
 }

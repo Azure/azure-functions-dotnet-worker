@@ -32,14 +32,7 @@ Three Roslyn source generators run at compile time:
 
 ### Analyzers
 
-| Diagnostic | Severity | Description |
-|------------|----------|-------------|
-| AZFW0001 | Error | WebJobs binding attributes (in-process) used instead of isolated worker attributes |
-| AZFW0002 | Error | Async function method returns `void` instead of `Task` |
-| AZFW0009 | Error | `SupportsDeferredBinding` applied to an output binding |
-| AZFW0010 | Warning | Parameter type not supported by the binding attribute |
-| AZFW0011 | Error | Blob container path requires an iterable type or `BlobContainerClient` |
-| AZFW0017 | Error | Duplicate function name — function names must be unique across the app |
+This package includes analyzers (AZFW0001–AZFW0013, AZFW0017) that catch common issues at compile time. For the full list of rules and detailed documentation, see the [analyzer rules reference](https://github.com/Azure/azure-functions-dotnet-worker/blob/main/docs/analyzer-rules/index.md).
 
 ## Configuration
 

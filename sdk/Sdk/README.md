@@ -32,7 +32,7 @@ Three Roslyn source generators run at compile time:
 
 ### Analyzers
 
-This package includes analyzers (AZFW0001–AZFW0013, AZFW0017) that catch common issues at compile time. For the full list of rules and detailed documentation, see the [analyzer rules reference](https://github.com/Azure/azure-functions-dotnet-worker/blob/main/docs/analyzer-rules/index.md).
+This package includes analyzers (AZFW0001–AZFW0013, AZFW0017) that catch common issues during development. For the full list of rules and detailed documentation, see the [analyzer rules reference](https://github.com/Azure/azure-functions-dotnet-worker/blob/main/docs/analyzer-rules/index.md).
 
 ## Configuration
 

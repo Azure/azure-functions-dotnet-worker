@@ -7,13 +7,14 @@ An [MSBuild SDK](https://learn.microsoft.com/dotnet/core/project-sdk/overview) f
 Set the `Sdk` attribute on your project's `<Project>` element:
 
 ```xml
-<Project Sdk="Azure.Functions.Sdk/0.3.0">
+<Project Sdk="Azure.Functions.Sdk/[VERSION]">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Include extension packages or other packages as necessary. -->
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
   </ItemGroup>
 
@@ -32,7 +33,7 @@ You only need to add your trigger and binding extension packages.
 
 ## Migrating from Microsoft.Azure.Functions.Worker.Sdk
 
-Migration only requires changes to your project file (`.csproj`). **No C# code changes are needed.**
+Migration only requires changes to your project file (`.csproj`). **No C# code changes are needed.** (assuming you are on the latest `Microsoft.Azure.Functions.Worker`).
 
 The old SDK used a `PackageReference` and required you to set several properties manually:
 
@@ -41,15 +42,15 @@ The old SDK used a `PackageReference` and required you to set several properties
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.51.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
   </ItemGroup>
 
 </Project>
@@ -65,14 +66,14 @@ To migrate, make the following project file changes:
 
 ```xml
 <!-- After: Azure.Functions.Sdk -->
-<Project Sdk="Azure.Functions.Sdk/0.3.0">
+<Project Sdk="Azure.Functions.Sdk/[VERSION]">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
   </ItemGroup>
 
 </Project>
@@ -84,7 +85,7 @@ To migrate, make the following project file changes:
 
 During restore, the SDK generates a helper project named `azure_functions.g.csproj` in your `obj/` directory. This project is used to resolve the function extension assemblies required by the Azure Functions host. It is restored automatically and its outputs are included in your build and publish output.
 
-You should **not** build or reference this project directly. If a traversal or `dirs.proj` file accidentally includes it, see [AZFW0109](https://github.com/Azure/azure-functions-dotnet-worker/blob/feature/msbuild-sdk/docs/sdk-rules/AZFW0109.md) for guidance.
+You should **not** build, edit, or reference this project directly. If a traversal or `dirs.proj` file accidentally includes it, see [AZFW0109](https://github.com/Azure/azure-functions-dotnet-worker/blob/feature/msbuild-sdk/docs/sdk-rules/AZFW0109.md) for guidance.
 
 ## SDK Rules
 

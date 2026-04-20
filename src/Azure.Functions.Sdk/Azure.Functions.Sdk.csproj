@@ -9,6 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Description>Azure Functions SDK for dotnet-isolated workers.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Azure Functions Dotnet Dotnet-Isolated</PackageTags>
     <PackageType>MSBuildSdk</PackageType>
     <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
@@ -49,6 +50,7 @@
     <None Include="Build/**" Pack="true" CamelCasePath="true" PackagePath="build/" />
     <None Include="Sdk/**" Pack="true" CamelCasePath="true" PackagePath="sdk/" />
     <None Include="Targets/**" Pack="true" CamelCasePath="true" PackagePath="targets/" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

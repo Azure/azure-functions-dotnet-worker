@@ -205,6 +205,12 @@ internal static class ProjectCreatorExtensions
             return output;
         }
 
+        public BuildOutput Clean(IDictionary<string, string>? globalProperties = null)
+        {
+            project.TryBuild("Clean", globalProperties, out _, out BuildOutput output);
+            return output;
+        }
+
         public TargetResult? RunTarget(string targetName, IDictionary<string, string>? globalProperties = null)
         {
             project.TryBuild(

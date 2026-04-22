@@ -16,6 +16,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).GenerateWorkerConfig" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
+    <_WorkerConfigOutputPath>$(IntermediateOutputPath)$(_WorkerConfigFileName)</_WorkerConfigOutputPath>
     <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant().Split('-')[0])</_AzureFunctionsVersionStandardized>
     <_FunctionsRuntimeMajorVersion>$(_AzureFunctionsVersionStandardized.TrimStart('vV'))</_FunctionsRuntimeMajorVersion>
     <_ToolingSuffix Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">net$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)', 1))-isolated</_ToolingSuffix>
@@ -94,11 +95,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name="_PreGenerateWorkerConfig" Returns="@(_WorkerConfig)">
-    <PropertyGroup>
-      <_WorkerConfigFileName>worker.config.json</_WorkerConfigFileName>
-      <_WorkerConfigOutputPath>$(IntermediateOutputPath)$(_WorkerConfigFileName)</_WorkerConfigOutputPath>
-    </PropertyGroup>
-
     <ItemGroup>
       <_WorkerConfig Include="$(_WorkerConfigOutputPath)" TargetPath="$(_WorkerConfigFileName)" />
     </ItemGroup>
@@ -134,6 +130,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <ItemGroup>
       <ResolvedFileToPublish Include="$(_WorkerConfigOutputPath)" RelativePath="$(_WorkerConfigFileName)" CopyToPublishDirectory="PreserveNewest" />
     </ItemGroup>
+  </Target>
+
+  <!-- Cleans intermediate worker.config.json that CoreClean does not track. -->
+  <Target Name="_CleanWorkerConfig" AfterTargets="CoreClean">
+    <Delete Files="$(_WorkerConfigOutputPath)" TreatErrorsAsWarnings="true" />
   </Target>
 
 </Project>

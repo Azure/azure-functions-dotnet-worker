@@ -12,6 +12,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <PropertyGroup>
+    <_WorkerConfigFileName>worker.config.json</_WorkerConfigFileName>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
   </PropertyGroup>

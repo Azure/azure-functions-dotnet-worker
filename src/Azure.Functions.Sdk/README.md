@@ -85,8 +85,8 @@ To migrate, make the following project file changes:
 
 During restore, the SDK generates a helper project named `azure_functions.g.csproj` in your `obj/` directory. This project is used to resolve the function extension assemblies required by the Azure Functions host. It is restored automatically and its outputs are included in your build and publish output.
 
-You should **not** build, edit, or reference this project directly. If a traversal or `dirs.proj` file accidentally includes it, see [AZFW0109](https://github.com/Azure/azure-functions-dotnet-worker/blob/feature/msbuild-sdk/docs/sdk-rules/AZFW0109.md) for guidance.
+You should **not** build, edit, or reference this project directly. If a traversal or `dirs.proj` file accidentally includes it, see [AZFW0109](https://github.com/Azure/azure-functions-dotnet-worker/blob/main/docs/sdk-rules/AZFW0109.md) for guidance.
 
 ## SDK Rules
 
-The SDK emits diagnostics prefixed with `AZFW01xx`. See the full list of SDK rules [here](https://github.com/Azure/azure-functions-dotnet-worker/blob/feature/msbuild-sdk/docs/sdk-rules/index.md).
+The SDK emits diagnostics prefixed with `AZFW01xx`. See the full list of SDK rules [here](https://github.com/Azure/azure-functions-dotnet-worker/blob/main/docs/sdk-rules/index.md).

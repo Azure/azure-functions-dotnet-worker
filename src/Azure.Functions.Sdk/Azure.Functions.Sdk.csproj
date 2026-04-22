@@ -50,7 +50,7 @@
     <None Include="Build/**" Pack="true" CamelCasePath="true" PackagePath="build/" />
     <None Include="Sdk/**" Pack="true" CamelCasePath="true" PackagePath="sdk/" />
     <None Include="Targets/**" Pack="true" CamelCasePath="true" PackagePath="targets/" />
-    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>

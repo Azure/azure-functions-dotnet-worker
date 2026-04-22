@@ -137,8 +137,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <_FunctionsProjectDirToClean Include="@(_AzureFunctionsTargetFramework->'%(ProjectFile)')" />
     </ItemGroup>
     <RemoveDir Directories="@(_FunctionsProjectDirToClean->'%(RootDir)%(Directory)')" />
-    <Delete Files="$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)" TreatErrorsAsWarnings="true" />
-    <Delete Files="$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName).hash" TreatErrorsAsWarnings="true" />
+    <Delete Files="$(_FunctionsIntermediateExtensionJsonPath)" TreatErrorsAsWarnings="true" />
+    <Delete Files="$(_FunctionsIntermediateExtensionJsonPath).hash" TreatErrorsAsWarnings="true" />
     <RemoveDir Directories="$(TargetDir).azurefunctions" />
   </Target>
 

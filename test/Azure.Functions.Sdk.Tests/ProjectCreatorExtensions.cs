@@ -64,7 +64,7 @@ internal static class ProjectCreatorExtensions
     {
         public ProjectCreator AzureFunctionsProject(
             string? path = null,
-            string targetFramework = "net8.0",
+            string? targetFramework = "net8.0",
             ProjectCollection? projectCollection = null,
             IDictionary<string, string>? globalProperties = null,
             Action<ProjectCreator>? configure = null)
@@ -81,7 +81,7 @@ internal static class ProjectCreatorExtensions
 
         public ProjectCreator NetCoreProject(
             string? path = null,
-            string targetFramework = "net8.0",
+            string? targetFramework = "net8.0",
             ProjectCollection? projectCollection = null,
             IDictionary<string, string>? globalProperties = null,
             Action<ProjectCreator>? configure = null)

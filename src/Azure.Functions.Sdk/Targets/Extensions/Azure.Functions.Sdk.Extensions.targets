@@ -45,11 +45,20 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Target Name="PrepareFunctionsExtensionPayload" Condition="'$(DesignTimeBuild)' != 'true'"
     DependsOnTargets="GetFunctionsExtensionFiles;GenerateExtensionMetadata;AssignFunctionsTargetPaths"
-    AfterTargets="CoreCompile" BeforeTargets="GetCopyToOutputDirectoryItems" />
+    AfterTargets="CoreCompile" />
 
   <Target Name="PublishFunctionsExtensionPayload" Condition="'$(DesignTimeBuild)' != 'true'"
     DependsOnTargets="GetFunctionsExtensionFiles;AssignFunctionsTargetPaths"
-    BeforeTargets="GetCopyToPublishDirectoryItems" />
+    BeforeTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="@(_FunctionsExtensionsOutputItems)"
+        RelativePath="%(_FunctionsExtensionsOutputItems.TargetPath)"
+        CopyToPublishDirectory="PreserveNewest" />
+      <ResolvedFileToPublish Include="$(_FunctionsIntermediateExtensionJsonPath)"
+        RelativePath="$(_FunctionsExtensionsJsonName)"
+        CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 
   <Target Name="CollectExtensionPackages" Returns="@(_AzureFunctionPackageReference)">
     <PropertyGroup>
@@ -82,11 +91,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)">
       <Output TaskParameter="TargetOutputs" ItemName="_FunctionsExtensionsOutputItems" />
     </MSBuild>
-
-    <ItemGroup>
-      <_NoneWithTargetPath Include="@(_FunctionsExtensionsOutputItems)"
-        CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-    </ItemGroup>
   </Target>
 
   <Target Name="_CalculateFunctionsExtensionAssemblies">
@@ -101,10 +105,26 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Target Name="AssignFunctionsTargetPaths">
     <ItemGroup>
-      <_NoneWithTargetPath Include="$(_FunctionsIntermediateExtensionJsonPath)" TargetPath="$(_FunctionsExtensionsJsonName)"
-        CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
       <EmbedInBinlog Include="$(_FunctionsIntermediateExtensionJsonPath)" />
     </ItemGroup>
+  </Target>
+
+  <!--
+    Copies resolved extension files and extensions.json to the output directory using manual Copy steps
+    instead of _NoneWithTargetPath, to prevent P2P references from collecting these files.
+  -->
+  <Target Name="_CopyFunctionsExtensionsToOutput"
+    AfterTargets="CopyFilesToOutputDirectory"
+    DependsOnTargets="PrepareFunctionsExtensionPayload"
+    Condition="'$(NoBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
+    <Copy SourceFiles="@(_FunctionsExtensionsOutputItems)" DestinationFiles="@(_FunctionsExtensionsOutputItems->'$(TargetDir)%(TargetPath)')"
+          SkipUnchangedFiles="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+    <Copy SourceFiles="$(_FunctionsIntermediateExtensionJsonPath)" DestinationFiles="$(TargetDir)$(_FunctionsExtensionsJsonName)"
+          SkipUnchangedFiles="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
   </Target>
 
   <!--

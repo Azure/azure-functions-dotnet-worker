@@ -32,19 +32,6 @@ public abstract class MSBuildSdkTestBase : MSBuildTestBase, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected static ProjectCollection CreateBinaryLoggerCollection()
-    {
-        string path = Path.Combine(GetArtifactsPath(), $"{CurrentTestAttribute.GetTestName()}.binlog");
-        ProjectCollection collection = new();
-        collection.RegisterLogger(
-            new Microsoft.Build.Logging.BinaryLogger
-            {
-                Parameters = $"LogFile={path}"
-            });
-
-        return collection;
-    }
-
     protected virtual void Dispose(bool disposing)
     {
         if (disposing)
@@ -55,10 +42,4 @@ public abstract class MSBuildSdkTestBase : MSBuildTestBase, IDisposable
 
     // Ensure this starts with a non-numeric character to be a valid csproj name.
     protected string GetTempCsproj() => _temp.GetRandomCsproj();
-
-    private static string GetArtifactsPath()
-    {
-        string root = Environment.GetEnvironmentVariable("BUILD_ARTIFACTSTAGINGDIRECTORY") ?? string.Empty;
-        return Path.Combine(root, "log", "test");
-    }
 }

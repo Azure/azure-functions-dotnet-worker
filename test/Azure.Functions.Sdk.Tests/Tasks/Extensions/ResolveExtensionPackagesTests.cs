@@ -4,6 +4,7 @@
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using Azure.Functions.Sdk.Tests;
+using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
 using NuGet.Frameworks;
@@ -14,8 +15,17 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 {
     private const string TargetFramework = "net8.0";
     private readonly TempDirectory _temp = new();
+    private readonly Lazy<ProjectCollection> _collection = new(() => TestHelpers.CreateBinaryLoggerCollection());
 
-    public void Dispose() => _temp.Dispose();
+    public void Dispose()
+    {
+        if (_collection.IsValueCreated)
+        {
+            _collection.Value.Dispose();
+        }
+
+        _temp.Dispose();
+    }
 
     [Fact]
     public void LockFileDoesNotExist_Fails()
@@ -67,7 +77,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     public void NonExtensionPackages_Empty()
     {
         // Arrange
-        string restore = RestoreProject(project =>
+        string restore = RestoreProject(configure: project =>
         {
             project.ItemPackageReference("System.Text.Json", "8.0.6");
         });
@@ -86,7 +96,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     public void SinglePackage_ReturnsExtensionPackage()
     {
         // Arrange
-        string restore = RestoreProject(project =>
+        string restore = RestoreProject(configure: project =>
         {
             project.ItemPackageReference(NugetPackage.ServiceBus);
         });
@@ -106,7 +116,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     public void MultiplePackages_ReturnsExtensionPackages()
     {
         // Arrange
-        string restore = RestoreProject(project =>
+        string restore = RestoreProject(configure: project =>
         {
             project.ItemPackageReference(NugetPackage.ServiceBus);
             project.ItemPackageReference(NugetPackage.Storage);
@@ -129,8 +139,12 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     [Fact]
     public void MultiTarget_ScansAllTargetFrameworks()
     {
+#if NETFRAMEWORK
+        string[] tfms = ["net8.0", "net481"]; // netfx msbuild is old on the CI machine. Does not yet support net10.0.
+#else
         string[] tfms = ["net10.0", "net8.0", "net481"];
-        string restore = RestoreProject(project =>
+#endif
+        string restore = RestoreProject(tfm: null,configure: project =>
         {
             project.TargetFrameworks(tfms);
             project.ItemPackageReference(NugetPackage.ServiceBus);
@@ -144,7 +158,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 
         // Assert
         result.Should().BeTrue();
-        task.ExtensionPackages.Should().HaveCount(9);
+        task.ExtensionPackages.Should().HaveCount(tfms.Length * 3);
 
         foreach (string tfm in tfms)
         {
@@ -187,10 +201,12 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         };
     }
 
-    private string RestoreProject(Action<ProjectCreator>? configure = null)
+    private string RestoreProject(string? tfm = TargetFramework, Action<ProjectCreator>? configure = null)
     {
         ProjectCreator project = ProjectCreator.Templates.NetCoreProject(
-            path: _temp.GetRandomCsproj(), targetFramework: TargetFramework, configure: configure);
+            path: _temp.GetRandomCsproj(),
+            targetFramework: tfm,
+            configure: configure);
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
         project.TryGetPropertyValue("ProjectAssetsFile", out string? value);

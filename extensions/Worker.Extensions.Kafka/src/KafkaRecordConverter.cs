@@ -6,10 +6,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Kafka.Proto;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Kafka
+namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
     /// Converter to bind to <see cref="KafkaRecord"/> or <see cref="KafkaRecord[]"/> type parameters.
@@ -74,7 +75,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Kafka
                     ? new KafkaTimestamp
                     {
                         UnixTimestampMs = proto.Timestamp.UnixTimestampMs,
-                        Type = (KafkaTimestampType)proto.Timestamp.Type,
+                        Type = System.Enum.IsDefined(typeof(KafkaTimestampType), proto.Timestamp.Type)
+                            ? (KafkaTimestampType)proto.Timestamp.Type
+                            : KafkaTimestampType.NotAvailable,
                     }
                     : null,
                 Headers = proto.Headers.Select(h => new KafkaHeader

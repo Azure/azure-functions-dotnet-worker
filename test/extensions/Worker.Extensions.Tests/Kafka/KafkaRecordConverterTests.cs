@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Extensions.Kafka;
 using Microsoft.Azure.Functions.Worker.Extensions.Kafka.Proto;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
@@ -289,7 +288,35 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Kafka
             Assert.NotNull(output);
             Assert.Equal(KafkaTimestampType.LogAppendTime, output.Timestamp.Type);
             Assert.Equal(1700000000000, output.Timestamp.UnixTimestampMs);
-            Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1700000000000), output.Timestamp.DateTime);
+            Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1700000000000), output.Timestamp.DateTimeOffset);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_UnknownTimestampType_FallsBackToNotAvailable()
+        {
+            var proto = new KafkaRecordProto
+            {
+                Topic = "test-topic",
+                Partition = 0,
+                Offset = 0,
+                Value = ByteString.CopyFromUtf8("test"),
+                Timestamp = new KafkaTimestampProto
+                {
+                    UnixTimestampMs = 1700000000000,
+                    Type = 99, // Unknown future value
+                },
+            };
+
+            var data = CreateGrpcModelBindingData(proto);
+            var context = new TestConverterContext(typeof(KafkaRecord), data);
+            var converter = new KafkaRecordConverter();
+            var result = await converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, result.Status);
+            var output = result.Value as KafkaRecord;
+            Assert.NotNull(output);
+            Assert.Equal(KafkaTimestampType.NotAvailable, output.Timestamp.Type);
+            Assert.Equal(1700000000000, output.Timestamp.UnixTimestampMs);
         }
 
         private static KafkaRecordProto CreateTestKafkaRecordProto()

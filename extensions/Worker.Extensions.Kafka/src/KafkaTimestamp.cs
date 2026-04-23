@@ -21,8 +21,8 @@ namespace Microsoft.Azure.Functions.Worker
         public KafkaTimestampType Type { get; set; }
 
         /// <summary>
-        /// Gets the timestamp as a <see cref="DateTimeOffset"/>.
+        /// Gets the timestamp as a <see cref="System.DateTimeOffset"/>.
         /// </summary>
-        public DateTimeOffset DateTime => DateTimeOffset.FromUnixTimeMilliseconds(UnixTimestampMs);
+        public DateTimeOffset DateTimeOffset => System.DateTimeOffset.FromUnixTimeMilliseconds(UnixTimestampMs);
     }
 }

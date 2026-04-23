@@ -6,7 +6,7 @@ package azure.functions.kafka;
 option csharp_namespace = "Microsoft.Azure.Functions.Worker.Extensions.Kafka.Proto";
 
 // Represents a single Kafka record aligned with the Apache Kafka specification.
-// This schema must stay in sync with the host-side KafkaRecordProto.proto in
+// This schema must stay in sync with the WebJobs extension copy of KafkaRecordProto.proto in
 // Microsoft.Azure.WebJobs.Extensions.Kafka.
 message KafkaRecordProto {
     string topic = 1;

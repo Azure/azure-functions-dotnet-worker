@@ -52,17 +52,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Kafka
 
             if (binding.Source is not ExpectedBindingSource)
             {
-                throw new InvalidOperationException(
-                    $"Unexpected binding source '{binding.Source}'. Expected '{ExpectedBindingSource}'.");
+                throw new InvalidBindingSourceException(binding.Source, ExpectedBindingSource);
             }
 
             if (binding.ContentType is not ExpectedContentType)
             {
-                throw new InvalidOperationException(
-                    $"Unexpected content type '{binding.ContentType}'. Expected '{ExpectedContentType}'.");
+                throw new InvalidContentTypeException(binding.ContentType, ExpectedContentType);
             }
 
-            var proto = KafkaRecordProto.Parser.ParseFrom(binding.Content.ToArray());
+            var proto = KafkaRecordProto.Parser.ParseFrom(binding.Content.ToMemory().Span);
 
             return new KafkaRecord
             {

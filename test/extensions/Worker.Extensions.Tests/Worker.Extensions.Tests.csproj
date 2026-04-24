@@ -21,6 +21,7 @@
     <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.EventGrid/src/Worker.Extensions.EventGrid.csproj" />
     <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.EventHubs/src/Worker.Extensions.EventHubs.csproj" />
     <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.Http.AspNetCore/src/Worker.Extensions.Http.AspNetCore.csproj" />
+    <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.Kafka/src/Worker.Extensions.Kafka.csproj" />
     <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.ServiceBus/src/Worker.Extensions.ServiceBus.csproj" />
     <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.Storage/src/Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.Tables/src/Worker.Extensions.Tables.csproj" />

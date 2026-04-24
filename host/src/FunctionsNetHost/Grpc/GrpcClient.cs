@@ -1,20 +1,20 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Net.Sockets;
 using System.Threading.Channels;
 using Google.Protobuf;
-using GrpcCore = Grpc.Core;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
+using GrpcCore = Grpc.Core;
 
 namespace FunctionsNetHost.Grpc
 {
     internal sealed class GrpcClient
     {
-        private static readonly TimeSpan RetryProgressLogInterval = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan RetryProgressLogInterval = TimeSpan.FromSeconds(10);
 
         private readonly Channel<StreamingMessage> _outgoingMessageChannel;
         private readonly IncomingGrpcMessageHandler _messageHandler;

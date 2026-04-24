@@ -5,7 +5,7 @@ namespace FunctionsNetHost.Grpc
 {
     internal sealed class GrpcWorkerStartupOptions
     {
-        public Uri ServerUri { get; set; }
+        public Uri ServerUri { get; set; } = null!;
 
         public string? WorkerId { get; set; }
 
@@ -13,6 +13,10 @@ namespace FunctionsNetHost.Grpc
 
         public int GrpcMaxMessageLength { get; set; }
 
-        public string[] CommandLineArgs { get; set; }
+        public string[] CommandLineArgs { get; set; } = Array.Empty<string>();
+
+        public TimeSpan InitialConnectionRetryTimeout { get; set; } = TimeSpan.FromMinutes(2);
+
+        public TimeSpan InitialConnectionRetryDelay { get; set; } = TimeSpan.FromMilliseconds(100);
     }
 }

@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Diagnostics;
+using System.Net.Sockets;
 using System.Threading.Channels;
 using Google.Protobuf;
+using GrpcCore = Grpc.Core;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -15,8 +18,14 @@ namespace FunctionsNetHost.Grpc
         private readonly Channel<StreamingMessage> _outgoingMessageChannel;
         private readonly IncomingGrpcMessageHandler _messageHandler;
         private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
+        private readonly Func<IGrpcEventStream> _createEventStream;
+        private readonly Func<TimeSpan, Task> _delayAsync;
 
-        internal GrpcClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions, AppLoader appLoader)
+        internal GrpcClient(
+            GrpcWorkerStartupOptions grpcWorkerStartupOptions,
+            AppLoader appLoader,
+            Func<IGrpcEventStream>? createEventStream = null,
+            Func<TimeSpan, Task>? delayAsync = null)
         {
             _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
             var channelOptions = new UnboundedChannelOptions
@@ -29,17 +38,13 @@ namespace FunctionsNetHost.Grpc
             _outgoingMessageChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions);
 
             _messageHandler = new IncomingGrpcMessageHandler(appLoader, _grpcWorkerStartupOptions);
+            _createEventStream = createEventStream ?? CreateEventStream;
+            _delayAsync = delayAsync ?? Task.Delay;
         }
 
         internal async Task InitAsync()
         {
-            var endpoint = _grpcWorkerStartupOptions.ServerUri.AbsoluteUri;
-            Logger.LogTrace($"Grpc service endpoint:{endpoint}");
-
-            var functionRpcClient = CreateFunctionRpcClient(endpoint);
-            var eventStream = functionRpcClient.EventStream();
-
-            await SendStartStreamMessageAsync(eventStream.RequestStream);
+            using var eventStream = await ConnectAsync();
 
             var readerTask = StartReaderAsync(eventStream.ResponseStream);
             var writerTask = StartWriterAsync(eventStream.RequestStream);
@@ -47,6 +52,48 @@ namespace FunctionsNetHost.Grpc
             _ = StartOutboundMessageForwarding();
 
             await Task.WhenAll(readerTask, writerTask);
+        }
+
+        internal async Task<IGrpcEventStream> ConnectAsync()
+        {
+            var endpoint = _grpcWorkerStartupOptions.ServerUri.AbsoluteUri;
+            Logger.LogTrace($"Grpc service endpoint:{endpoint}");
+
+            var stopwatch = Stopwatch.StartNew();
+            var attempt = 0;
+
+            while (true)
+            {
+                attempt++;
+                IGrpcEventStream? eventStream = null;
+
+                try
+                {
+                    eventStream = _createEventStream();
+                    await SendStartStreamMessageAsync(eventStream.RequestStream);
+                    return eventStream;
+                }
+                catch (Exception ex) when (TryGetRetryDelay(ex, stopwatch.Elapsed, out var retryDelay))
+                {
+                    eventStream?.Dispose();
+                    Logger.Log($"Initial gRPC connection attempt {attempt} to '{endpoint}' failed with transient error '{ex.GetType().Name}: {ex.Message}'. Retrying in {retryDelay.TotalMilliseconds:0} ms.");
+                    await _delayAsync(retryDelay);
+                }
+                catch (Exception ex) when (IsTransientStartupConnectionFailure(ex))
+                {
+                    eventStream?.Dispose();
+
+                    var message = $"Failed to establish initial gRPC connection to '{endpoint}' after {attempt} attempts over {stopwatch.Elapsed:c}.";
+                    Logger.Log($"{message} Last error: {ex.GetType().Name}: {ex.Message}");
+
+                    throw new InvalidOperationException(message, ex);
+                }
+                catch
+                {
+                    eventStream?.Dispose();
+                    throw;
+                }
+            }
         }
 
         private async Task StartReaderAsync(IAsyncStreamReader<StreamingMessage> responseStream)
@@ -80,21 +127,55 @@ namespace FunctionsNetHost.Grpc
             await requestStream.WriteAsync(startStream);
         }
 
-        private FunctionRpcClient CreateFunctionRpcClient(string endpoint)
+        private bool TryGetRetryDelay(Exception exception, TimeSpan elapsed, out TimeSpan retryDelay)
         {
-            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var grpcUri))
+            retryDelay = default;
+
+            if (!IsTransientStartupConnectionFailure(exception))
             {
-                throw new InvalidOperationException($"The gRPC channel URI '{endpoint}' could not be parsed.");
+                return false;
             }
 
-            var grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
+            var remainingRetryWindow = _grpcWorkerStartupOptions.InitialConnectionRetryTimeout - elapsed;
+            if (remainingRetryWindow <= TimeSpan.Zero)
+            {
+                return false;
+            }
+
+            retryDelay = remainingRetryWindow < _grpcWorkerStartupOptions.InitialConnectionRetryDelay
+                ? remainingRetryWindow
+                : _grpcWorkerStartupOptions.InitialConnectionRetryDelay;
+
+            return true;
+        }
+
+        internal static bool IsTransientStartupConnectionFailure(Exception? exception)
+        {
+            return exception switch
+            {
+                null => false,
+                HttpRequestException => true,
+                IOException => true,
+                SocketException => true,
+                GrpcCore.RpcException rpcException => rpcException.StatusCode == StatusCode.Unavailable
+                    || rpcException.StatusCode == StatusCode.DeadlineExceeded
+                    || IsTransientStartupConnectionFailure(rpcException.InnerException),
+                _ => IsTransientStartupConnectionFailure(exception.InnerException)
+            };
+        }
+
+        private IGrpcEventStream CreateEventStream()
+        {
+            var endpoint = _grpcWorkerStartupOptions.ServerUri.AbsoluteUri;
+            var grpcChannel = GrpcChannel.ForAddress(endpoint, new GrpcChannelOptions()
             {
                 MaxReceiveMessageSize = _grpcWorkerStartupOptions.GrpcMaxMessageLength,
                 MaxSendMessageSize = _grpcWorkerStartupOptions.GrpcMaxMessageLength,
                 Credentials = ChannelCredentials.Insecure
             });
 
-            return new FunctionRpcClient(grpcChannel);
+            var functionRpcClient = new FunctionRpcClient(grpcChannel);
+            return new FunctionRpcEventStream(grpcChannel, functionRpcClient.EventStream());
         }
 
         /// <summary>
@@ -129,6 +210,21 @@ namespace FunctionsNetHost.Grpc
             });
 
             return Task.CompletedTask;
+        }
+
+        private sealed class FunctionRpcEventStream(
+            GrpcChannel grpcChannel,
+            AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage> eventStream) : IGrpcEventStream
+        {
+            public IAsyncStreamReader<StreamingMessage> ResponseStream { get; } = eventStream.ResponseStream;
+
+            public IClientStreamWriter<StreamingMessage> RequestStream { get; } = eventStream.RequestStream;
+
+            public void Dispose()
+            {
+                eventStream.Dispose();
+                grpcChannel.Dispose();
+            }
         }
     }
 }

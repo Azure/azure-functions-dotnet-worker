@@ -118,6 +118,121 @@ namespace FunctionsNetHost.Tests
             Assert.Equal(0, delays);
         }
 
+        [Fact]
+        public async Task ConnectAsync_CoalescesRepeatedIdenticalFailuresAndLogsSuccessSummary()
+        {
+            var startupOptions = CreateStartupOptions();
+            startupOptions.InitialConnectionRetryDelay = TimeSpan.FromMilliseconds(100);
+
+            var appLoader = new AppLoader(startupOptions);
+            var successfulStream = new TestGrpcEventStream(_ => Task.CompletedTask);
+            var logs = new List<string>();
+            var currentTime = new DateTimeOffset(2026, 4, 24, 0, 0, 0, TimeSpan.Zero);
+            var attempts = 0;
+            var grpcClient = new GrpcClient(
+                startupOptions,
+                appLoader,
+                () =>
+                {
+                    attempts++;
+
+                    return attempts <= 51
+                        ? new TestGrpcEventStream(_ => throw CreateConnectionUnavailableException())
+                        : successfulStream;
+                },
+                delay =>
+                {
+                    currentTime = currentTime.Add(delay);
+                    return Task.CompletedTask;
+                },
+                logs.Add,
+                () => currentTime);
+
+            using var eventStream = await grpcClient.ConnectAsync();
+
+            Assert.Same(successfulStream, eventStream);
+            Assert.Collection(
+                logs,
+                message =>
+                {
+                    Assert.Contains("is still retrying", message);
+                    Assert.Contains("Retried 51 times over 00:00:05", message);
+                    Assert.Contains("HttpRequestException: The host endpoint is not listening yet.", message);
+                },
+                message =>
+                {
+                    Assert.Contains("succeeded after 51 retries over 00:00:05.1000000", message);
+                });
+        }
+
+        [Fact]
+        public async Task ConnectAsync_LogsRepeatedFailureSummaryWhenFailureSignatureChanges()
+        {
+            var startupOptions = CreateStartupOptions();
+            startupOptions.InitialConnectionRetryDelay = TimeSpan.FromMilliseconds(100);
+
+            var appLoader = new AppLoader(startupOptions);
+            var successfulStream = new TestGrpcEventStream(_ => Task.CompletedTask);
+            var logs = new List<string>();
+            var currentTime = new DateTimeOffset(2026, 4, 24, 0, 0, 0, TimeSpan.Zero);
+            var attempts = 0;
+            var grpcClient = new GrpcClient(
+                startupOptions,
+                appLoader,
+                () =>
+                {
+                    attempts++;
+
+                    return attempts switch
+                    {
+                        1 or 2 => new TestGrpcEventStream(_ => throw CreateConnectionUnavailableException("The host endpoint is not listening yet.")),
+                        3 => new TestGrpcEventStream(_ => throw CreateConnectionUnavailableException("The host endpoint is still booting.")),
+                        _ => successfulStream
+                    };
+                },
+                delay =>
+                {
+                    currentTime = currentTime.Add(delay);
+                    return Task.CompletedTask;
+                },
+                logs.Add,
+                () => currentTime);
+
+            using var eventStream = await grpcClient.ConnectAsync();
+
+            Assert.Same(successfulStream, eventStream);
+            Assert.Collection(
+                logs,
+                message =>
+                {
+                    Assert.Contains("Retried 2 times over 00:00:00.2000000", message);
+                    Assert.Contains("HttpRequestException: The host endpoint is not listening yet.", message);
+                },
+                message =>
+                {
+                    Assert.Contains("succeeded after 3 retries over 00:00:00.3000000", message);
+                });
+        }
+
+        [Fact]
+        public async Task ConnectAsync_DoesNotLogSuccessSummaryWhenNoRetriesAreNeeded()
+        {
+            var startupOptions = CreateStartupOptions();
+            var appLoader = new AppLoader(startupOptions);
+            var successfulStream = new TestGrpcEventStream(_ => Task.CompletedTask);
+            var logs = new List<string>();
+            var grpcClient = new GrpcClient(
+                startupOptions,
+                appLoader,
+                () => successfulStream,
+                log: logs.Add);
+
+            using var eventStream = await grpcClient.ConnectAsync();
+
+            Assert.Same(successfulStream, eventStream);
+            Assert.Empty(logs);
+        }
+
         private static GrpcWorkerStartupOptions CreateStartupOptions()
         {
             return new GrpcWorkerStartupOptions
@@ -128,10 +243,10 @@ namespace FunctionsNetHost.Tests
             };
         }
 
-        private static HttpRequestException CreateConnectionUnavailableException()
+        private static HttpRequestException CreateConnectionUnavailableException(string message = "The host endpoint is not listening yet.")
         {
             return new HttpRequestException(
-                "The host endpoint is not listening yet.",
+                message,
                 new SocketException((int)SocketError.ConnectionRefused));
         }
 

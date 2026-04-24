@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using Google.Protobuf;
@@ -15,17 +14,23 @@ namespace FunctionsNetHost.Grpc
 {
     internal sealed class GrpcClient
     {
+        private static readonly TimeSpan RetryProgressLogInterval = TimeSpan.FromSeconds(5);
+
         private readonly Channel<StreamingMessage> _outgoingMessageChannel;
         private readonly IncomingGrpcMessageHandler _messageHandler;
         private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
         private readonly Func<IGrpcEventStream> _createEventStream;
         private readonly Func<TimeSpan, Task> _delayAsync;
+        private readonly Action<string> _log;
+        private readonly Func<DateTimeOffset> _getUtcNow;
 
         internal GrpcClient(
             GrpcWorkerStartupOptions grpcWorkerStartupOptions,
             AppLoader appLoader,
             Func<IGrpcEventStream>? createEventStream = null,
-            Func<TimeSpan, Task>? delayAsync = null)
+            Func<TimeSpan, Task>? delayAsync = null,
+            Action<string>? log = null,
+            Func<DateTimeOffset>? getUtcNow = null)
         {
             _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
             var channelOptions = new UnboundedChannelOptions
@@ -40,6 +45,8 @@ namespace FunctionsNetHost.Grpc
             _messageHandler = new IncomingGrpcMessageHandler(appLoader, _grpcWorkerStartupOptions);
             _createEventStream = createEventStream ?? CreateEventStream;
             _delayAsync = delayAsync ?? Task.Delay;
+            _log = log ?? Logger.Log;
+            _getUtcNow = getUtcNow ?? (() => DateTimeOffset.UtcNow);
         }
 
         internal async Task InitAsync()
@@ -59,8 +66,10 @@ namespace FunctionsNetHost.Grpc
             var endpoint = _grpcWorkerStartupOptions.ServerUri.AbsoluteUri;
             Logger.LogTrace($"Grpc service endpoint:{endpoint}");
 
-            var stopwatch = Stopwatch.StartNew();
+            var connectStartTime = _getUtcNow();
             var attempt = 0;
+            var totalRetryCount = 0;
+            RetryLogState? retryLogState = null;
 
             while (true)
             {
@@ -71,20 +80,22 @@ namespace FunctionsNetHost.Grpc
                 {
                     eventStream = _createEventStream();
                     await SendStartStreamMessageAsync(eventStream.RequestStream);
+                    LogConnectionSuccess(endpoint, totalRetryCount, GetElapsed(connectStartTime));
                     return eventStream;
                 }
-                catch (Exception ex) when (TryGetRetryDelay(ex, stopwatch.Elapsed, out var retryDelay))
+                catch (Exception ex) when (TryGetRetryDelay(ex, GetElapsed(connectStartTime), out var retryDelay))
                 {
                     eventStream?.Dispose();
-                    Logger.Log($"Initial gRPC connection attempt {attempt} to '{endpoint}' failed with transient error '{ex.GetType().Name}: {ex.Message}'. Retrying in {retryDelay.TotalMilliseconds:0} ms.");
+                    totalRetryCount++;
+                    TrackRetryProgress(endpoint, ex, GetElapsed(connectStartTime), _getUtcNow(), ref retryLogState);
                     await _delayAsync(retryDelay);
                 }
                 catch (Exception ex) when (IsTransientStartupConnectionFailure(ex))
                 {
                     eventStream?.Dispose();
 
-                    var message = $"Failed to establish initial gRPC connection to '{endpoint}' after {attempt} attempts over {stopwatch.Elapsed:c}.";
-                    Logger.Log($"{message} Last error: {ex.GetType().Name}: {ex.Message}");
+                    var message = $"Failed to establish initial gRPC connection to '{endpoint}' after {attempt} attempts over {GetElapsed(connectStartTime):c}.";
+                    _log($"{message} Last error: {ex.GetType().Name}: {ex.Message}");
 
                     throw new InvalidOperationException(message, ex);
                 }
@@ -127,6 +138,53 @@ namespace FunctionsNetHost.Grpc
             await requestStream.WriteAsync(startStream);
         }
 
+        private void TrackRetryProgress(string endpoint, Exception exception, TimeSpan elapsed, DateTimeOffset currentTime, ref RetryLogState? retryLogState)
+        {
+            var failureSignature = GetFailureSignature(exception);
+
+            if (retryLogState is not null && !retryLogState.HasSameFailureSignature(failureSignature))
+            {
+                LogRetryProgress(endpoint, elapsed, retryLogState);
+                retryLogState = null;
+            }
+
+            if (retryLogState is null)
+            {
+                retryLogState = new RetryLogState(failureSignature, currentTime + RetryProgressLogInterval);
+                return;
+            }
+
+            retryLogState.RegisterRetry();
+
+            if (!retryLogState.ShouldLogProgress(currentTime))
+            {
+                return;
+            }
+
+            LogRetryProgress(endpoint, elapsed, retryLogState);
+            retryLogState.MarkProgressLogged(currentTime + RetryProgressLogInterval);
+        }
+
+        private void LogConnectionSuccess(string endpoint, int totalRetryCount, TimeSpan elapsed)
+        {
+            if (totalRetryCount == 0)
+            {
+                return;
+            }
+
+            _log($"Initial gRPC connection to '{endpoint}' succeeded after {totalRetryCount} retries over {elapsed:c}.");
+        }
+
+        private void LogRetryProgress(string endpoint, TimeSpan elapsed, RetryLogState retryLogState)
+        {
+            if (!retryLogState.HasUnloggedRepeatedFailures)
+            {
+                return;
+            }
+
+            _log($"Initial gRPC connection to '{endpoint}' is still retrying. Retried {retryLogState.RetryCount} times over {elapsed:c} with repeated error '{retryLogState.FailureSignature}'.");
+        }
+
         private bool TryGetRetryDelay(Exception exception, TimeSpan elapsed, out TimeSpan retryDelay)
         {
             retryDelay = default;
@@ -162,6 +220,17 @@ namespace FunctionsNetHost.Grpc
                     || IsTransientStartupConnectionFailure(rpcException.InnerException),
                 _ => IsTransientStartupConnectionFailure(exception.InnerException)
             };
+        }
+
+        private TimeSpan GetElapsed(DateTimeOffset connectStartTime)
+        {
+            var elapsed = _getUtcNow() - connectStartTime;
+            return elapsed < TimeSpan.Zero ? TimeSpan.Zero : elapsed;
+        }
+
+        private static string GetFailureSignature(Exception exception)
+        {
+            return $"{exception.GetType().Name}: {exception.Message}";
         }
 
         private IGrpcEventStream CreateEventStream()
@@ -224,6 +293,40 @@ namespace FunctionsNetHost.Grpc
             {
                 eventStream.Dispose();
                 grpcChannel.Dispose();
+            }
+        }
+
+        private sealed class RetryLogState(string failureSignature, DateTimeOffset nextProgressLogTime)
+        {
+            public string FailureSignature { get; } = failureSignature;
+
+            public int RetryCount { get; private set; } = 1;
+
+            public int LoggedRetryCount { get; private set; }
+
+            public DateTimeOffset NextProgressLogTime { get; private set; } = nextProgressLogTime;
+
+            public bool HasUnloggedRepeatedFailures => RetryCount > 1 && RetryCount > LoggedRetryCount;
+
+            public bool HasSameFailureSignature(string failureSignature)
+            {
+                return string.Equals(FailureSignature, failureSignature, StringComparison.Ordinal);
+            }
+
+            public void RegisterRetry()
+            {
+                RetryCount++;
+            }
+
+            public bool ShouldLogProgress(DateTimeOffset currentTime)
+            {
+                return HasUnloggedRepeatedFailures && currentTime >= NextProgressLogTime;
+            }
+
+            public void MarkProgressLogged(DateTimeOffset nextProgressLogTime)
+            {
+                LoggedRetryCount = RetryCount;
+                NextProgressLogTime = nextProgressLogTime;
             }
         }
     }

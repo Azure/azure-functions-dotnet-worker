@@ -95,7 +95,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
             set
             {
-                TryAddWithoutValidation(key, (IEnumerable<string>)value);
+                Remove(key);
+                if (value.Count > 0)
+                {
+                    TryAddWithoutValidation(key, (IEnumerable<string>)value);
+                }
             }
         }
 
@@ -142,7 +146,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
             set
             {
-                TryAddWithoutValidation(key, (IEnumerable<string>)value);
+                Remove(key);
+                if (value.Count > 0)
+                {
+                    TryAddWithoutValidation(key, (IEnumerable<string>)value);
+                }
             }
         }
 

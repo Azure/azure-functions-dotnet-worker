@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- Updating ASP.NET Core integration to support the metadata transformation feature (#3172)
+- Fix response cookie duplication in ASP.NET Core integration by giving `IHeaderDictionary` indexer setters replace semantics, including removing the header when assigned `StringValues.Empty` (#3353)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers  <version>
 

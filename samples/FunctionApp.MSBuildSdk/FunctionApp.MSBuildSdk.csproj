@@ -1,4 +1,4 @@
-﻿<Project Sdk="Azure.Functions.Sdk/0.1.0">
+﻿<Project Sdk="Azure.Functions.Sdk/0.4.0">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

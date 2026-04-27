@@ -22,7 +22,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
         if (!restore)
         {
-            // restore separately if neeeded.
+            // restore separately if needed.
             project.Restore().Should().BeSuccessful().And.HaveNoIssues();
         }
 

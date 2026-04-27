@@ -2,7 +2,7 @@
 
 | Item | Value |
 | - | - |
-| **Rule ID** | AZFW0000 |
+| **Rule ID** | AZFW0100 |
 | **Category** | Sdk |
 | **Severity** | Hidden/Info/Warning/Error |
 

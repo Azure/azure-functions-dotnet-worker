@@ -80,7 +80,7 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
                     nameof(Strings.Deploy_PollFailure),
                     location,
                     ex.StatusCode,
-                    retry + 1,
+                    retry,
                     RetryCount);
                 await Task.Delay(RetryDelay, cancellation);
             }

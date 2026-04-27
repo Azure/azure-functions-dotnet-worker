@@ -69,7 +69,7 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
 
         bool success = true;
         foreach (KeyValuePair<Project, ITaskItem[]> kvp in packagesByTfm)
-        {;
+        {
             if (!Execute(kvp.Key, kvp.Value))
             {
                 success = false;

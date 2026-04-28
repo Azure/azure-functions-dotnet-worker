@@ -1,30 +1,32 @@
 <Project>
-    <PropertyGroup>
-        <_ExtensionProjectTemplate>$(MSBuildThisFileDirectory)/extensionValidationProjectTemplate.txt</_ExtensionProjectTemplate>
-        <_ExtensionValidationLocation>$(IntermediateOutputPath)ExtensionValidation/</_ExtensionValidationLocation>
-    </PropertyGroup>
 
-    <Target Name="AddWebJobsExtensionInformation" BeforeTargets="GetAssemblyAttributes" Condition="'@(WebJobsExtension)' != ''">
-        <ItemGroup>
-            <_ExtensionInformationAttribute Include="@(WebJobsExtension->'Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute')">
-                <_Parameter1>%(WebJobsExtension.Identity)</_Parameter1>
-                <_Parameter2>%(WebJobsExtension.Version)</_Parameter2>
-            </_ExtensionInformationAttribute>
-            <AssemblyAttribute Include="@(_ExtensionInformationAttribute)" RemoveMetadata="Version" />
-        </ItemGroup>
-    </Target>
+  <PropertyGroup>
+    <_ExtensionProjectTemplate>$(MSBuildThisFileDirectory)/extensionValidationProjectTemplate.txt</_ExtensionProjectTemplate>
+    <_ExtensionValidationLocation>$(IntermediateOutputPath)ExtensionValidation/</_ExtensionValidationLocation>
+  </PropertyGroup>
 
-    <Target Name="GenerateExtensionProject" AfterTargets="Compile" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
-        <MakeDir Directories="$(_ExtensionValidationLocation)" />
-        <WriteLinesToFile
-            File="$(_ExtensionValidationLocation)ExtensionValidation.csproj"
-            Lines="$([System.IO.File]::ReadAllText($(_ExtensionProjectTemplate))
-                .Replace('$PackageName$', '%(WebJobsExtension.Identity)')
-                .Replace('$PackageVersion$', '%(WebJobsExtension.Version)'))"
-            Overwrite="true" />
-    </Target>
+  <Target Name="AddWebJobsExtensionInformation" BeforeTargets="GetAssemblyAttributes" Condition="'@(WebJobsExtension)' != ''">
+    <ItemGroup>
+      <_ExtensionInformationAttribute Include="@(WebJobsExtension->'Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute')">
+        <_Parameter1>%(WebJobsExtension.Identity)</_Parameter1>
+        <_Parameter2>%(WebJobsExtension.Version)</_Parameter2>
+      </_ExtensionInformationAttribute>
+      <AssemblyAttribute Include="@(_ExtensionInformationAttribute)" RemoveMetadata="Version" />
+    </ItemGroup>
+  </Target>
 
-    <Target Name="RestoreGeneratedExtensionProject" AfterTargets="GenerateExtensionProject" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
-        <MSBuild Projects="$(_ExtensionValidationLocation)ExtensionValidation.csproj" Targets="Restore" />
-    </Target>
+  <Target Name="GenerateExtensionProject" AfterTargets="Compile" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
+    <MakeDir Directories="$(_ExtensionValidationLocation)" />
+    <WriteLinesToFile
+      File="$(_ExtensionValidationLocation)ExtensionValidation.csproj"
+      Lines="$([System.IO.File]::ReadAllText($(_ExtensionProjectTemplate))
+          .Replace('$PackageName$', '%(WebJobsExtension.Identity)')
+          .Replace('$PackageVersion$', '%(WebJobsExtension.Version)'))"
+      Overwrite="true" />
+  </Target>
+
+  <Target Name="RestoreGeneratedExtensionProject" AfterTargets="GenerateExtensionProject" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
+    <MSBuild Projects="$(_ExtensionValidationLocation)ExtensionValidation.csproj" Targets="Restore" />
+  </Target>
+
 </Project>

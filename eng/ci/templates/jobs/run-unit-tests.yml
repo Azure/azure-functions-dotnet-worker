@@ -15,6 +15,15 @@ jobs:
         imageName: '1es-windows-2022'
         osName: 'windows'
 
+  templateContext:
+    outputParentDirectory: $(Build.ArtifactStagingDirectory)
+    outputs:
+    - output: pipelineArtifact
+      displayName: Publish logs
+      path: $(Build.ArtifactStagingDirectory)/log
+      artifact: logs_$(osName)_$(System.JobAttempt)
+      condition: always()
+
   pool:
     name: ${{ parameters.poolName }}
     image: $(imageName)
@@ -26,6 +35,10 @@ jobs:
   steps:
 
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
+    
+  - pwsh: |
+      New-Item -ItemType Directory -Force -Path $(Build.ArtifactStagingDirectory)/log
+    displayName: Create log directory
 
   - task: DotNetCoreCLI@2
     displayName: Run Tests
@@ -38,6 +51,14 @@ jobs:
         **/DotNetWorker.OpenTelemetry.Tests.csproj
         **/Sdk.Analyzers.Tests.csproj
         **/Sdk.Generator.Tests.csproj
+        **/Azure.Functions.Sdk.Tests.csproj
+
+  - task: DotNetCoreCLI@2
+    displayName: Extension Tests
+    inputs:
+      command: test
+      arguments: -v n
+      projects: |
         **/Worker.Extensions.Http.AspNetCore.Tests.csproj
         **/Worker.Extensions.Rpc.Tests.csproj
         **/Worker.Extensions.Shared.Tests.csproj

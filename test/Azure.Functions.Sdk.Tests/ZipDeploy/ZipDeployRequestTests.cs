@@ -54,7 +54,7 @@ public sealed class ZipDeployRequestTests
         using (new AssertionScope("Content"))
         {
             message.Content!.Headers.ContentType!.MediaType.Should().Be("application/zip");
-            message.Content.Headers.ContentEncoding.Should().ContainSingle(Encoding.UTF8.WebName);
+            message.Content.Headers.ContentEncoding.Should().BeEmpty();
         }
     }
 

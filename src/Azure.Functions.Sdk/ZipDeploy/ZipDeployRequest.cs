@@ -16,10 +16,7 @@ public record ZipDeployRequest(string UserName, string Password, Stream Content)
     internal static readonly Uri PublishPath = new("api/publish?RemoteBuild=false", UriKind.Relative);
     internal static readonly Uri ZipDeployPath = new("api/zipdeploy?isAsync=true", UriKind.Relative);
 
-    private static readonly MediaTypeHeaderValue ZipContentHeader = new(MediaTypeNames.Application.Zip)
-    {
-        CharSet = Encoding.UTF8.WebName
-    };
+    private static readonly MediaTypeHeaderValue ZipContentHeader = new(MediaTypeNames.Application.Zip);
 
     public bool UseBlobContainer { get; init; }
 
@@ -49,7 +46,6 @@ public record ZipDeployRequest(string UserName, string Password, Stream Content)
             Headers =
             {
                 ContentType = ZipContentHeader,
-                ContentEncoding = { Encoding.UTF8.WebName },
             },
         };
     }

@@ -39,9 +39,14 @@ namespace FunctionsNetHost
                     assembly_path = GetCharArrayPointer(assemblyPath)
                 };
 
-                var hostfxrFullPath = NetHost.GetHostFxrPath(&parameters);
-                Logger.LogTrace($"hostfxr path:{hostfxrFullPath}");
+                var loadStart = Stopwatch.GetTimestamp();
+                var stageStart = loadStart;
+                Logger.Log($"Function app load starting. Assembly path:{assemblyPath}");
 
+                var hostfxrFullPath = NetHost.GetHostFxrPath(&parameters);
+                LogFunctionAppLoadStage($"hostfxr path resolved:{hostfxrFullPath}", loadStart, stageStart);
+
+                stageStart = Stopwatch.GetTimestamp();
                 _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);
 
                 if (_hostfxrHandle == IntPtr.Zero)
@@ -50,8 +55,9 @@ namespace FunctionsNetHost
                     return -1;
                 }
 
-                Logger.LogTrace($"hostfxr loaded.");
+                LogFunctionAppLoadStage("hostfxr loaded", loadStart, stageStart);
 
+                stageStart = Stopwatch.GetTimestamp();
                 var commandLineArguments = _workerStartupOptions.CommandLineArgs.Prepend(assemblyPath).ToArray();
                 var error = HostFxr.Initialize(commandLineArguments.Length, commandLineArguments, IntPtr.Zero, out _hostContextHandle);
 
@@ -66,10 +72,19 @@ namespace FunctionsNetHost
                     return error;
                 }
 
-                Logger.LogTrace($"hostfxr initialized with {assemblyPath}");
-                HostFxr.SetAppContextData(_hostContextHandle, "AZURE_FUNCTIONS_NATIVE_HOST", "1");
+                LogFunctionAppLoadStage("hostfxr initialized", loadStart, stageStart);
 
-                return HostFxr.Run(_hostContextHandle);
+                stageStart = Stopwatch.GetTimestamp();
+                HostFxr.SetAppContextData(_hostContextHandle, "AZURE_FUNCTIONS_NATIVE_HOST", "1");
+                LogFunctionAppLoadStage("app context data set", loadStart, stageStart);
+
+                Logger.Log(
+                    $"Function app hostfxr run starting. TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
+                var exitCode = HostFxr.Run(_hostContextHandle);
+                Logger.Log(
+                    $"Function app hostfxr run completed. ExitCode:{exitCode}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
+
+                return exitCode;
             }
         }
 
@@ -113,6 +128,13 @@ namespace FunctionsNetHost
 #else
             return (char*)Marshal.StringToHGlobalUni(assemblyPath).ToPointer();
 #endif
+        }
+
+        private static void LogFunctionAppLoadStage(string stage, long loadStart, long stageStart)
+        {
+            var now = Stopwatch.GetTimestamp();
+            Logger.Log(
+                $"Function app load: {stage}. StepElapsedMs:{Stopwatch.GetElapsedTime(stageStart, now).TotalMilliseconds:0.0}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart, now).TotalMilliseconds:0.0}");
         }
     }
 }

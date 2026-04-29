@@ -265,7 +265,19 @@ namespace FunctionsNetHost.Grpc
         {
             await foreach (var outboundMessage in MessageChannel.Instance.OutboundChannel.Reader.ReadAllAsync())
             {
+                if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadResponse)
+                {
+                    var reloadResponse = outboundMessage.FunctionEnvironmentReloadResponse;
+                    Logger.Log(
+                        $"Function environment reload response received from worker payload. Status:{reloadResponse?.Result?.Status}, CapabilitiesCount:{reloadResponse?.Capabilities.Count ?? 0}");
+                }
+
                 await _outgoingMessageChannel.Writer.WriteAsync(outboundMessage);
+
+                if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadResponse)
+                {
+                    Logger.Log("Function environment reload response queued to host.");
+                }
             }
         }
 

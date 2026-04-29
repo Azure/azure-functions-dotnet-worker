@@ -26,6 +26,7 @@ namespace FunctionsNetHost
             _requestHandlerCallback = callback;
             _workerHandle = grpcHandle;
 
+            Logger.Log("Worker callback handles registered. Signaling application load.");
             WorkerLoadStatusSignalManager.Instance.Signal.Set();
         }
     }

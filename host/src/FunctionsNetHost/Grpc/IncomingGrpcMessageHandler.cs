@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -62,16 +63,25 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
+                    var reloadStart = Stopwatch.GetTimestamp();
+                    var stageStart = reloadStart;
+
+                    Logger.Log("Function environment reload request received.");
                     Configuration.Reload();
-                    Logger.LogTrace("Specialization request received.");
+                    LogEnvironmentReloadStage("configuration reload completed", reloadStart, stageStart);
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
 
+                    stageStart = Stopwatch.GetTimestamp();
                     var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
+                    LogEnvironmentReloadStage("worker config read completed", reloadStart, stageStart);
 
                     if (workerConfig?.Description is null)
                     {
-                        Logger.LogTrace($"Could not find a worker config in {envReloadRequest.FunctionAppDirectory}");
+                        LogEnvironmentReloadStage(
+                            $"worker config not found in {envReloadRequest.FunctionAppDirectory}",
+                            reloadStart,
+                            reloadStart);
                         responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse();
                         break;
                     }
@@ -79,29 +89,41 @@ namespace FunctionsNetHost.Grpc
                     // function app payload which uses an older version of Microsoft.Azure.Functions.Worker package does not support specialization.
                     if (!workerConfig.Description.CanUsePlaceholder)
                     {
-                        Logger.LogTrace("App payload uses an older version of Microsoft.Azure.Functions.Worker SDK which does not support placeholder.");
+                        LogEnvironmentReloadStage(
+                            "app payload does not support placeholder",
+                            reloadStart,
+                            reloadStart);
                         var e = new EnvironmentReloadNotSupportedException("This app is not using the latest version of Microsoft.Azure.Functions.Worker SDK and therefore does not leverage all performance optimizations. See https://aka.ms/azure-functions/dotnet/placeholders for more information.");
                         responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(e);
                         break;
                     }
 
                     var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
-                    Logger.LogTrace($"application path {applicationExePath}");
+                    LogEnvironmentReloadStage($"application path resolved: {applicationExePath}", reloadStart, reloadStart);
 
+                    stageStart = Stopwatch.GetTimestamp();
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
+                    LogEnvironmentReloadStage(
+                        $"environment variables applied. Count:{envReloadRequest.EnvironmentVariables.Count}",
+                        reloadStart,
+                        stageStart);
 
+                    stageStart = Stopwatch.GetTimestamp();
 #pragma warning disable CS4014
                     Task.Run(() =>
 #pragma warning restore CS4014
                     {
                         _ = _appLoader.RunApplication(applicationExePath);
                     });
+                    LogEnvironmentReloadStage("application load task queued", reloadStart, stageStart);
 
-                    Logger.LogTrace($"Will wait for worker loaded signal.");
+                    stageStart = Stopwatch.GetTimestamp();
+                    Logger.Log("Function environment reload waiting for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
+                    LogEnvironmentReloadStage("worker loaded signal received", reloadStart, stageStart);
 
                     var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
                     if (OperatingSystem.IsWindows())
@@ -110,8 +132,11 @@ namespace FunctionsNetHost.Grpc
                     }
                     Logger.Log(logMessage);
 
+                    stageStart = Stopwatch.GetTimestamp();
                     await MessageChannel.Instance.SendInboundAsync(msg);
+                    LogEnvironmentReloadStage("reload request forwarded to worker payload", reloadStart, stageStart);
                     _specializationDone = true;
+                    LogEnvironmentReloadStage("specialization handoff completed", reloadStart, reloadStart);
                     break;
             }
 
@@ -119,6 +144,13 @@ namespace FunctionsNetHost.Grpc
             {
                 await MessageChannel.Instance.SendOutboundAsync(responseMessage);
             }
+        }
+
+        private static void LogEnvironmentReloadStage(string stage, long reloadStart, long stageStart)
+        {
+            var now = Stopwatch.GetTimestamp();
+            Logger.Log(
+                $"Function environment reload: {stage}. StepElapsedMs:{Stopwatch.GetElapsedTime(stageStart, now).TotalMilliseconds:0.0}, TotalElapsedMs:{Stopwatch.GetElapsedTime(reloadStart, now).TotalMilliseconds:0.0}");
         }
 
         private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception? exception = null)

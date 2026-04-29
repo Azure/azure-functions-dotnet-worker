@@ -4,7 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.14.0
+### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.15.0
 
-- Updates dependency `Microsoft.Azure.WebJobs.Extensions.CosmosDB` to version 4.11.0 (#3191)
-- Allow for customizing JSON deserialization to POCOs. (#3163)
+- Updates dependency `Microsoft.Azure.WebJobs.Extensions.CosmosDB` to version 4.15.0 (#3389)

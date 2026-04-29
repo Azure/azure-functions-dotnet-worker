@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.15.0
 
-- Updates dependency `Microsoft.Azure.WebJobs.Extensions.CosmosDB` to version 4.15.0
+- Updates dependency `Microsoft.Azure.WebJobs.Extensions.CosmosDB` to version 4.15.0 (#3389)

@@ -70,7 +70,6 @@ namespace Microsoft.Azure.Functions.Worker
                 Offset = proto.Offset,
                 Key = proto.HasKey ? proto.Key.ToByteArray() : null,
                 Value = proto.HasValue ? proto.Value.ToByteArray() : null,
-                LeaderEpoch = proto.HasLeaderEpoch ? proto.LeaderEpoch : (int?)null,
                 Timestamp = proto.Timestamp != null
                     ? new KafkaTimestamp
                     {

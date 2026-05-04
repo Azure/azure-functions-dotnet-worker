@@ -212,47 +212,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Kafka
         }
 
         [Fact]
-        public async Task ConvertAsync_PreservesLeaderEpoch()
-        {
-            var proto = CreateTestKafkaRecordProto();
-            proto.LeaderEpoch = 42;
-
-            var data = CreateGrpcModelBindingData(proto);
-            var context = new TestConverterContext(typeof(KafkaRecord), data);
-            var converter = new KafkaRecordConverter();
-            var result = await converter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Succeeded, result.Status);
-            var output = result.Value as KafkaRecord;
-            Assert.NotNull(output);
-            Assert.Equal(42, output.LeaderEpoch);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_NoLeaderEpoch_ReturnsNull()
-        {
-            var proto = new KafkaRecordProto
-            {
-                Topic = "test-topic",
-                Partition = 0,
-                Offset = 0,
-                Value = ByteString.CopyFromUtf8("test"),
-                Timestamp = new KafkaTimestampProto { UnixTimestampMs = 0, Type = 0 },
-            };
-            // LeaderEpoch deliberately not set
-
-            var data = CreateGrpcModelBindingData(proto);
-            var context = new TestConverterContext(typeof(KafkaRecord), data);
-            var converter = new KafkaRecordConverter();
-            var result = await converter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Succeeded, result.Status);
-            var output = result.Value as KafkaRecord;
-            Assert.NotNull(output);
-            Assert.Null(output.LeaderEpoch);
-        }
-
-        [Fact]
         public async Task ConvertAsync_ReturnsUnhandled_NullSource()
         {
             var context = new TestConverterContext(typeof(KafkaRecord), source: null);
@@ -333,7 +292,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Kafka
                     UnixTimestampMs = 1700000000000,
                     Type = 1, // CreateTime
                 },
-                LeaderEpoch = 7,
             };
             proto.Headers.Add(new KafkaHeaderProto
             {
@@ -363,7 +321,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Kafka
             Assert.Equal("{\"name\":\"test\"}", Encoding.UTF8.GetString(record.Value));
             Assert.Equal(1700000000000, record.Timestamp.UnixTimestampMs);
             Assert.Equal(KafkaTimestampType.CreateTime, record.Timestamp.Type);
-            Assert.Equal(7, record.LeaderEpoch);
             Assert.Single(record.Headers);
             Assert.Equal("trace-id", record.Headers[0].Key);
             Assert.Equal("trace-abc", record.Headers[0].GetValueAsString());

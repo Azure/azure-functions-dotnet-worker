@@ -1,0 +1,24 @@
+<!--
+***********************************************************************************************
+Sdk.props
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+***********************************************************************************************
+-->
+
+<Project>
+
+  <PropertyGroup>
+    <UsingAzureFunctionsSdk>true</UsingAzureFunctionsSdk>
+    <_AzureFunctionsExtensionProjectName>azure_functions.g.csproj</_AzureFunctionsExtensionProjectName>
+    <_IsExtensionProject Condition="'$(MSBuildProjectFile)' == '$(_AzureFunctionsExtensionProjectName)'">true</_IsExtensionProject>
+  </PropertyGroup>
+
+  <!-- We use the same SDK for the outer and inner build, but import an entirely different set of targets. -->
+  <Import Project="$(MSBuildThisFileDirectory)../targets/Azure.Functions.Sdk.props" Condition="'$(_IsExtensionProject)' != 'true'" />
+  <Import Project="$(MSBuildThisFileDirectory)../targets/inner/Azure.Functions.Sdk.Inner.props" Condition="'$(_IsExtensionProject)' == 'true'" />
+
+</Project>

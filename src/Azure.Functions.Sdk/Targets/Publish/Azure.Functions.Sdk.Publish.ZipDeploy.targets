@@ -1,0 +1,43 @@
+<!--
+***********************************************************************************************
+Azure.Functions.Publish.ZipDeploy.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+***********************************************************************************************
+-->
+
+<Project>
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.CreateZipFile" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.ZipDeploy" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+
+  <PropertyGroup>
+    <_DotNetPublishFiles>
+      ZipDeploy;
+    </_DotNetPublishFiles>
+    <PublishAllowInsecureRemoteConnections Condition="'$(PublishAllowInsecureRemoteConnections)' == ''">false</PublishAllowInsecureRemoteConnections>
+  </PropertyGroup>
+
+  <Target Name="CreateZipFile" DependsOnTargets="_ResolveFunctionExecutable">
+    <CreateZipFile SourceFolder="$(PublishIntermediateOutputPath)" ZipName="$(MSBuildProjectName)"
+      PublishIntermediateTempPath="$(PublishIntermediateTempPath)" Executable="$(_FunctionsExecutable)">
+      <Output TaskParameter="CreatedZipPath" PropertyName="ZippedPublishContentsPath"/>
+    </CreateZipFile>
+  </Target>
+
+  <Target Name="ZipDeploy" DependsOnTargets="CreateZipFile">
+    <PropertyGroup>
+      <_ZipPublishUrl>$(PublishUrl)</_ZipPublishUrl>
+      <_ZipPublishUrl Condition="'$(_ZipPublishUrl)' == ''">https://$(DeployIisAppPath).scm.azurewebsites.net/</_ZipPublishUrl>
+    </PropertyGroup>
+
+    <ZipDeploy ZipContentsPath="$(ZippedPublishContentsPath)" PublishUrl="$(_ZipPublishUrl)"
+      DeploymentUsername="$(UserName)" DeploymentPassword="$(Password)"
+      UseBlobContainerDeploy="$(UseBlobContainerDeploy)"
+      AllowInsecureRemoteConnections="$(PublishAllowInsecureRemoteConnections)"
+      DotnetSdkVersion="$(NETCoreSdkVersion)" /> <!-- For user agent header -->
+  </Target>
+
+</Project>

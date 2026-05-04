@@ -10,6 +10,7 @@ parameters:
   values:
   - core
   - sdk
+  - msbuild-sdk
   - application-insights
   - open-telemetry
 
@@ -55,6 +56,16 @@ variables:
   - name: package_pattern
     value: |
       Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+      !*.symbols.nupkg
+
+- ${{ if eq(parameters.packages, 'msbuild-sdk') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker-msbuild-sdk
+  - name: package_name
+    value: Azure.Functions.Sdk
+  - name: package_pattern
+    value: |
+      Azure.Functions.Sdk.*.nupkg
       !*.symbols.nupkg
 
 - ${{ if eq(parameters.packages, 'application-insights') }}:

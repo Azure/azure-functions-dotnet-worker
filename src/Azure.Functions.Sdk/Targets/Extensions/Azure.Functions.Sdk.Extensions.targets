@@ -1,0 +1,158 @@
+<!--
+***********************************************************************************************
+Azure.Functions.Sdk.Extensions.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+***********************************************************************************************
+-->
+
+<Project>
+
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.ResolveExtensionPackages" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.ValidateExtensionPackages" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.WriteExtensionProject" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.WriteExtensionMetadata" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+
+  <PropertyGroup>
+    <_FunctionsIntermediateExtensionJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionJsonPath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworks)' == ''">
+    <_AzureFunctionsTargetFramework Include="$(TargetFramework)"
+      ProjectFile="$(BaseIntermediateOutputPath)azure_functions/$(_AzureFunctionsExtensionProjectName)"
+      MarkerFile="$(BaseIntermediateOutputPath)azure_functions/restored.marker" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworks)' != '' AND '$(TargetFramework)' != ''">
+    <_AzureFunctionsTargetFramework Include="$(TargetFramework)"
+      ProjectFile="$(BaseIntermediateOutputPath)azure_functions_$(TargetFramework)/$(_AzureFunctionsExtensionProjectName)"
+      MarkerFile="$(BaseIntermediateOutputPath)azure_functions_$(TargetFramework)/restored.marker" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworks)' != '' AND '$(TargetFramework)' == ''">
+    <_AzureFunctionsTargetFramework Include="$(TargetFrameworks)" />
+    <_AzureFunctionsTargetFramework Update="@(_AzureFunctionsTargetFramework)"
+      ProjectFile="$(BaseIntermediateOutputPath)azure_functions_%(Identity)/$(_AzureFunctionsExtensionProjectName)"
+      MarkerFile="$(BaseIntermediateOutputPath)azure_functions_%(Identity)/restored.marker" />
+  </ItemGroup>
+
+  <Target Name="GenerateFunctionsExtensionProject" Condition="'$(DesignTimeBuild)' != 'true'"
+    DependsOnTargets="CollectExtensionPackages;WriteExtensionProject;RestoreExtensionProject"
+    AfterTargets="Restore" />
+
+  <Target Name="PrepareFunctionsExtensionPayload" Condition="'$(DesignTimeBuild)' != 'true'"
+    DependsOnTargets="GetFunctionsExtensionFiles;GenerateExtensionMetadata;AssignFunctionsTargetPaths"
+    AfterTargets="CoreCompile" />
+
+  <Target Name="PublishFunctionsExtensionPayload" Condition="'$(DesignTimeBuild)' != 'true'"
+    DependsOnTargets="GetFunctionsExtensionFiles;AssignFunctionsTargetPaths"
+    BeforeTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="@(_FunctionsExtensionsOutputItems)"
+        RelativePath="%(_FunctionsExtensionsOutputItems.TargetPath)"
+        CopyToPublishDirectory="PreserveNewest" />
+      <ResolvedFileToPublish Include="$(_FunctionsIntermediateExtensionJsonPath)"
+        RelativePath="$(_FunctionsExtensionsJsonName)"
+        CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CollectExtensionPackages" Returns="@(_AzureFunctionPackageReference)">
+    <PropertyGroup>
+      <!-- In multi-targeting, $(ProjectAssetsFile) is not available, so we backfill it. -->
+      <_ProjectAssetsFile>$(ProjectAssetsFile)</_ProjectAssetsFile>
+      <_ProjectAssetsFile Condition="'$(_ProjectAssetsFile)' == ''">$(BaseIntermediateOutputPath)project.assets.json</_ProjectAssetsFile>
+    </PropertyGroup>
+
+    <ResolveExtensionPackages ProjectAssetsFile="$(_ProjectAssetsFile)">
+      <Output TaskParameter="ExtensionPackages" ItemName="_AzureFunctionPackageReference" />
+    </ResolveExtensionPackages>
+  </Target>
+
+  <!-- The WriteExtensionProject task will perform its own incremental build checks. -->
+  <Target Name="WriteExtensionProject">
+    <ValidateExtensionPackages ExtensionPackages="@(_AzureFunctionPackageReference)">
+      <Output TaskParameter="FilteredPackages" ItemName="_ValidatedAzureFunctionPackageReference" />
+    </ValidateExtensionPackages>
+    <WriteExtensionProject Projects="@(_AzureFunctionsTargetFramework)" Packages="@(_ValidatedAzureFunctionPackageReference)" />
+  </Target>
+
+  <Target Name="RestoreExtensionProject">
+    <MSBuild Projects="@(_AzureFunctionsTargetFramework->'%(ProjectFile)')" Targets="Restore"
+      RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources)" />
+    <Touch Files="@(_AzureFunctionsTargetFramework->'%(MarkerFile)')" AlwaysCreate="True" />
+  </Target>
+
+  <Target Name="GetFunctionsExtensionFiles" Returns="@(_FunctionsExtensionsOutputItems)">
+    <MSBuild Projects="@(_AzureFunctionsTargetFramework->'%(ProjectFile)')" Targets="ResolveFunctionsExtensionFiles"
+      RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)">
+      <Output TaskParameter="TargetOutputs" ItemName="_FunctionsExtensionsOutputItems" />
+    </MSBuild>
+  </Target>
+
+  <Target Name="_CalculateFunctionsExtensionAssemblies">
+    <ItemGroup>
+      <_FunctionsExtensionAssemblies Include="@(_FunctionsExtensionsOutputItems->WithMetadataValue('AssetType', 'runtime'))" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateExtensionMetadata" DependsOnTargets="_CalculateFunctionsExtensionAssemblies">
+    <WriteExtensionMetadata OutputPath="$(_FunctionsIntermediateExtensionJsonPath)" ExtensionReferences="@(_FunctionsExtensionAssemblies)" />
+  </Target>
+
+  <Target Name="AssignFunctionsTargetPaths">
+    <ItemGroup>
+      <EmbedInBinlog Include="$(_FunctionsIntermediateExtensionJsonPath)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Copies resolved extension files and extensions.json to the output directory using manual Copy steps
+    instead of _NoneWithTargetPath, to prevent P2P references from collecting these files.
+  -->
+  <Target Name="_CopyFunctionsExtensionsToOutput"
+    AfterTargets="CopyFilesToOutputDirectory"
+    DependsOnTargets="PrepareFunctionsExtensionPayload"
+    Condition="'$(NoBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
+    <Copy SourceFiles="@(_FunctionsExtensionsOutputItems)" DestinationFiles="@(_FunctionsExtensionsOutputItems->'$(TargetDir)%(TargetPath)')"
+          SkipUnchangedFiles="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+    <Copy SourceFiles="$(_FunctionsIntermediateExtensionJsonPath)" DestinationFiles="$(TargetDir)$(_FunctionsExtensionsJsonName)"
+          SkipUnchangedFiles="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
+
+  <!--
+    Cleans Functions extension artifacts that CoreClean does not track:
+    the generated extension project directory, intermediate extensions.json,
+    and the .azurefunctions output directory.
+  -->
+  <Target Name="_CleanFunctionsExtensions" AfterTargets="CoreClean">
+    <ItemGroup>
+      <_FunctionsProjectDirToClean Include="@(_AzureFunctionsTargetFramework->'%(ProjectFile)')" />
+    </ItemGroup>
+    <RemoveDir Directories="@(_FunctionsProjectDirToClean->'%(RootDir)%(Directory)')" />
+    <Delete Files="$(_FunctionsIntermediateExtensionJsonPath)" TreatErrorsAsWarnings="true" />
+    <Delete Files="$(_FunctionsIntermediateExtensionJsonPath).hash" TreatErrorsAsWarnings="true" />
+    <RemoveDir Directories="$(TargetDir).azurefunctions" />
+  </Target>
+
+  <!--
+    Until there is a consistent post-restore hook which gives a guarantee to run our targets after restore,
+    _VerifyRestoredFunctionsExtensions will verify the restore hook has run. If extension restore hook has not
+    run, this will emit a warning and try to perform the restore hook during build.
+  -->
+  <Target Name="_VerifyRestoredFunctionsExtensions" Condition="'$(DesignTimeBuild)' != 'true'"
+    BeforeTargets="BeforeBuild"
+    Inputs="@(_AzureFunctionsTargetFramework->'%(ProjectFile)');$(ProjectAssetsFile)" Outputs="@(_AzureFunctionsTargetFramework->'%(MarkerFile)')">
+    <!-- Visual Studio does restore manually via design-time-build outputs. We have no way to hook into it and will have to rely on build fallback. -->
+    <FuncSdkLog Resource="Warning_ExtensionsNotRestored" Condition="'$(BuildingInsideVisualStudio)' != 'true'" />
+    <CallTarget Targets="GenerateFunctionsExtensionProject"/>
+  </Target>
+
+</Project>

@@ -38,7 +38,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             // Both Configure methods need the updated worker description and the following line will check if it already exists or call GetUpdatedWorkerDescription() to create it
             newWorkerDescription ??= GetUpdatedWorkerDescription(appRootPath);
 
-            builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
+            builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 { _dotnetIsolatedWorkerConfigPath, appRootPath },
                 { _dotnetIsolatedWorkerExePath, newWorkerDescription.DefaultExecutablePath! }

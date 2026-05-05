@@ -43,10 +43,5 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the record headers.
         /// </summary>
         public KafkaHeader[] Headers { get; set; }
-
-        /// <summary>
-        /// Gets or sets the leader epoch, if available. Null if not provided by the broker.
-        /// </summary>
-        public int? LeaderEpoch { get; set; }
     }
 }

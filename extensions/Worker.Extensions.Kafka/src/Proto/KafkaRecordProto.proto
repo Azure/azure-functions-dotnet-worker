@@ -16,7 +16,11 @@ message KafkaRecordProto {
     optional bytes value = 5;
     KafkaTimestampProto timestamp = 6;
     repeated KafkaHeaderProto headers = 7;
-    optional int32 leader_epoch = 8;
+
+    // leader_epoch was removed per customer feedback (issue #639).
+    // It represents consumer fetch metadata, not stored record data.
+    reserved 8;
+    reserved "leader_epoch";
 
     // Reserved for future fields. Do not reuse field numbers.
     reserved 9 to 15;

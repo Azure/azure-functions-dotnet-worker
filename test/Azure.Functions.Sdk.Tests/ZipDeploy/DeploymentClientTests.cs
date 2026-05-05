@@ -454,6 +454,138 @@ public sealed class DeploymentClientTests
 
     #endregion
 
+    #region Auth Header Polling Tests
+
+    [Fact]
+    public async Task ZipDeployAsync_PollingRequests_IncludeBasicAuthHeader()
+    {
+        // Arrange
+        List<HttpRequestMessage> pollingRequests = new();
+        using MockHttpMessageHandler handler = new(req =>
+        {
+            if (req.Method == HttpMethod.Post)
+            {
+                return CreateResponseWithLocation(
+                    HttpStatusCode.Accepted,
+                    TestLocationUri,
+                    CreateStatusContent(DeployStatus.Building));
+            }
+
+            pollingRequests.Add(req);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = CreateStatusContent(DeployStatus.Success)
+            };
+        });
+
+        DeploymentClient client = CreateDeploymentClient(handler, null);
+        using Stream content = new MemoryStream();
+        ZipDeployRequest request = new("User", "Pass", content);
+
+        // Act
+        await client.ZipDeployAsync(request, default);
+
+        // Assert
+        pollingRequests.Should().NotBeEmpty();
+        foreach (HttpRequestMessage pollReq in pollingRequests)
+        {
+            pollReq.Headers.Authorization.Should().NotBeNull("polling requests should include auth headers");
+            pollReq.Headers.Authorization!.Scheme.Should().Be("Basic");
+        }
+    }
+
+    [Fact]
+    public async Task ZipDeployAsync_PollingRequests_IncludeBearerAuthHeader()
+    {
+        // Arrange
+        List<HttpRequestMessage> pollingRequests = new();
+        using MockHttpMessageHandler handler = new(req =>
+        {
+            if (req.Method == HttpMethod.Post)
+            {
+                return CreateResponseWithLocation(
+                    HttpStatusCode.Accepted,
+                    TestLocationUri,
+                    CreateStatusContent(DeployStatus.Building));
+            }
+
+            pollingRequests.Add(req);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = CreateStatusContent(DeployStatus.Success)
+            };
+        });
+
+        DeploymentClient client = CreateDeploymentClient(handler, null);
+        using Stream content = new MemoryStream();
+
+        // Use the well-known GUID as username to trigger Bearer auth (see ZipDeployRequest.AddAuthenticationHeader)
+        ZipDeployRequest request = new("00000000-0000-0000-0000-000000000000", "token-value", content);
+
+        // Act
+        await client.ZipDeployAsync(request, default);
+
+        // Assert
+        pollingRequests.Should().NotBeEmpty();
+        foreach (HttpRequestMessage pollReq in pollingRequests)
+        {
+            pollReq.Headers.Authorization.Should().NotBeNull("polling requests should include auth headers");
+            pollReq.Headers.Authorization!.Scheme.Should().Be("Bearer");
+            pollReq.Headers.Authorization!.Parameter.Should().Be("token-value");
+        }
+    }
+
+    [Fact]
+    public async Task ZipDeployAsync_PollingRetries_IncludeAuthHeaders()
+    {
+        // Arrange
+        List<HttpRequestMessage> pollingRequests = new();
+        int pollAttempts = 0;
+        using MockHttpMessageHandler handler = new(req =>
+        {
+            if (req.Method == HttpMethod.Post)
+            {
+                return CreateResponseWithLocation(
+                    HttpStatusCode.Accepted,
+                    TestLocationUri,
+                    CreateStatusContent(DeployStatus.Building));
+            }
+
+            pollingRequests.Add(req);
+            pollAttempts++;
+            // Fail first attempt, succeed on second
+            if (pollAttempts <= 1)
+            {
+                return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+                {
+                    Content = CreateStatusContent(DeployStatus.Unknown, "Service unavailable")
+                };
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = CreateStatusContent(DeployStatus.Success)
+            };
+        });
+
+        DeploymentClient client = CreateDeploymentClient(handler, null);
+        using Stream content = new MemoryStream();
+        ZipDeployRequest request = new("User", "Pass", content);
+
+        // Act
+        await client.ZipDeployAsync(request, default);
+
+        // Assert
+        pollingRequests.Should().HaveCountGreaterThan(1, "should have retried at least once");
+        foreach (HttpRequestMessage pollReq in pollingRequests)
+        {
+            pollReq.Headers.Authorization.Should().NotBeNull("all polling requests including retries should include auth headers");
+            pollReq.Headers.Authorization!.Scheme.Should().Be("Basic");
+        }
+    }
+
+    #endregion
+
     #region Helpers
 
     private static StringContent CreateStatusContent(DeployStatus status, string? text = null)

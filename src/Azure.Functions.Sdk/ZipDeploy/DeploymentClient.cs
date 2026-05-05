@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Build.Framework;
@@ -30,18 +31,19 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
         {
             // If the response contains a location header, we can assume the deployment is asynchronous
             _logger?.LogMessageFromResources(nameof(Strings.Deploy_AsyncDeployment), location);
-            return await PollDeploymentStatusAsync(location, cancellation);
+            return await PollDeploymentStatusAsync(location, httpRequest.Headers.Authorization, cancellation);
         }
 
         return status.Status;
     }
 
-    private async Task<DeployStatus> PollDeploymentStatusAsync(Uri location, CancellationToken cancellation)
+    private async Task<DeployStatus> PollDeploymentStatusAsync(
+        Uri location, AuthenticationHeaderValue? authorization, CancellationToken cancellation)
     {
         while (true)
         {
             await Task.Delay(StatusRefreshDelay, cancellation);
-            StatusResult status = await GetDeploymentStatusAsync(location, cancellation);
+            StatusResult status = await GetDeploymentStatusAsync(location, authorization, cancellation);
             if (status.IsCompleted)
             {
                 return status.Status;
@@ -59,14 +61,17 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
         }
     }
 
-    private async Task<StatusResult> GetDeploymentStatusAsync(Uri location, CancellationToken cancellation)
+    private async Task<StatusResult> GetDeploymentStatusAsync(
+        Uri location, AuthenticationHeaderValue? authorization, CancellationToken cancellation)
     {
         int retry = 0;
         while (true)
         {
             try
             {
-                using HttpResponseMessage response = await _client.GetAsync(location, cancellation);
+                using HttpRequestMessage request = new(HttpMethod.Get, location);
+                request.Headers.Authorization = authorization;
+                using HttpResponseMessage response = await _client.SendAsync(request, cancellation);
                 return await StatusResult.ParseAsync(response, cancellation);
             }
             catch (DeploymentException ex)

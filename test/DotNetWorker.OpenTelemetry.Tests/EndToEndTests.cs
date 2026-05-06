@@ -173,7 +173,7 @@ public class EndToEndTests
         {
             { "WEBSITE_SITE_NAME", null! },
             { "OTEL_SERVICE_NAME", null! },
-            { "OTEL_RESOURCE_ATTRIBUTES", "null!" }
+            { "OTEL_RESOURCE_ATTRIBUTES", null! }
         });
 
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
@@ -233,14 +233,8 @@ public class EndToEndTests
 
     public static IEnumerable<object[]> EnvironmentNameSkippedData =>
     [
-        // OTEL_RESOURCE_ATTRIBUTES[deployment.environment.name] not set locally
-        [new Dictionary<string, string> { { "OTEL_RESOURCE_ATTRIBUTES", "other.key=value" } }],
-        // OTEL_RESOURCE_ATTRIBUTES[deployment.environment.name] set locally
-        [new Dictionary<string, string> { { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment.name=custom-name,other.key=value" } }],
         // OTEL_RESOURCE_ATTRIBUTES[deployment.environment.name] set in Azure
         [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "WEBSITE_SLOT_NAME", "staging" }, { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment.name=custom-name,other.key=value" } }],
-        // OTEL_RESOURCE_ATTRIBUTES[deployment.environment] set locally
-        [new Dictionary<string, string> { { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment=custom-name,other.key=value" } }],
         // OTEL_RESOURCE_ATTRIBUTES[deployment.environment] set in Azure
         [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "WEBSITE_SLOT_NAME", "staging" }, { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment=custom-name,other.key=value" } }],
         // Leading/trailing whitespace around pair is trimmed
@@ -255,7 +249,8 @@ public class EndToEndTests
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
         Resource resource = detector.Detect();
 
-        Assert.DoesNotContain(resource.Attributes, a => a.Key == "service.name");
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "deployment.environment");
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "deployment.environment.name");
     }
 
     [Fact]

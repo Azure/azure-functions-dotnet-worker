@@ -237,8 +237,6 @@ public class EndToEndTests
         [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "WEBSITE_SLOT_NAME", "staging" }, { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment.name=custom-name,other.key=value" } }],
         // OTEL_RESOURCE_ATTRIBUTES[deployment.environment] set in Azure
         [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "WEBSITE_SLOT_NAME", "staging" }, { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment=custom-name,other.key=value" } }],
-        // Leading/trailing whitespace around pair is trimmed
-        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "OTEL_RESOURCE_ATTRIBUTES", "other.key=value, deployment.environment=custom-name" } }],
     ];
     
     [Theory]

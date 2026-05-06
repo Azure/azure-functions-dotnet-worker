@@ -60,9 +60,13 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                         attributes.Add(new(ResourceSemanticConventions.CloudResourceId, uri));
                     }
 
-                    if (Environment.GetEnvironmentVariable(OpenTelemetryConstants.SlotNameEnvVar) is { Length: > 0 } slot)
+                    if (!IsResourceAttributeConfigured(ResourceSemanticConventions.DeploymentEnvironmentName, resourceAttributes) &&
+                        !IsResourceAttributeConfigured(ResourceSemanticConventions.DeploymentEnvironment, resourceAttributes))
                     {
-                        attributes.Add(new(ResourceSemanticConventions.DeploymentEnvironmentName, slot));
+                        if (Environment.GetEnvironmentVariable(OpenTelemetryConstants.SlotNameEnvVar) is { Length: > 0 } slot)
+                        {
+                            attributes.Add(new(ResourceSemanticConventions.DeploymentEnvironmentName, slot));
+                        }                        
                     }
 
                     if (Environment.GetEnvironmentVariable(OpenTelemetryConstants.SiteUpdateIdEnvVar) is { Length: > 0 } siteUpdateId)

@@ -10,7 +10,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 -->
 
 <Project>
-  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.CreateZipFile" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.CreateFuncZipFile" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.ZipDeploy" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
@@ -20,14 +20,14 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <PublishAllowInsecureRemoteConnections Condition="'$(PublishAllowInsecureRemoteConnections)' == ''">false</PublishAllowInsecureRemoteConnections>
   </PropertyGroup>
 
-  <Target Name="CreateZipFile" DependsOnTargets="_ResolveFunctionExecutable">
-    <CreateZipFile SourceFolder="$(PublishIntermediateOutputPath)" ZipName="$(MSBuildProjectName)"
+  <Target Name="CreateFuncZipFile" DependsOnTargets="_ResolveFunctionExecutable">
+    <CreateFuncZipFile SourceFolder="$(PublishIntermediateOutputPath)" ZipName="$(MSBuildProjectName)"
       PublishIntermediateTempPath="$(PublishIntermediateTempPath)" Executable="$(_FunctionsExecutable)">
       <Output TaskParameter="CreatedZipPath" PropertyName="ZippedPublishContentsPath"/>
-    </CreateZipFile>
+    </CreateFuncZipFile>
   </Target>
 
-  <Target Name="ZipDeploy" DependsOnTargets="CreateZipFile">
+  <Target Name="ZipDeploy" DependsOnTargets="CreateFuncZipFile">
     <PropertyGroup>
       <_ZipPublishUrl>$(PublishUrl)</_ZipPublishUrl>
       <_ZipPublishUrl Condition="'$(_ZipPublishUrl)' == ''">https://$(DeployIisAppPath).scm.azurewebsites.net/</_ZipPublishUrl>

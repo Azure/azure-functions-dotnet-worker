@@ -65,6 +65,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         // Act: publish with --no-build --self-contained (same RID, adding SelfContained)
         Dictionary<string, string> publishProperties = new()
         {
+            ["NoBuild"] = "true",
             ["SelfContained"] = "true",
         };
 

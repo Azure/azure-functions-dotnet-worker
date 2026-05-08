@@ -111,7 +111,7 @@ public sealed class CreateFuncZipFileTests : IDisposable
         {
             BuildEngine = _buildEngine.Object,
             SourceFolder = FolderToZip,
-            ZipName = ProjectName,
+            ProjectName = ProjectName,
             PublishIntermediateTempPath = IntermediatePath,
             Executable = executable,
         };

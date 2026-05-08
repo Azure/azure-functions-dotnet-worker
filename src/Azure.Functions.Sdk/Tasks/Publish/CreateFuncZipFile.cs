@@ -13,7 +13,7 @@ namespace Azure.Functions.Sdk.Tasks.Publish;
 /// <summary>
 /// Creates a zip file for a folder.
 /// </summary>
-public sealed class CreateFuncZipFile : Microsoft.Build.Utilities.Task
+public sealed class CreateFuncZipFile(TimeProvider time) : Microsoft.Build.Utilities.Task
 {
     /***
     * This class does not use IFileSystem abstraction because it does not support ZipArchive creation.
@@ -27,11 +27,18 @@ public sealed class CreateFuncZipFile : Microsoft.Build.Utilities.Task
     // Unix file permissions for -rwxrwxrwx
     internal static readonly int UnixExecutablePermissions = Convert.ToInt32("777", 8);
 
+    private readonly TimeProvider _time = Throw.IfNull(time);
+
+    public CreateFuncZipFile()
+        : this(TimeProvider.System)
+    {
+    }
+
     [Required]
     public string SourceFolder { get; set; } = string.Empty;
 
     [Required]
-    public string ZipName { get; set; } = string.Empty;
+    public string ProjectName { get; set; } = string.Empty;
 
     [Required]
     public string PublishIntermediateTempPath { get; set; } = string.Empty;
@@ -69,7 +76,7 @@ public sealed class CreateFuncZipFile : Microsoft.Build.Utilities.Task
 
     internal string CreateZipFileFromDirectory()
     {
-        string zipFileName = ZipName + ".zip";
+        string zipFileName = ProjectName + _time.GetLocalNow().ToString("yyyyMMddHHmmssFFF") + ".zip";
         string destination = Path.Combine(PublishIntermediateTempPath, zipFileName);
         ZipFile.CreateFromDirectory(SourceFolder, destination);
 

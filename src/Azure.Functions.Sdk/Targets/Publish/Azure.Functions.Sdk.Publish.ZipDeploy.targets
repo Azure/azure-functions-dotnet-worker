@@ -21,7 +21,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </PropertyGroup>
 
   <Target Name="CreateFuncZipFile" DependsOnTargets="_ResolveFunctionExecutable">
-    <CreateFuncZipFile SourceFolder="$(PublishIntermediateOutputPath)" ZipName="$(MSBuildProjectName)"
+    <CreateFuncZipFile SourceFolder="$(PublishIntermediateOutputPath)" ProjectName="$(MSBuildProjectName)"
       PublishIntermediateTempPath="$(PublishIntermediateTempPath)" Executable="$(_FunctionsExecutable)">
       <Output TaskParameter="CreatedZipPath" PropertyName="ZippedPublishContentsPath"/>
     </CreateFuncZipFile>

@@ -79,11 +79,13 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </PropertyGroup>
   </Target>
 
-  <Target Name="_GenerateWorkerConfig" Condition="'$(NoBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'"
-    DependsOnTargets="_PrepareWorkerConfig;_CoreGenerateWorkerConfig" />
-
-  <Target Name="_PrepareWorkerConfig" Condition="'$(DesignTimeBuild)' != 'true'"
-    DependsOnTargets="_ResolveFunctionExecutable;_PreGenerateWorkerConfig" />
+  <Target Name="_GenerateWorkerConfig" Condition="'$(DesignTimeBuild)' != 'true'"
+    DependsOnTargets="_ResolveFunctionExecutable">
+    <GenerateWorkerConfig Executable="$(_FunctionsExecutable)" EntryPoint="$(TargetFileName)" OutputPath="$(_WorkerConfigOutputPath)" />
+    <ItemGroup>
+      <EmbedInBinlog Include="$(_WorkerConfigOutputPath)" />
+    </ItemGroup>
+  </Target>
 
   <Target Name="_ResolveFunctionExecutable" Returns="$(_FunctionsExecutable)">
     <PropertyGroup>
@@ -92,16 +94,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <_FunctionsExecutable Condition="'$(SelfContained)' == 'true'">{WorkerRoot}$(AssemblyName)$(_NativeExecutableExtension)</_FunctionsExecutable>
       <_FunctionsExecutable Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">{WorkerRoot}$(TargetName)$(TargetExt)</_FunctionsExecutable>
     </PropertyGroup>
-  </Target>
-
-  <Target Name="_PreGenerateWorkerConfig" Returns="@(_WorkerConfig)">
-    <ItemGroup>
-      <_WorkerConfig Include="$(_WorkerConfigOutputPath)" TargetPath="$(_WorkerConfigFileName)" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="_CoreGenerateWorkerConfig" Inputs="@(IntermediateAssembly)" Outputs="$(_WorkerConfigOutputPath)">
-    <GenerateWorkerConfig Executable="$(_FunctionsExecutable)" EntryPoint="$(TargetFileName)" OutputPath="$(_WorkerConfigOutputPath)" />
   </Target>
 
   <!--
@@ -120,13 +112,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <!--
-    Adds worker.config.json to ResolvedFileToPublish for the publish pipeline.
-    Sources from the intermediate output path; for NoBuild, the file must exist from a prior build.
+    When publishing, always see if worker.config.json needs to be regenerated. Then add it to the list of files to publish.
   -->
-  <Target Name="_AddWorkerConfigToPublish"
+  <Target Name="_AddWorkerConfigToPublish" Condition="'$(DesignTimeBuild)' != 'true'"
     BeforeTargets="ComputeFilesToPublish"
-    DependsOnTargets="_PrepareWorkerConfig"
-    Condition="'$(DesignTimeBuild)' != 'true'">
+    DependsOnTargets="_GenerateWorkerConfig">
     <ItemGroup>
       <ResolvedFileToPublish Include="$(_WorkerConfigOutputPath)" RelativePath="$(_WorkerConfigFileName)" CopyToPublishDirectory="PreserveNewest" />
     </ItemGroup>

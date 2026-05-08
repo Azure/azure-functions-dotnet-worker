@@ -36,7 +36,7 @@ public partial class SdkEndToEndTests
 
         // Assert
         cleanOutput.Should().BeSuccessful();
-        File.Exists(Path.Combine(intermediatePath, "worker.config.json")).Should().BeFalse("worker.config.json should be cleaned from intermediate");
+        File.Exists(Path.Combine(intermediatePath, "worker.config.json")).Should().BeFalse("worker.config.json should be cleaned from intermediate"); 
         File.Exists(Path.Combine(intermediatePath, "extensions.json")).Should().BeFalse("extensions.json should be cleaned from intermediate");
         File.Exists(Path.Combine(intermediatePath, "extensions.json.hash")).Should().BeFalse("extensions.json.hash should be cleaned from intermediate");
         Directory.Exists(extensionProjectDir).Should().BeFalse("extension project directory should be cleaned");

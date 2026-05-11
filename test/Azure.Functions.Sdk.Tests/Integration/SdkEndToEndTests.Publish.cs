@@ -56,27 +56,32 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             .Property("RuntimeIdentifier", "win-x64")
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
 
-        project.Build(restore: true).Should().BeSuccessful().And.HaveNoIssues();
+        Dictionary<string, string> buildProperties = new()
+        {
+            ["SelfContained"] = "true",
+        };
+
+        project.Build(restore: true, buildProperties).Should().BeSuccessful().And.HaveNoIssues();
         ValidateConfig(
             Path.Combine(project.GetOutputPath(), "worker.config.json"),
-            "dotnet",
+            "{WorkerRoot}MyFunctionApp.exe",
             "MyFunctionApp.dll");
 
-        // Act: publish with --no-build --self-contained (same RID, adding SelfContained)
+        // Act: publish with --no-build --self-contained false (same RID, removing SelfContained)
         Dictionary<string, string> publishProperties = new()
         {
             ["NoBuild"] = "true",
-            ["SelfContained"] = "true",
+            ["SelfContained"] = "false",
         };
 
         BuildOutput output = project.Publish(build: false, restore: false, publishProperties);
 
-        // Assert: publish output should have self-contained config, not stale "dotnet"
+        // Assert: publish output should not have self-contained config
         output.Should().BeSuccessful().And.HaveNoIssues();
         string publishPath = project.GetPublishPath();
         ValidateConfig(
             Path.Combine(publishPath, "worker.config.json"),
-            "{WorkerRoot}MyFunctionApp.exe",
+            "dotnet",
             "MyFunctionApp.dll");
     }
 }

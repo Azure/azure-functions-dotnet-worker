@@ -27,7 +27,7 @@ namespace FunctionsNetHost
             _workerStartupOptions = workerStartupOptions;
         }
 
-        internal int RunApplication(string? assemblyPath)
+        internal int RunApplication(string? assemblyPath, string? correlationId = null)
         {
             ArgumentNullException.ThrowIfNull(assemblyPath, nameof(assemblyPath));
 
@@ -41,48 +41,58 @@ namespace FunctionsNetHost
 
                 var loadStart = Stopwatch.GetTimestamp();
                 var stageStart = loadStart;
-                Logger.Log($"Function app load starting. Assembly path:{assemblyPath}");
+                Logger.Log($"Function app load starting. CorrelationId:{correlationId}, AssemblyPath:{assemblyPath}, ProcessId:{Environment.ProcessId}");
+                HostTraceManager.ScheduleDelayedFlush("function-app-load-started");
 
                 var hostfxrFullPath = NetHost.GetHostFxrPath(&parameters);
-                LogFunctionAppLoadStage($"hostfxr path resolved:{hostfxrFullPath}", loadStart, stageStart);
+                LogFunctionAppLoadStage($"hostfxr path resolved:{hostfxrFullPath}", correlationId, loadStart, stageStart);
 
                 stageStart = Stopwatch.GetTimestamp();
                 _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);
 
                 if (_hostfxrHandle == IntPtr.Zero)
                 {
-                    Logger.Log($"Failed to load hostfxr. hostfxrFullPath:{hostfxrFullPath}");
+                    LogFunctionAppLoadFailure("Failed to load hostfxr", assemblyPath, hostfxrFullPath, correlationId, loadStart);
                     return -1;
                 }
 
-                LogFunctionAppLoadStage("hostfxr loaded", loadStart, stageStart);
+                LogFunctionAppLoadStage("hostfxr loaded", correlationId, loadStart, stageStart);
 
                 stageStart = Stopwatch.GetTimestamp();
+                Logger.Log(
+                    $"Function app load: command line argument construction starting. CorrelationId:{correlationId}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
                 var commandLineArguments = _workerStartupOptions.CommandLineArgs.Prepend(assemblyPath).ToArray();
+                LogFunctionAppLoadStage($"command line arguments constructed. ArgumentCount:{commandLineArguments.Length}", correlationId, loadStart, stageStart);
+
+                stageStart = Stopwatch.GetTimestamp();
+                Logger.Log(
+                    $"Function app load: HostFxr.Initialize starting. CorrelationId:{correlationId}, ArgumentCount:{commandLineArguments.Length}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
                 var error = HostFxr.Initialize(commandLineArguments.Length, commandLineArguments, IntPtr.Zero, out _hostContextHandle);
+                LogFunctionAppLoadStage($"HostFxr.Initialize completed. ErrorCode:{error}", correlationId, loadStart, stageStart);
 
                 if (_hostContextHandle == IntPtr.Zero)
                 {
-                    Logger.Log($"Failed to initialize the .NET Core runtime. Assembly path:{assemblyPath}");
+                    LogFunctionAppLoadFailure($"Failed to initialize the .NET Core runtime. ErrorCode:{error}", assemblyPath, hostfxrFullPath, correlationId, loadStart);
                     return -1;
                 }
 
                 if (error < 0)
                 {
+                    LogFunctionAppLoadFailure($"HostFxr.Initialize returned an error. ErrorCode:{error}", assemblyPath, hostfxrFullPath, correlationId, loadStart);
                     return error;
                 }
 
-                LogFunctionAppLoadStage("hostfxr initialized", loadStart, stageStart);
-
                 stageStart = Stopwatch.GetTimestamp();
                 HostFxr.SetAppContextData(_hostContextHandle, "AZURE_FUNCTIONS_NATIVE_HOST", "1");
-                LogFunctionAppLoadStage("app context data set", loadStart, stageStart);
+                LogFunctionAppLoadStage("app context data set", correlationId, loadStart, stageStart);
 
                 Logger.Log(
-                    $"Function app hostfxr run starting. TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
+                    $"Function app hostfxr run starting. CorrelationId:{correlationId}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
+                Logger.Log(
+                    $"Function app load: HostFxr.Run entering managed application. CorrelationId:{correlationId}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
                 var exitCode = HostFxr.Run(_hostContextHandle);
                 Logger.Log(
-                    $"Function app hostfxr run completed. ExitCode:{exitCode}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
+                    $"Function app hostfxr run completed. CorrelationId:{correlationId}, ExitCode:{exitCode}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
 
                 return exitCode;
             }
@@ -130,11 +140,17 @@ namespace FunctionsNetHost
 #endif
         }
 
-        private static void LogFunctionAppLoadStage(string stage, long loadStart, long stageStart)
+        private static void LogFunctionAppLoadStage(string stage, string? correlationId, long loadStart, long stageStart)
         {
             var now = Stopwatch.GetTimestamp();
             Logger.Log(
-                $"Function app load: {stage}. StepElapsedMs:{Stopwatch.GetElapsedTime(stageStart, now).TotalMilliseconds:0.0}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart, now).TotalMilliseconds:0.0}");
+                $"Function app load: {stage}. CorrelationId:{correlationId}, StepElapsedMs:{Stopwatch.GetElapsedTime(stageStart, now).TotalMilliseconds:0.0}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart, now).TotalMilliseconds:0.0}");
+        }
+
+        private static void LogFunctionAppLoadFailure(string failure, string assemblyPath, string? hostfxrFullPath, string? correlationId, long loadStart)
+        {
+            Logger.Log(
+                $"Function app load failure: {failure}. CorrelationId:{correlationId}, AssemblyPath:{assemblyPath}, HostFxrPath:{hostfxrFullPath}, ProcessId:{Environment.ProcessId}, TotalElapsedMs:{Stopwatch.GetElapsedTime(loadStart).TotalMilliseconds:0.0}");
         }
     }
 }

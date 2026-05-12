@@ -23,6 +23,8 @@ namespace FunctionsNetHost.Grpc
         private readonly Func<TimeSpan, Task> _delayAsync;
         private readonly Action<string> _log;
         private readonly Func<DateTimeOffset> _getUtcNow;
+        private DateTimeOffset? _startStreamSentTime;
+        private bool _firstInboundMessageLogged;
 
         internal GrpcClient(
             GrpcWorkerStartupOptions grpcWorkerStartupOptions,
@@ -71,6 +73,8 @@ namespace FunctionsNetHost.Grpc
             var totalRetryCount = 0;
             RetryLogState? retryLogState = null;
 
+            _log($"Initial gRPC connection starting. Endpoint:'{endpoint}', MaxMessageLength:{_grpcWorkerStartupOptions.GrpcMaxMessageLength}");
+
             while (true)
             {
                 attempt++;
@@ -78,9 +82,10 @@ namespace FunctionsNetHost.Grpc
 
                 try
                 {
+                    _log($"Initial gRPC connection attempt starting. Endpoint:'{endpoint}', AttemptCount:{attempt}, RetryCount:{totalRetryCount}, TotalElapsedMs:{GetElapsed(connectStartTime).TotalMilliseconds:0.0}");
                     eventStream = _createEventStream();
-                    await SendStartStreamMessageAsync(eventStream.RequestStream);
-                    LogConnectionSuccess(endpoint, totalRetryCount, GetElapsed(connectStartTime));
+                    await SendStartStreamMessageAsync(eventStream.RequestStream, connectStartTime);
+                    LogConnectionSuccess(endpoint, attempt, totalRetryCount, GetElapsed(connectStartTime));
                     return eventStream;
                 }
                 catch (Exception ex) when (TryGetRetryDelay(ex, GetElapsed(connectStartTime), out var retryDelay))
@@ -111,6 +116,7 @@ namespace FunctionsNetHost.Grpc
         {
             while (await responseStream.MoveNext())
             {
+                LogFirstInboundMessage(responseStream.Current);
                 await _messageHandler.ProcessMessageAsync(responseStream.Current);
             }
         }
@@ -119,11 +125,17 @@ namespace FunctionsNetHost.Grpc
         {
             await foreach (var rpcWriteMsg in _outgoingMessageChannel.Reader.ReadAllAsync())
             {
+                var writeStartTime = _getUtcNow();
                 await requestStream.WriteAsync(rpcWriteMsg);
+
+                if (rpcWriteMsg.ContentCase == StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadResponse)
+                {
+                    _log($"Function environment reload response written to host stream. StepElapsedMs:{GetElapsed(writeStartTime).TotalMilliseconds:0.0}");
+                }
             }
         }
 
-        private async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
+        private async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream, DateTimeOffset connectStartTime)
         {
             var startStreamMsg = new StartStream()
             {
@@ -135,7 +147,11 @@ namespace FunctionsNetHost.Grpc
                 StartStream = startStreamMsg
             };
 
+            var sendStartTime = _getUtcNow();
+            _log($"StartStream send starting. WorkerId:{_grpcWorkerStartupOptions.WorkerId}, TotalElapsedMs:{GetElapsed(connectStartTime).TotalMilliseconds:0.0}");
             await requestStream.WriteAsync(startStream);
+            _startStreamSentTime = _getUtcNow();
+            _log($"StartStream sent. StepElapsedMs:{GetElapsed(sendStartTime).TotalMilliseconds:0.0}, TotalElapsedMs:{GetElapsed(connectStartTime).TotalMilliseconds:0.0}");
         }
 
         private void TrackRetryProgress(string endpoint, Exception exception, TimeSpan elapsed, DateTimeOffset currentTime, ref RetryLogState? retryLogState)
@@ -165,14 +181,9 @@ namespace FunctionsNetHost.Grpc
             retryLogState.MarkProgressLogged(currentTime + RetryProgressLogInterval);
         }
 
-        private void LogConnectionSuccess(string endpoint, int totalRetryCount, TimeSpan elapsed)
+        private void LogConnectionSuccess(string endpoint, int attempt, int totalRetryCount, TimeSpan elapsed)
         {
-            if (totalRetryCount == 0)
-            {
-                return;
-            }
-
-            _log($"Initial gRPC connection to '{endpoint}' succeeded after {totalRetryCount} retries over {elapsed:c}.");
+            _log($"Initial gRPC connection established. Endpoint:'{endpoint}', AttemptCount:{attempt}, RetryCount:{totalRetryCount}, TotalElapsedMs:{elapsed.TotalMilliseconds:0.0}");
         }
 
         private void LogRetryProgress(string endpoint, TimeSpan elapsed, RetryLogState retryLogState)
@@ -228,6 +239,22 @@ namespace FunctionsNetHost.Grpc
             return elapsed < TimeSpan.Zero ? TimeSpan.Zero : elapsed;
         }
 
+        private void LogFirstInboundMessage(StreamingMessage message)
+        {
+            if (_firstInboundMessageLogged)
+            {
+                return;
+            }
+
+            _firstInboundMessageLogged = true;
+
+            var elapsedSinceStartStream = _startStreamSentTime is null
+                ? TimeSpan.Zero
+                : GetElapsed(_startStreamSentTime.Value);
+
+            _log($"First inbound gRPC message received. ContentCase:{message.ContentCase}, ElapsedSinceStartStreamMs:{elapsedSinceStartStream.TotalMilliseconds:0.0}");
+        }
+
         private static string GetFailureSignature(Exception exception)
         {
             return $"{exception.GetType().Name}: {exception.Message}";
@@ -268,15 +295,16 @@ namespace FunctionsNetHost.Grpc
                 if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadResponse)
                 {
                     var reloadResponse = outboundMessage.FunctionEnvironmentReloadResponse;
-                    Logger.Log(
+                    _log(
                         $"Function environment reload response received from worker payload. Status:{reloadResponse?.Result?.Status}, CapabilitiesCount:{reloadResponse?.Capabilities.Count ?? 0}");
                 }
 
+                var writeStartTime = _getUtcNow();
                 await _outgoingMessageChannel.Writer.WriteAsync(outboundMessage);
 
                 if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadResponse)
                 {
-                    Logger.Log("Function environment reload response queued to host.");
+                    _log($"Function environment reload response queued to host. StepElapsedMs:{GetElapsed(writeStartTime).TotalMilliseconds:0.0}");
                 }
             }
         }

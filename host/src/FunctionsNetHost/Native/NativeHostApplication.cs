@@ -23,11 +23,14 @@ namespace FunctionsNetHost
 
         public unsafe void SetCallbackHandles(delegate* unmanaged<byte**, int, IntPtr, IntPtr> callback, IntPtr grpcHandle)
         {
+            Logger.Log($"SetCallbackHandles called. ProcessId:{Environment.ProcessId}, TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
+
             _requestHandlerCallback = callback;
             _workerHandle = grpcHandle;
 
             Logger.Log("Worker callback handles registered. Signaling application load.");
             WorkerLoadStatusSignalManager.Instance.Signal.Set();
+            Logger.Log($"Worker load signal set. ProcessId:{Environment.ProcessId}, TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
         }
     }
 }

@@ -40,7 +40,8 @@ namespace FunctionsNetHost.Tests
                 {
                     delays.Add(delay);
                     return Task.CompletedTask;
-                });
+                },
+                log: _ => { });
 
             using var eventStream = await grpcClient.ConnectAsync();
 
@@ -76,7 +77,8 @@ namespace FunctionsNetHost.Tests
                 {
                     delays++;
                     return Task.CompletedTask;
-                });
+                },
+                log: _ => { });
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => grpcClient.ConnectAsync());
 
@@ -109,7 +111,8 @@ namespace FunctionsNetHost.Tests
                 {
                     delays++;
                     return Task.CompletedTask;
-                });
+                },
+                log: _ => { });
 
             var actualException = await Assert.ThrowsAsync<InvalidOperationException>(() => grpcClient.ConnectAsync());
 
@@ -136,7 +139,7 @@ namespace FunctionsNetHost.Tests
                 {
                     attempts++;
 
-                    return attempts <= 51
+                    return attempts <= 101
                         ? new TestGrpcEventStream(_ => throw CreateConnectionUnavailableException())
                         : successfulStream;
                 },
@@ -151,18 +154,14 @@ namespace FunctionsNetHost.Tests
             using var eventStream = await grpcClient.ConnectAsync();
 
             Assert.Same(successfulStream, eventStream);
-            Assert.Collection(
-                logs,
-                message =>
-                {
-                    Assert.Contains("is still retrying", message);
-                    Assert.Contains("Retried 51 times over 00:00:05", message);
-                    Assert.Contains("HttpRequestException: The host endpoint is not listening yet.", message);
-                },
-                message =>
-                {
-                    Assert.Contains("succeeded after 51 retries over 00:00:05.1000000", message);
-                });
+            Assert.Contains(logs, message =>
+                message.Contains("is still retrying", StringComparison.Ordinal)
+                && message.Contains("Retried 101 times over 00:00:10", StringComparison.Ordinal)
+                && message.Contains("HttpRequestException: The host endpoint is not listening yet.", StringComparison.Ordinal));
+            Assert.Contains(logs, message =>
+                message.Contains("Initial gRPC connection established", StringComparison.Ordinal)
+                && message.Contains("AttemptCount:102", StringComparison.Ordinal)
+                && message.Contains("RetryCount:101", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -201,21 +200,17 @@ namespace FunctionsNetHost.Tests
             using var eventStream = await grpcClient.ConnectAsync();
 
             Assert.Same(successfulStream, eventStream);
-            Assert.Collection(
-                logs,
-                message =>
-                {
-                    Assert.Contains("Retried 2 times over 00:00:00.2000000", message);
-                    Assert.Contains("HttpRequestException: The host endpoint is not listening yet.", message);
-                },
-                message =>
-                {
-                    Assert.Contains("succeeded after 3 retries over 00:00:00.3000000", message);
-                });
+            Assert.Contains(logs, message =>
+                message.Contains("Retried 2 times over 00:00:00.2000000", StringComparison.Ordinal)
+                && message.Contains("HttpRequestException: The host endpoint is not listening yet.", StringComparison.Ordinal));
+            Assert.Contains(logs, message =>
+                message.Contains("Initial gRPC connection established", StringComparison.Ordinal)
+                && message.Contains("AttemptCount:4", StringComparison.Ordinal)
+                && message.Contains("RetryCount:3", StringComparison.Ordinal));
         }
 
         [Fact]
-        public async Task ConnectAsync_DoesNotLogSuccessSummaryWhenNoRetriesAreNeeded()
+        public async Task ConnectAsync_LogsConnectionSuccessWhenNoRetriesAreNeeded()
         {
             var startupOptions = CreateStartupOptions();
             var appLoader = new AppLoader(startupOptions);
@@ -230,7 +225,12 @@ namespace FunctionsNetHost.Tests
             using var eventStream = await grpcClient.ConnectAsync();
 
             Assert.Same(successfulStream, eventStream);
-            Assert.Empty(logs);
+            Assert.Contains(logs, message =>
+                message.Contains("Initial gRPC connection established", StringComparison.Ordinal)
+                && message.Contains("AttemptCount:1", StringComparison.Ordinal)
+                && message.Contains("RetryCount:0", StringComparison.Ordinal));
+            Assert.Contains(logs, message => message.Contains("StartStream sent", StringComparison.Ordinal));
+            Assert.DoesNotContain(logs, message => message.Contains("is still retrying", StringComparison.Ordinal));
         }
 
         private static GrpcWorkerStartupOptions CreateStartupOptions()

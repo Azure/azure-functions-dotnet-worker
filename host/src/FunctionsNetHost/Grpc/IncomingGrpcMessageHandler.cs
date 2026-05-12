@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
@@ -52,8 +51,8 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.WorkerWarmupRequest:
                     {
-                        Logger.LogTrace("Worker warmup request received.");
-                        PreLauncher.Run();
+                        Logger.Log("Worker warmup request received. Pre-launcher skipped.");
+                        // PreLauncher.Run();
 
                         responseMessage.WorkerWarmupResponse = new WorkerWarmupResponse
                         {
@@ -65,21 +64,22 @@ namespace FunctionsNetHost.Grpc
 
                     var reloadStart = Stopwatch.GetTimestamp();
                     var stageStart = reloadStart;
-
-                    Logger.Log("Function environment reload request received.");
-                    Configuration.Reload();
-                    LogEnvironmentReloadStage("configuration reload completed", reloadStart, stageStart);
-
+                    var correlationId = Guid.NewGuid().ToString("N");
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
+
+                    Logger.Log($"Function environment reload request received. CorrelationId:{correlationId}, FunctionAppDirectory:{envReloadRequest.FunctionAppDirectory}, EnvironmentVariableCount:{envReloadRequest.EnvironmentVariables.Count}");
+                    Configuration.Reload();
+                    LogEnvironmentReloadStage("configuration reload completed", correlationId, reloadStart, stageStart);
 
                     stageStart = Stopwatch.GetTimestamp();
                     var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
-                    LogEnvironmentReloadStage("worker config read completed", reloadStart, stageStart);
+                    LogEnvironmentReloadStage("worker config read completed", correlationId, reloadStart, stageStart);
 
                     if (workerConfig?.Description is null)
                     {
                         LogEnvironmentReloadStage(
                             $"worker config not found in {envReloadRequest.FunctionAppDirectory}",
+                            correlationId,
                             reloadStart,
                             reloadStart);
                         responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse();
@@ -91,6 +91,7 @@ namespace FunctionsNetHost.Grpc
                     {
                         LogEnvironmentReloadStage(
                             "app payload does not support placeholder",
+                            correlationId,
                             reloadStart,
                             reloadStart);
                         var e = new EnvironmentReloadNotSupportedException("This app is not using the latest version of Microsoft.Azure.Functions.Worker SDK and therefore does not leverage all performance optimizations. See https://aka.ms/azure-functions/dotnet/placeholders for more information.");
@@ -98,8 +99,9 @@ namespace FunctionsNetHost.Grpc
                         break;
                     }
 
+                    stageStart = Stopwatch.GetTimestamp();
                     var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
-                    LogEnvironmentReloadStage($"application path resolved: {applicationExePath}", reloadStart, reloadStart);
+                    LogEnvironmentReloadStage($"application path resolved: {applicationExePath}", correlationId, reloadStart, stageStart);
 
                     stageStart = Stopwatch.GetTimestamp();
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
@@ -108,24 +110,29 @@ namespace FunctionsNetHost.Grpc
                     }
                     LogEnvironmentReloadStage(
                         $"environment variables applied. Count:{envReloadRequest.EnvironmentVariables.Count}",
+                        correlationId,
                         reloadStart,
                         stageStart);
 
                     stageStart = Stopwatch.GetTimestamp();
+                    var applicationLoadQueuedAt = stageStart;
 #pragma warning disable CS4014
                     Task.Run(() =>
 #pragma warning restore CS4014
                     {
-                        _ = _appLoader.RunApplication(applicationExePath);
+                        var applicationLoadStart = Stopwatch.GetTimestamp();
+                        Logger.Log($"Function environment reload: application load task started. CorrelationId:{correlationId}, QueueDelayMs:{Stopwatch.GetElapsedTime(applicationLoadQueuedAt, applicationLoadStart).TotalMilliseconds:0.0}, TotalElapsedMs:{Stopwatch.GetElapsedTime(reloadStart, applicationLoadStart).TotalMilliseconds:0.0}");
+                        var exitCode = _appLoader.RunApplication(applicationExePath, correlationId);
+                        LogEnvironmentReloadStage($"application load task completed. ExitCode:{exitCode}", correlationId, reloadStart, applicationLoadStart);
                     });
-                    LogEnvironmentReloadStage("application load task queued", reloadStart, stageStart);
+                    LogEnvironmentReloadStage("application load task queued", correlationId, reloadStart, stageStart);
 
                     stageStart = Stopwatch.GetTimestamp();
-                    Logger.Log("Function environment reload waiting for worker loaded signal.");
+                    Logger.Log($"Function environment reload waiting for worker loaded signal. CorrelationId:{correlationId}");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
-                    LogEnvironmentReloadStage("worker loaded signal received", reloadStart, stageStart);
+                    LogEnvironmentReloadStage("worker loaded signal received", correlationId, reloadStart, stageStart);
 
-                    var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
+                    var logMessage = $"FunctionApp assembly loaded successfully. CorrelationId:{correlationId}, ProcessId:{Environment.ProcessId}";
                     if (OperatingSystem.IsWindows())
                     {
                         logMessage += $", AppPoolId:{Environment.GetEnvironmentVariable(EnvironmentVariables.AppPoolId)}";
@@ -133,10 +140,12 @@ namespace FunctionsNetHost.Grpc
                     Logger.Log(logMessage);
 
                     stageStart = Stopwatch.GetTimestamp();
+                    Logger.Log($"Function environment reload: SendInboundAsync starting. CorrelationId:{correlationId}, TotalElapsedMs:{Stopwatch.GetElapsedTime(reloadStart, stageStart).TotalMilliseconds:0.0}");
                     await MessageChannel.Instance.SendInboundAsync(msg);
-                    LogEnvironmentReloadStage("reload request forwarded to worker payload", reloadStart, stageStart);
+                    LogEnvironmentReloadStage("SendInboundAsync completed. Reload request forwarded to worker payload", correlationId, reloadStart, stageStart);
                     _specializationDone = true;
-                    LogEnvironmentReloadStage("specialization handoff completed", reloadStart, reloadStart);
+                    stageStart = Stopwatch.GetTimestamp();
+                    LogEnvironmentReloadStage("specialization handoff completed", correlationId, reloadStart, stageStart);
                     break;
             }
 
@@ -146,11 +155,11 @@ namespace FunctionsNetHost.Grpc
             }
         }
 
-        private static void LogEnvironmentReloadStage(string stage, long reloadStart, long stageStart)
+        private static void LogEnvironmentReloadStage(string stage, string correlationId, long reloadStart, long stageStart)
         {
             var now = Stopwatch.GetTimestamp();
             Logger.Log(
-                $"Function environment reload: {stage}. StepElapsedMs:{Stopwatch.GetElapsedTime(stageStart, now).TotalMilliseconds:0.0}, TotalElapsedMs:{Stopwatch.GetElapsedTime(reloadStart, now).TotalMilliseconds:0.0}");
+                $"Function environment reload: {stage}. CorrelationId:{correlationId}, StepElapsedMs:{Stopwatch.GetElapsedTime(stageStart, now).TotalMilliseconds:0.0}, TotalElapsedMs:{Stopwatch.GetElapsedTime(reloadStart, now).TotalMilliseconds:0.0}");
         }
 
         private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception? exception = null)

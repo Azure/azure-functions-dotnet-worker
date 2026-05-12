@@ -2,8 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.CommandLine;
+using System.Diagnostics;
 using FunctionsNetHost.Grpc;
-using FunctionsNetHost.Prelaunch;
 
 namespace FunctionsNetHost
 {
@@ -13,15 +13,21 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost");
+                Logger.Log($"FunctionsNetHost process starting. TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
+                HostTraceManager.ConfigureAndStartDelayedFlush();
 
-                PreLauncher.Run();
+                // PreLauncher.Run();
+                Logger.Log($"FunctionsNetHost pre-launcher skipped. TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
 
+                var stageStart = Stopwatch.GetTimestamp();
+                Logger.Log($"Command-line parse starting. TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
+                Logger.Log($"Command-line parse completed. StepElapsedMs:{Stopwatch.GetElapsedTime(stageStart).TotalMilliseconds:0.0}, TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
 
                 using var appLoader = new AppLoader(workerStartupOptions);
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
+                Logger.Log($"GrpcClient.InitAsync starting. TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
                 await grpcClient.InitAsync();
             }
             catch (Exception exception)

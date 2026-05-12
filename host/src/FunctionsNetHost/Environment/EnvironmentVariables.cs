@@ -17,6 +17,17 @@ internal static class EnvironmentVariables
     internal const string EnableTraceLogs = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_TRACE";
 
     /// <summary>
+    /// Set value to "1" to enable delayed .NET host trace capture in FunctionsNetHost.
+    /// </summary>
+    internal const string EnableHostTrace = "FUNCTIONS_NET_HOST_ENABLE_HOST_TRACE";
+
+    internal const string ContainerName = "CONTAINER_NAME";
+
+    internal const string StampName = "WEBSITE_HOME_STAMPNAME";
+
+    internal const string TenantId = "WEBSITE_STAMP_DEPLOYMENT_ID";
+
+    /// <summary>
     /// Application pool Id for the placeholder app. Only available in Windows(when running in IIS).
     /// </summary>
     internal const string AppPoolId  = "APP_POOL_ID";

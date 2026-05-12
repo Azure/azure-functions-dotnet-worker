@@ -20,8 +20,9 @@ namespace FunctionsNetHost
         /// </summary>
         internal static void Reload()
         {
-            IsTraceLogEnabled = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.EnableTraceLogs), "1");
-            var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.DisableLogPrefix), "1");
+            IsTraceLogEnabled = IsEnabled(EnvironmentUtils.GetValue(EnvironmentVariables.EnableTraceLogs));
+            IsHostTraceEnabled = IsEnabled(EnvironmentUtils.GetValue(EnvironmentVariables.EnableHostTrace));
+            var disableLogPrefix = IsEnabled(EnvironmentUtils.GetValue(EnvironmentVariables.DisableLogPrefix));
             LogPrefix = disableLogPrefix ? string.Empty : DefaultLogPrefix;
         }
 
@@ -34,5 +35,14 @@ namespace FunctionsNetHost
         /// Gets a value indicating whether trace level logging is enabled.
         /// </summary>
         internal static bool IsTraceLogEnabled { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether .NET host trace capture is enabled.
+        /// </summary>
+        internal static bool IsHostTraceEnabled { get; private set; }
+
+        private static bool IsEnabled(string? value)
+            => string.Equals(value, "1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
     }
 }

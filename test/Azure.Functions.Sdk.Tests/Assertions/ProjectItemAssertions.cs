@@ -73,6 +73,22 @@ internal class ProjectItemAssertions(ProjectItem subject, AssertionChain asserti
         return new AndConstraint<ProjectItemAssertions>(this);
     }
 
+    [CustomAssertion]
+    public AndConstraint<ProjectItemAssertions> NotHaveMetadata(
+        string name, string because = "", params object[] becauseArgs)
+    {
+        string? actual = Subject.GetMetadataValue(name);
+        _chain
+            .ForCondition(actual is null)
+            .BecauseOf(because, becauseArgs)
+            .FailWith(
+                "Expected {context:ProjectItem} to not have metadata {0}{reason}, but found value {1}.",
+                name,
+                actual ?? "<null>");
+
+        return new AndConstraint<ProjectItemAssertions>(this);
+    }
+
     private class Formatter : IValueFormatter
     {
         public bool CanHandle(object value) => value is ProjectItem;

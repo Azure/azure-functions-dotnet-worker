@@ -77,14 +77,13 @@ internal class ProjectItemAssertions(ProjectItem subject, AssertionChain asserti
     public AndConstraint<ProjectItemAssertions> NotHaveMetadata(
         string name, string because = "", params object[] becauseArgs)
     {
-        string? actual = Subject.GetMetadataValue(name);
         _chain
-            .ForCondition(actual is null)
+            .ForCondition(!Subject.HasMetadata(name))
             .BecauseOf(because, becauseArgs)
             .FailWith(
                 "Expected {context:ProjectItem} to not have metadata {0}{reason}, but found value {1}.",
                 name,
-                actual ?? "<null>");
+                Subject.GetMetadataValue(name) ?? "<null>");
 
         return new AndConstraint<ProjectItemAssertions>(this);
     }

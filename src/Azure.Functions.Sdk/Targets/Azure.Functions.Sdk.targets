@@ -24,6 +24,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
   </PropertyGroup>
 
+  <ItemGroup>
+    <_FuncSdkPackageReferenceToAdd Include="@(_FuncSdkPackageReference)" />
+    <_FuncSdkPackageReferenceToAdd Remove="@(PackageReference)" />
+    <PackageReference Include="@(_FuncSdkPackageReferenceToAdd)" IsImplicitlyDefined="true" />
+  </ItemGroup>
+
   <Import Project="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Analyzers.targets" />
   <Import Project="$(MSBuildThisFileDirectory)extensions/Azure.Functions.Sdk.Extensions.targets" />
   <Import Project="$(MSBuildThisFileDirectory)publish/Azure.Functions.Sdk.Publish.targets" />

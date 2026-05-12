@@ -27,6 +27,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <ItemGroup>
     <_FuncSdkPackageReferenceToAdd Include="@(_FuncSdkPackageReference)" />
     <_FuncSdkPackageReferenceToAdd Remove="@(PackageReference)" />
+    <_FuncSdkPackageReferenceToAdd Update="@(PackageVersion)" Version="%(PackageVersion.Version)"
+      Condition="'$(ManagePackageVersionsCentrally)' == 'true'" />
     <PackageReference Include="@(_FuncSdkPackageReferenceToAdd)" IsImplicitlyDefined="true" />
   </ItemGroup>
 

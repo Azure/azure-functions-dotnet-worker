@@ -4,16 +4,16 @@ parameters:
 
 jobs:
 - job: RunUnitTests
-  displayName: 'Run unit tests -'
+  displayName: Run unit tests -
 
   strategy:
     matrix:
       linux:
-        imageName: '1es-ubuntu-22.04'
-        osName: 'linux'
+        imageName: 1es-ubuntu-24.04-min
+        osName: linux
       windows:
-        imageName: '1es-windows-2022'
-        osName: 'windows'
+        imageName: 1es-windows-2022
+        osName: windows
 
   templateContext:
     outputParentDirectory: $(Build.ArtifactStagingDirectory)

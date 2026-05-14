@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -41,16 +41,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             var invocationId = context.InvocationId;
 
-            // this call will block until the ASP.NET middleware pipeline has signaled that it's ready to run the function
-            var httpContext = await _coordinator.SetFunctionContextAsync(invocationId, context);
-
-            AddHttpContextToFunctionContext(context, httpContext);
-
-            // Register additional context features
-            context.Features.Set<IFromBodyConversionFeature>(FromBodyConversionFeature.Instance);
-
             try
             {
+                // this call will block until the ASP.NET middleware pipeline has signaled that it's ready to run the function
+                var httpContext = await _coordinator.SetFunctionContextAsync(invocationId, context);
+
+                AddHttpContextToFunctionContext(context, httpContext);
+
+                // Register additional context features
+                context.Features.Set<IFromBodyConversionFeature>(FromBodyConversionFeature.Instance);
+
                 await next(context);
 
                 var responseHandled = await TryHandleHttpResult(context.GetInvocationResult().Value, context, httpContext, true)

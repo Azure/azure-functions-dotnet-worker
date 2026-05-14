@@ -27,13 +27,27 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public async Task<FunctionContext> SetHttpContextAsync(string invocationId, HttpContext context)
         {
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
-            contextRef.HttpContextValueSource.SetResult(context);
+            if(!contextRef.HttpContextValueSource.TrySetResult(context))
+            {
+                if (contextRef.HttpContextValueSource.Task.IsCanceled)
+                {
+                    throw new OperationCanceledException($"HTTP context for invocation id '{invocationId}' was cancelled.");
+                }
+                
+                return contextRef.FunctionContextValueSource.Task.IsCompletedSuccessfully
+                    ? await contextRef.FunctionContextValueSource.Task
+                    : throw new InvalidOperationException($"Failed to set HTTP context for invocation id '{invocationId}'.");
+            }
 
             _logger.HttpContextSet(invocationId, context.TraceIdentifier);
 
             try
             {
-                return await contextRef.FunctionContextValueSource.Task.WaitAsync(TimeSpan.FromSeconds(FunctionContextTimeoutInSeconds));
+                return await contextRef.FunctionContextValueSource.Task.WaitAsync(TimeSpan.FromSeconds(FunctionContextTimeoutInSeconds), context.RequestAborted);
+            }
+            catch (OperationCanceledException e)
+            {
+                throw new OperationCanceledException($"HTTP request was cancelled while waiting for the function context to be set. Invocation: '{invocationId}'.", e);
             }
             catch (TimeoutException e)
             {
@@ -44,7 +58,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public async Task<HttpContext> SetFunctionContextAsync(string invocationId, FunctionContext context)
         {
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
-            contextRef.FunctionContextValueSource.SetResult(context);
+
+            if(!contextRef.FunctionContextValueSource.TrySetResult(context))
+            {
+                if (contextRef.FunctionContextValueSource.Task.IsCanceled)
+                {
+                    throw new OperationCanceledException($"Function context for invocation id '{invocationId}' was cancelled.");
+                }
+
+                return contextRef.HttpContextValueSource.Task.IsCompletedSuccessfully
+                    ? await contextRef.HttpContextValueSource.Task
+                    : throw new InvalidOperationException($"Failed to set function context for invocation id '{invocationId}'.");
+            }
 
             _logger.FunctionContextSet(invocationId);
 
@@ -52,10 +77,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             try
             {
                 // block here until it's time to start the function
-                _ = await contextRef.FunctionStartTask.Task.WaitAsync(TimeSpan.FromSeconds(FunctionStartTimeoutInSeconds));
+                _ = await contextRef.FunctionStartTask.Task.WaitAsync(TimeSpan.FromSeconds(FunctionStartTimeoutInSeconds), context.CancellationToken);
 
                 waitStep = 1;
-                return await contextRef.HttpContextValueSource.Task.WaitAsync(TimeSpan.FromSeconds(HttpContextTimeoutInSeconds));
+                return await contextRef.HttpContextValueSource.Task.WaitAsync(TimeSpan.FromSeconds(HttpContextTimeoutInSeconds), context.CancellationToken);
+            }
+            catch (OperationCanceledException e)
+            {
+                string message = waitStep == 0
+                    ? $"Function invocation cancelled while waiting for start call. Invocation: '{invocationId}'."
+                    : $"Function invocation cancelled while waiting for HTTP context. Invocation: '{invocationId}'.";
+
+                throw new OperationCanceledException(message, e);
             }
             catch (TimeoutException e)
             {

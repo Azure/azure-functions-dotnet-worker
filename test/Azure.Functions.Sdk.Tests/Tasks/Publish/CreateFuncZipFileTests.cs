@@ -8,13 +8,13 @@ using NuGet.Common;
 
 namespace Azure.Functions.Sdk.Tasks.Publish.Tests;
 
-public sealed class CreateZipFileTests : IDisposable
+public sealed class CreateFuncZipFileTests : IDisposable
 {
     private readonly TempDirectory _temp = new();
 
     private readonly Mock<IBuildEngine> _buildEngine = new();
 
-    public CreateZipFileTests()
+    public CreateFuncZipFileTests()
     {
         FolderToZip = _temp.GetRandomFile();
         IntermediatePath = _temp.GetRandomFile();
@@ -37,7 +37,7 @@ public sealed class CreateZipFileTests : IDisposable
     {
         // arrange
         FolderToZip = "not-rooted";
-        CreateZipFile task = CreateTask();
+        CreateFuncZipFile task = CreateTask();
 
         // act
         bool result = task.Execute();
@@ -48,7 +48,7 @@ public sealed class CreateZipFileTests : IDisposable
             LogLevel.Error,
             Strings.Zip_PathNotRooted,
             "not-rooted",
-            nameof(CreateZipFile.SourceFolder));
+            nameof(CreateFuncZipFile.SourceFolder));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class CreateZipFileTests : IDisposable
     {
         // arrange
         IntermediatePath = "not-rooted-2";
-        CreateZipFile task = CreateTask();
+        CreateFuncZipFile task = CreateTask();
 
         // act
         bool result = task.Execute();
@@ -67,7 +67,7 @@ public sealed class CreateZipFileTests : IDisposable
             LogLevel.Error,
             Strings.Zip_PathNotRooted,
             "not-rooted-2",
-            nameof(CreateZipFile.PublishIntermediateTempPath));
+            nameof(CreateFuncZipFile.PublishIntermediateTempPath));
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public sealed class CreateZipFileTests : IDisposable
     {
         // arrange
         SetupZipFolder();
-        CreateZipFile task = CreateTask();
+        CreateFuncZipFile task = CreateTask();
 
         // act
         bool result = task.Execute();
@@ -94,7 +94,7 @@ public sealed class CreateZipFileTests : IDisposable
         SetupZipFolder();
         File.WriteAllText(Path.Combine(FolderToZip, name), string.Empty);
 
-        CreateZipFile task = CreateTask($"{{WorkerRoot}}{Path.GetFileNameWithoutExtension(name)}");
+        CreateFuncZipFile task = CreateTask($"{{WorkerRoot}}{Path.GetFileNameWithoutExtension(name)}");
 
         // act
         bool result = task.Execute();
@@ -104,14 +104,14 @@ public sealed class CreateZipFileTests : IDisposable
         VerifyZipFile(task.CreatedZipPath, name);
     }
 
-    private CreateZipFile CreateTask(string? executable  = null)
+    private CreateFuncZipFile CreateTask(string? executable  = null)
     {
         executable ??= "dotnet";
-        return new CreateZipFile()
+        return new CreateFuncZipFile()
         {
             BuildEngine = _buildEngine.Object,
             SourceFolder = FolderToZip,
-            ZipName = ProjectName,
+            ProjectName = ProjectName,
             PublishIntermediateTempPath = IntermediatePath,
             Executable = executable,
         };
@@ -135,7 +135,7 @@ public sealed class CreateZipFileTests : IDisposable
 
             int externalAttributes = entry.ExternalAttributes;
             int unixPermissions = (externalAttributes >> 16) & 0xFFFF;
-            unixPermissions.Should().Be(CreateZipFile.UnixExecutablePermissions);
+            unixPermissions.Should().Be(CreateFuncZipFile.UnixExecutablePermissions);
         }
     }
 }

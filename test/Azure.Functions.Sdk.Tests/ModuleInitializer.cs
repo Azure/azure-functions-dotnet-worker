@@ -16,9 +16,15 @@ internal static class ModuleInitializer
     /// We cannot include MSBuild assemblies in our output, because they will interfere with
     /// MSBuilds assembly scanning. Instead we use the MSBuildLocator to resolve them at runtime.
     /// </summary>
+#pragma warning disable CA2255 // The 'ModuleInitializer' attribute should not be used in libraries -- this isn't a library.
     [ModuleInitializer]
+#pragma warning restore CA2255 // The 'ModuleInitializer' attribute should not be used in libraries -- this isn't a library.
     internal static void Initialize()
     {
+        // Signature verification does not work in tests. NuGet wants to load a trusted root store off disk
+        // that is shipped with the dotnet SDK. However, it loads via relative path assumptions that won't
+        // work here.
+        Environment.SetEnvironmentVariable("DOTNET_NUGET_SIGNATURE_VERIFICATION", "false");
         Environment.SetEnvironmentVariable("MSBUILDADDITIONALSDKRESOLVERSFOLDER", ResolverPath);
         MSBuildAssemblyResolver.Register();
         FormatterResolver.Initialize();

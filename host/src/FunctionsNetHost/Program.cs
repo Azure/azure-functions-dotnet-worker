@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.CommandLine;
 using System.Diagnostics;
 using FunctionsNetHost.Grpc;
+using FunctionsNetHost.Prelaunch;
 
 namespace FunctionsNetHost
 {
@@ -16,8 +17,18 @@ namespace FunctionsNetHost
                 Logger.Log($"FunctionsNetHost process starting. TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
                 HostTraceManager.ConfigureAndStartDelayedFlush();
 
-                // PreLauncher.Run();
-                Logger.Log($"FunctionsNetHost pre-launcher skipped. TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
+                Logger.Log($"FunctionsNetHost pre-launcher starting in background. TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");
+                _ = Task.Run(() =>
+                {
+                    try
+                    {
+                        PreLauncher.Run();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"FunctionsNetHost pre-launcher background run failed. {ex}");
+                    }
+                });
 
                 var stageStart = Stopwatch.GetTimestamp();
                 Logger.Log($"Command-line parse starting. TotalElapsedMs:{Logger.GetElapsedSinceProcessStart().TotalMilliseconds:0.0}");

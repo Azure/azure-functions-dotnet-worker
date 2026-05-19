@@ -34,9 +34,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     throw new OperationCanceledException($"HTTP context for invocation id '{invocationId}' was cancelled.");
                 }
                 
-                return contextRef.FunctionContextValueSource.Task.IsCompletedSuccessfully
-                    ? await contextRef.FunctionContextValueSource.Task
-                    : throw new InvalidOperationException($"Failed to set HTTP context for invocation id '{invocationId}'.");
+                if (contextRef.FunctionContextValueSource.Task.IsCompleted)
+                {
+                    return await contextRef.FunctionContextValueSource.Task;
+                }
+                
+                throw new InvalidOperationException($"Failed to set HTTP context for invocation id '{invocationId}'.");
             }
 
             _logger.HttpContextSet(invocationId, context.TraceIdentifier);
@@ -66,9 +69,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     throw new OperationCanceledException($"Function context for invocation id '{invocationId}' was cancelled.");
                 }
 
-                return contextRef.HttpContextValueSource.Task.IsCompletedSuccessfully
-                    ? await contextRef.HttpContextValueSource.Task
-                    : throw new InvalidOperationException($"Failed to set function context for invocation id '{invocationId}'.");
+                if(contextRef.HttpContextValueSource.Task.IsCompleted)
+                {
+                    return await contextRef.HttpContextValueSource.Task;
+                }
+
+                throw new InvalidOperationException($"Failed to set function context for invocation id '{invocationId}'.");
             }
 
             _logger.FunctionContextSet(invocationId);

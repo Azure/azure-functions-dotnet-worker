@@ -235,6 +235,100 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
+        public async Task SetHttpContextAsync_WhenCalledConcurrently_AndFunctionContextAlreadySet_ReturnsIt()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var httpContext1 = new DefaultHttpContext();
+            var httpContext2 = new DefaultHttpContext();
+            var functionContext = CreateTestFunctionContext();
+
+            // Act - Set both contexts via normal flow first
+            var setHttpTask1 = _coordinator.SetHttpContextAsync(invocationId, httpContext1);
+            var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
+            _ = _coordinator.RunFunctionInvocationAsync(invocationId);
+
+            await setHttpTask1;
+            await setFunctionTask;
+
+            // Now call SetHttpContextAsync again - TrySetResult fails, but FunctionContextValueSource
+            // is already completed so it returns the function context directly.
+            var result = await _coordinator.SetHttpContextAsync(invocationId, httpContext2);
+
+            _coordinator.CompleteFunctionInvocation(invocationId);
+
+            // Assert
+            Assert.Same(functionContext, result);
+        }
+
+        [Fact]
+        public async Task SetHttpContextAsync_WhenCalledConcurrently_AndFunctionContextNotSet_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var httpContext1 = new DefaultHttpContext();
+            var httpContext2 = new DefaultHttpContext();
+
+            // Act - Set HTTP context but don't set function context
+            _ = _coordinator.SetHttpContextAsync(invocationId, httpContext1);
+
+            // Second call - TrySetResult fails and FunctionContextValueSource is not complete
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await _coordinator.SetHttpContextAsync(invocationId, httpContext2));
+
+            // Assert
+            Assert.Contains($"Failed to set HTTP context for invocation id '{invocationId}'", exception.Message);
+        }
+
+        [Fact]
+        public async Task SetFunctionContextAsync_WhenCalledConcurrently_AndHttpContextAlreadySet_ReturnsIt()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var httpContext = new DefaultHttpContext();
+            var functionContext1 = CreateTestFunctionContext();
+            var functionContext2 = CreateTestFunctionContext();
+
+            // Act - Set both contexts via normal flow first
+            var setHttpTask = _coordinator.SetHttpContextAsync(invocationId, httpContext);
+            var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext1);
+            _ = _coordinator.RunFunctionInvocationAsync(invocationId);
+
+            await setHttpTask;
+            await setFunctionTask;
+
+            // Now call SetFunctionContextAsync again - TrySetResult fails, but HttpContextValueSource
+            // is already completed so it returns the HTTP context directly.
+            var result = await _coordinator.SetFunctionContextAsync(invocationId, functionContext2);
+
+            _coordinator.CompleteFunctionInvocation(invocationId);
+
+            // Assert
+            Assert.Same(httpContext, result);
+        }
+
+        [Fact]
+        public async Task SetFunctionContextAsync_WhenCalledConcurrently_AndHttpContextNotSet_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var functionContext1 = CreateTestFunctionContext();
+            var functionContext2 = CreateTestFunctionContext();
+
+            // Act - Set function context but don't set HTTP context
+            _ = _coordinator.SetFunctionContextAsync(invocationId, functionContext1);
+
+            // Second call - TrySetResult fails and HttpContextValueSource is not complete
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await _coordinator.SetFunctionContextAsync(invocationId, functionContext2));
+
+            // Assert
+            Assert.Contains($"Failed to set function context for invocation id '{invocationId}'", exception.Message);
+        }
+
+
+
+        [Fact]
         public async Task FullWorkflow_WithCorrectOrder_CompletesSuccessfully()
         {
             // Arrange

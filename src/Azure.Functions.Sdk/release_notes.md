@@ -6,4 +6,5 @@
 
 ### Azure.Functions.Sdk <version>
 
+- fix: Perform atomic write in WriteExtensionProject (#3407)
 - fix: avoid zip-file conflicts (#3406)

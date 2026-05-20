@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
+using System;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -136,5 +136,14 @@ namespace Microsoft.Azure.Functions.Worker
         /// PreferredLocations = "East US,South Central US,North Europe".
         /// </example>
         public string? PreferredLocations { get; set; }
+
+        /// <summary>
+        /// Optional.
+        /// Defines the Change Feed mode to use when processing changes. Defaults to <see cref="CosmosDBChangeFeedMode.LatestVersion"/>.
+        /// </summary>
+        /// <remarks>
+        /// Set to <see cref="CosmosDBChangeFeedMode.AllVersionsAndDeletes"/> to receive all intermediate mutations and delete events.
+        /// </remarks>
+        public CosmosDBChangeFeedMode ChangeFeedMode { get; set; } = CosmosDBChangeFeedMode.LatestVersion;
     }
 }

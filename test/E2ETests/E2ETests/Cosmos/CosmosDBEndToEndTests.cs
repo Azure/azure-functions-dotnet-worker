@@ -23,6 +23,48 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Cosmos
             _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
+        // Mirrors the equivalent WebJobs E2E test, which is also skipped: the Cosmos emulator
+        // does not reliably support the AllVersionsAndDeletes change feed mode. When run against
+        // a real Cosmos account (set CosmosDBConnectionStringSetting), the trigger should fire
+        // for both the create and the delete event and emit a document per change to the output
+        // container, allowing the assertions below to succeed.
+        [Fact(Skip = "Emulator doesn't reliably support AllVersionsAndDeletes change feed mode.")]
+        public async Task CosmosDBTrigger_AllVersionsAndDeletes_Succeeds()
+        {
+            string sourceDocId = Guid.NewGuid().ToString();
+            string createdMarkerId = $"avad-Create-{sourceDocId}";
+            string deletedMarkerId = $"avad-Delete-{sourceDocId}";
+
+            try
+            {
+                // Create then delete a document in the AllVersionsAndDeletes-enabled container
+                // to produce two change feed events.
+                await CosmosDBHelpers.CreateAvadDocument(sourceDocId, sourceDocId);
+                await CosmosDBHelpers.DeleteAvadDocument(sourceDocId);
+
+                // The function writes one output document per change feed event, with the id
+                // encoding the operation type. Wait for both to appear.
+                string observedCreatedId = null;
+                string observedDeletedId = null;
+                await TestUtility.RetryAsync(async () =>
+                {
+                    observedCreatedId ??= await CosmosDBHelpers.ReadDocument(createdMarkerId);
+                    observedDeletedId ??= await CosmosDBHelpers.ReadDocument(deletedMarkerId);
+                    return observedCreatedId is not null && observedDeletedId is not null;
+                });
+
+                Assert.Equal(createdMarkerId, observedCreatedId);
+                Assert.Equal(deletedMarkerId, observedDeletedId);
+            }
+            finally
+            {
+                // Best-effort cleanup of any docs written by the trigger and any leftover source doc.
+                await CosmosDBHelpers.DeleteAvadDocument(sourceDocId);
+                await CosmosDBHelpers.DeleteTestDocuments(createdMarkerId);
+                await CosmosDBHelpers.DeleteTestDocuments(deletedMarkerId);
+            }
+        }
+
         [Fact]
         public async Task CosmosDBTriggerAndOutput_Succeeds()
         {

@@ -59,12 +59,13 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                     {
                         attributes.Add(new(ResourceSemanticConventions.CloudResourceId, uri));
                     }
-
+                    
+                    // Priority: OTEL_RESOURCE_ATTRIBUTES[deployment.environment.name or deployment.environment] > WEBSITE_SLOT_NAME
                     if (!IsResourceAttributeConfigured(ResourceSemanticConventions.DeploymentEnvironmentName, resourceAttributes) &&
                         !IsResourceAttributeConfigured(ResourceSemanticConventions.DeploymentEnvironment, resourceAttributes) &&
                         Environment.GetEnvironmentVariable(OpenTelemetryConstants.SlotNameEnvVar) is { Length: > 0 } slot)
                     {
-                        attributes.Add(new(ResourceSemanticConventions.DeploymentEnvironmentName, slot));                  
+                        attributes.Add(new(ResourceSemanticConventions.DeploymentEnvironmentName, slot));
                     }
 
                     if (Environment.GetEnvironmentVariable(OpenTelemetryConstants.SiteUpdateIdEnvVar) is { Length: > 0 } siteUpdateId)

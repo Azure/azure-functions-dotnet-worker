@@ -40,7 +40,10 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             return input.Select(change =>
             {
                 string operation = change.Metadata?.OperationType.ToString() ?? "Unknown";
-                string sourceId = change.Current?.Id ?? change.Previous?.Id;
+                // Prefer Current/Previous payload id; fall back to Metadata.Id which is populated
+                // even for Delete events on accounts where Previous is not retained
+                // (e.g. continuous backup mode).
+                string sourceId = change.Current?.Id ?? change.Previous?.Id ?? change.Metadata?.Id;
                 logger.LogInformation("AllVersionsAndDeletes change: operation={Operation}, id={Id}", operation, sourceId);
 
                 return new

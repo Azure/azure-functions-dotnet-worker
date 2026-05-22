@@ -23,11 +23,11 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Cosmos
             _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
-        // Mirrors the equivalent WebJobs E2E test, which is also skipped: the Cosmos emulator
-        // does not reliably support the AllVersionsAndDeletes change feed mode. When run against
-        // a real Cosmos account (set CosmosDBConnectionStringSetting), the trigger should fire
-        // for both the create and the delete event and emit a document per change to the output
-        // container, allowing the assertions below to succeed.
+        // Verified passing 2026-05-21 against a real Cosmos account (continuous backup) with the
+        // updated Worker.Extensions.CosmosDB / WebJobs.Extensions.CosmosDB packages. Re-skipped
+        // because the Cosmos emulator does not reliably support AllVersionsAndDeletes change
+        // feed mode — host indexing hangs ~36s on Account Read and returns 503 (Substatus 20003,
+        // GatewayStoreClient Request Timeout). Flip Skip when running against a real account.
         [Fact(Skip = "Emulator doesn't reliably support AllVersionsAndDeletes change feed mode.")]
         public async Task CosmosDBTrigger_AllVersionsAndDeletes_Succeeds()
         {

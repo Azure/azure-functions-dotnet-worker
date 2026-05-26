@@ -16,6 +16,9 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// All intermediate versions and delete tombstones are included.
         /// </summary>
+        /// <remarks>
+        /// When using <see cref="AllVersionsAndDeletes"/> the item type must be wrapped with <see cref="Microsoft.Azure.Cosmos.ChangeFeedItem{T}"/>.
+        /// </remarks>
         AllVersionsAndDeletes = 1
     }
 }

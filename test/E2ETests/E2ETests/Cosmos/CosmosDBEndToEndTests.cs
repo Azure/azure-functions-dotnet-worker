@@ -27,7 +27,12 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Cosmos
         // updated Worker.Extensions.CosmosDB / WebJobs.Extensions.CosmosDB packages. Re-skipped
         // because the Cosmos emulator does not reliably support AllVersionsAndDeletes change
         // feed mode — host indexing hangs ~36s on Account Read and returns 503 (Substatus 20003,
-        // GatewayStoreClient Request Timeout). Flip Skip when running against a real account.
+        // GatewayStoreClient Request Timeout). The trigger is also disabled by default in the
+        // E2EApp's local.settings.json (AzureWebJobs.CosmosAllVersionsAndDeletesTrigger.Disabled)
+        // so host startup stays clean against the emulator for the rest of the Cosmos test suite.
+        // To run this test against a real Cosmos account: (1) flip Skip below, (2) point
+        // CosmosConnection / CosmosDBConnectionStringSetting at the real account, (3) remove or
+        // set the Disabled setting to "false".
         [Fact(Skip = "Emulator doesn't reliably support AllVersionsAndDeletes change feed mode.")]
         public async Task CosmosDBTrigger_AllVersionsAndDeletes_Succeeds()
         {

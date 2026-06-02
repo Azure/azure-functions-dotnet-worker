@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -7,13 +8,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 
-#nullable enable
-
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class TestFunctionInvocation : FunctionInvocation
     {
-        public TestFunctionInvocation(string id = null, string functionId = null, IReadOnlyDictionary<string, string>? baggage = null)
+        public TestFunctionInvocation(string? id = null, string? functionId = null, IReadOnlyDictionary<string, string>? baggage = null)
         {
             if (id is not null)
             {
@@ -27,18 +26,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // create/dispose activity to pull off its ID.
             using Activity activity = new Activity("Test").Start();
-            Dictionary<string, string> attributes = new Dictionary<string, string>
+            Dictionary<string, string> attributes = new()
             {
-                { TraceConstants.InternalKeys.FunctionInvocationId, Guid.NewGuid().ToString() },
-                { TraceConstants.InternalKeys.AzFuncLiveLogsSessionId, Guid.NewGuid().ToString() },
+                [TraceConstants.InternalKeys.FunctionInvocationId] = Guid.NewGuid().ToString(),
+                [TraceConstants.InternalKeys.AzFuncLiveLogsSessionId] = Guid.NewGuid().ToString(),
             };
 
-            if (baggage is null)
-            {
-                baggage = ImmutableDictionary<string, string>.Empty;
-            }
-
-            TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString(), attributes, baggage);
+            baggage ??= ImmutableDictionary<string, string>.Empty;
+            TraceContext = new DefaultTraceContext(activity.Id!, Guid.NewGuid().ToString(), attributes, baggage);
         }
 
         public override string Id { get; } = Guid.NewGuid().ToString();

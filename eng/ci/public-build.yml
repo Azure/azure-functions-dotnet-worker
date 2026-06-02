@@ -1,20 +1,3 @@
-# This build is used for public PR and CI builds.
-
-# Runtime parameters (visible in UI)
-parameters:
-- name: UseCoreToolsBuildFromIntegrationTests
-  displayName: UseCoreToolsBuildFromIntegrationTests
-  type: boolean
-  default: false
-- name: CORE_TOOLS_URL
-  displayName: CORE_TOOLS_URL
-  type: string
-  default: ' '
-- name: CORE_TOOLS_URL_LINUX
-  displayName: CORE_TOOLS_URL_LINUX
-  type: string
-  default: ' '
-
 trigger:
   batch: true
   branches:
@@ -39,8 +22,6 @@ resources:
 
 variables:
   - template: /eng/ci/templates/variables/build.yml@self
-  - name: UseCoreToolsBuildFromIntegrationTests
-    value: ${{ parameters.UseCoreToolsBuildFromIntegrationTests }}
 
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1es

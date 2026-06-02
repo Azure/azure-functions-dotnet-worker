@@ -2,9 +2,6 @@ parameters:
   - name: DotnetVersion
     type: string
     default: 'net7'
-  - name: UseCoreToolsBuild
-    type: string
-    default: 'False'
   - name: SkipStorageEmulator
     type: boolean
     default: false
@@ -23,6 +20,21 @@ steps:
 - ${{ if not(parameters.SkipCoreTools) }}:
   - template: /eng/ci/templates/steps/install-core-tools.yml@self
 
+- ${{ if not(parameters.SkipStorageEmulator) }}:
+  - task: UseNode@1
+    inputs:
+      version: 26.x
+
+  - script: |
+      start "" /B npx.cmd --yes azurite --silent --inMemoryPersistence
+    displayName: Start azurite (Windows)
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
+
+  - script: |
+      npx --yes azurite --silent --inMemoryPersistence </dev/null >/dev/null 2>&1 &
+    displayName: Start azurite (Linux)
+    condition: and(succeeded(), ne(variables['Agent.OS'], 'Windows_NT'))
+
 - task: PowerShell@2
   displayName: 'Setup E2E tests'
   inputs:
@@ -30,9 +42,8 @@ steps:
     filePath: setup-e2e-tests.ps1
     arguments: >
       -DotnetVersion ${{ parameters.DotnetVersion }}
-      -SkipStorageEmulator:$${{ parameters.SkipStorageEmulator }}
       -SkipCosmosDBEmulator:$${{ parameters.SkipCosmosDBEmulator }}
-      -UseCoreToolsBuildFromIntegrationTests:$${{ parameters.UseCoreToolsBuild }}
       -SkipBuildOnPack:$${{ parameters.SkipBuildOnPack }}
+      -SkipStorageEmulator
       -SkipCoreTools
     pwsh: true

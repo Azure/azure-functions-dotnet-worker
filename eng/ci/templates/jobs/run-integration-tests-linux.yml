@@ -30,7 +30,6 @@ jobs:
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
       DotnetVersion: 'net8'
-      UseCoreToolsBuild: $(UseCoreToolsBuildFromIntegrationTests)
       SkipCosmosDBEmulator: true
       SkipBuildOnPack: true
 

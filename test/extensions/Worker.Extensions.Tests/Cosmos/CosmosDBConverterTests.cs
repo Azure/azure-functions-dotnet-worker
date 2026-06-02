@@ -503,6 +503,146 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
                 Times.Once);
         }
 
+        [Fact]
+        public async Task ConvertAsync_ValidModelBindingData_IEnumerableChangeFeedItem_ReturnsSuccess()
+        {
+            // Bind to IEnumerable<ChangeFeedItem<T>> - represents the AllVersionsAndDeletes trigger payload shape:
+            // a collection of change feed items containing Current/Previous/Metadata.
+            var query = "SELECT * FROM TodoItems t";
+            var grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(GetTestBinaryData(query: query), "CosmosDB");
+            var context = new TestConverterContext(typeof(IEnumerable<ChangeFeedItem<ToDoItem>>), grpcModelBindingData);
+
+            // operationType uses numeric values so System.Text.Json (the default serializer) can deserialize the enum.
+            var json = @"{""Documents"":[
+                {""current"":{""id"":""1"",""description"":""Created""},""previous"":null,""metadata"":{""operationType"":0,""lsn"":1,""crts"":1700000000,""previousImageLSN"":0,""timeToLiveExpired"":false}},
+                {""current"":null,""previous"":{""id"":""2"",""description"":""Deleted""},""metadata"":{""operationType"":2,""lsn"":2,""crts"":1700000001,""previousImageLSN"":1,""timeToLiveExpired"":false}}
+            ],""_rid"":""ltwyAJGNSgs="",""_count"":2}";
+            var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+
+            var mockFeedResponse = new Mock<ResponseMessage>();
+            mockFeedResponse.Setup(x => x.StatusCode).Returns(HttpStatusCode.OK);
+            mockFeedResponse.Setup(x => x.Content).Returns(expectedStream);
+
+            var mockFeedIterator = new Mock<FeedIterator>();
+            mockFeedIterator.SetupSequence(x => x.HasMoreResults).Returns(true).Returns(false);
+            mockFeedIterator.Setup(x => x.ReadNextAsync(default)).ReturnsAsync(mockFeedResponse.Object);
+
+            var mockContainer = new Mock<Container>();
+            mockContainer
+                .Setup(m => m.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(), default, It.IsAny<QueryRequestOptions>()))
+                .Returns(mockFeedIterator.Object);
+
+            _mockCosmosClient
+                .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockContainer.Object);
+
+            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+            var result = conversionResult.Value as IList<ChangeFeedItem<ToDoItem>>;
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+
+            // Create event: Current populated, Previous null.
+            Assert.NotNull(result[0].Current);
+            Assert.Equal("1", result[0].Current.Id);
+            Assert.Equal("Created", result[0].Current.Description);
+            Assert.Null(result[0].Previous);
+            Assert.Equal(ChangeFeedOperationType.Create, result[0].Metadata.OperationType);
+
+            // Delete event: Current null, Previous populated.
+            Assert.Null(result[1].Current);
+            Assert.NotNull(result[1].Previous);
+            Assert.Equal("2", result[1].Previous.Id);
+            Assert.Equal("Deleted", result[1].Previous.Description);
+            Assert.Equal(ChangeFeedOperationType.Delete, result[1].Metadata.OperationType);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_ValidModelBindingData_ChangeFeedItemArray_ReturnsSuccess()
+        {
+            // Same as above but binding target is an array of ChangeFeedItem<T>.
+            var query = "SELECT * FROM TodoItems t";
+            var grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(GetTestBinaryData(query: query), "CosmosDB");
+            var context = new TestConverterContext(typeof(ChangeFeedItem<ToDoItem>[]), grpcModelBindingData);
+
+            var json = @"{""Documents"":[
+                {""current"":{""id"":""1"",""description"":""Original""},""previous"":null,""metadata"":{""operationType"":0,""lsn"":1,""crts"":1700000000,""previousImageLSN"":0,""timeToLiveExpired"":false}},
+                {""current"":{""id"":""1"",""description"":""Updated""},""previous"":{""id"":""1"",""description"":""Original""},""metadata"":{""operationType"":1,""lsn"":2,""crts"":1700000001,""previousImageLSN"":1,""timeToLiveExpired"":false}}
+            ],""_rid"":""ltwyAJGNSgs="",""_count"":2}";
+            var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+
+            var mockFeedResponse = new Mock<ResponseMessage>();
+            mockFeedResponse.Setup(x => x.StatusCode).Returns(HttpStatusCode.OK);
+            mockFeedResponse.Setup(x => x.Content).Returns(expectedStream);
+
+            var mockFeedIterator = new Mock<FeedIterator>();
+            mockFeedIterator.SetupSequence(x => x.HasMoreResults).Returns(true).Returns(false);
+            mockFeedIterator.Setup(x => x.ReadNextAsync(default)).ReturnsAsync(mockFeedResponse.Object);
+
+            var mockContainer = new Mock<Container>();
+            mockContainer
+                .Setup(m => m.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(), default, It.IsAny<QueryRequestOptions>()))
+                .Returns(mockFeedIterator.Object);
+
+            _mockCosmosClient
+                .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockContainer.Object);
+
+            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+            var result = conversionResult.Value as ChangeFeedItem<ToDoItem>[];
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Length);
+
+            Assert.Equal(ChangeFeedOperationType.Create, result[0].Metadata.OperationType);
+            Assert.Equal("Original", result[0].Current.Description);
+            Assert.Null(result[0].Previous);
+
+            // Replace event carries both current and previous snapshots.
+            Assert.Equal(ChangeFeedOperationType.Replace, result[1].Metadata.OperationType);
+            Assert.Equal("Updated", result[1].Current.Description);
+            Assert.NotNull(result[1].Previous);
+            Assert.Equal("Original", result[1].Previous.Description);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_ValidModelBindingData_SingleChangeFeedItem_ReturnsSuccess()
+        {
+            // Binding a single ChangeFeedItem<T> exercises the POCO read path. Not a typical scenario for
+            // change feed (the trigger always delivers a collection), but verifies the converter can
+            // deserialize the ChangeFeedItem<T> JSON shape end-to-end via ReadItemStreamAsync.
+            var grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(
+                GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
+            var context = new TestConverterContext(typeof(ChangeFeedItem<ToDoItem>), grpcModelBindingData);
+
+            var json = @"{""current"":{""id"":""1"",""description"":""Take out the rubbish""},""previous"":null,""metadata"":{""operationType"":0,""lsn"":1,""crts"":1700000000,""previousImageLSN"":0,""timeToLiveExpired"":false}}";
+            var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+
+            var mockResponse = new Mock<ResponseMessage>();
+            mockResponse.Setup(x => x.StatusCode).Returns(HttpStatusCode.OK);
+            mockResponse.Setup(x => x.Content).Returns(expectedStream);
+
+            var mockContainer = new Mock<Container>();
+            mockContainer
+                .Setup(m => m.ReadItemStreamAsync(It.IsAny<string>(), It.IsAny<PartitionKey>(), null, CancellationToken.None))
+                .ReturnsAsync(mockResponse.Object);
+
+            _mockCosmosClient
+                .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockContainer.Object);
+
+            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+            var result = conversionResult.Value as ChangeFeedItem<ToDoItem>;
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.NotNull(result);
+            Assert.Equal("1", result.Current.Id);
+            Assert.Equal("Take out the rubbish", result.Current.Description);
+            Assert.Equal(ChangeFeedOperationType.Create, result.Metadata.OperationType);
+        }
+
         private BinaryData GetTestBinaryData(string db = "testDb", string container = "testContainer", string connection = "cosmosConnection", string id = "", string partitionKey = "", string query = "", string location = "", string queryParams = "{}")
         {
             string jsonData = $@"{{

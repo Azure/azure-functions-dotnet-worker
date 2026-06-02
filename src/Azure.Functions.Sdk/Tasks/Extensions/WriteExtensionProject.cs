@@ -87,37 +87,54 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
             return true;
         }
 
-        if (_fileSystem.Path.GetDirectoryName(project.Path) is string directory
-            && !_fileSystem.Directory.Exists(directory))
+        string? directory = _fileSystem.Path.GetDirectoryName(project.Path);
+        if (directory is not null && !_fileSystem.Directory.Exists(directory))
         {
             _fileSystem.Directory.CreateDirectory(directory);
         }
 
-        _fileSystem.File.Delete(project.Path);
-        using Stream stream = _fileSystem.File.OpenWrite(project.Path);
-        using XmlWriter writer = XmlWriter.Create(stream, _xmlSettings);
-        writer.WriteComment(string.Format(CultureInfo.InvariantCulture, Disclaimer, _time.GetUtcNow(), hash));
-        writer.WriteStartElement("Project");
-
-        // Omit version so the outer projects version is implicitly used.
-        writer.WriteAttributeString("Sdk", ThisAssembly.Name);
-
-        if (packages.Any())
+        // Write to a temp file first, then atomically replace the target.
+        // This prevents corrupted state if the build is killed mid-write.
+        string tempPath = _fileSystem.Path.Combine(
+            directory ?? ".", _fileSystem.Path.GetRandomFileName());    
+        try
         {
-            writer.WriteStartElement("ItemGroup");
-
-            foreach (ITaskItem package in packages)
+            using (Stream stream = _fileSystem.File.Create(tempPath))
+            using (XmlWriter writer = XmlWriter.Create(stream, _xmlSettings))
             {
-                writer.WriteStartElement("PackageReference");
-                writer.WriteAttributeString("Include", package.ItemSpec);
-                writer.WriteAttributeString("Version", package.Version);
+                writer.WriteComment(string.Format(CultureInfo.InvariantCulture, Disclaimer, _time.GetUtcNow(), hash));
+                writer.WriteStartElement("Project");
+
+                // Omit version so the outer projects version is implicitly used.
+                writer.WriteAttributeString("Sdk", ThisAssembly.Name);
+
+                if (packages.Any())
+                {
+                    writer.WriteStartElement("ItemGroup");
+
+                    foreach (ITaskItem package in packages)
+                    {
+                        writer.WriteStartElement("PackageReference");
+                        writer.WriteAttributeString("Include", package.ItemSpec);
+                        writer.WriteAttributeString("Version", package.Version);
+                        writer.WriteEndElement();
+                    }
+
+                    writer.WriteEndElement();
+                }
+
                 writer.WriteEndElement();
             }
 
-            writer.WriteEndElement();
+            _fileSystem.File.Move(tempPath, project.Path, overwrite: true);
+        }
+        catch
+        {
+            _fileSystem.File.TryDelete(project.Path);
+            _fileSystem.File.TryDelete(tempPath);
+            throw;
         }
 
-        writer.WriteEndElement();
         UpdateHash(project, hash);
         return true;
     }

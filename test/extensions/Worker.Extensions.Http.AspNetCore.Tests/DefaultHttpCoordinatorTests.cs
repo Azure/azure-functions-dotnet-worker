@@ -75,7 +75,7 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
 
             // Assert
             var exception = await Assert.ThrowsAsync<TimeoutException>(async () => await setHttpTask);
-            Assert.Contains($"Timed out waiting for the HTTP context to be set. Invocation: '{invocationId}'", exception.Message);
+            Assert.Contains($"Timed out waiting for the function context to be set. Invocation: '{invocationId}'", exception.Message);
         }
 
         [Fact]
@@ -270,7 +270,7 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             var httpContext2 = new DefaultHttpContext();
 
             // Act - Set HTTP context but don't set function context
-            _ = _coordinator.SetHttpContextAsync(invocationId, httpContext1);
+            var firstSetHttpTask = _coordinator.SetHttpContextAsync(invocationId, httpContext1);
 
             // Second call - TrySetResult fails and FunctionContextValueSource is not complete
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -278,6 +278,13 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
 
             // Assert
             Assert.Contains($"Failed to set HTTP context for invocation id '{invocationId}'", exception.Message);
+
+            // Cleanup: unblock the first task to avoid unobserved timeout exceptions
+            var functionContext = CreateTestFunctionContext();
+            _ = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
+            _ = _coordinator.RunFunctionInvocationAsync(invocationId);
+            await firstSetHttpTask;
+            _coordinator.CompleteFunctionInvocation(invocationId);
         }
 
         [Fact]
@@ -316,7 +323,7 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             var functionContext2 = CreateTestFunctionContext();
 
             // Act - Set function context but don't set HTTP context
-            _ = _coordinator.SetFunctionContextAsync(invocationId, functionContext1);
+            var firstSetFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext1);
 
             // Second call - TrySetResult fails and HttpContextValueSource is not complete
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -324,9 +331,14 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
 
             // Assert
             Assert.Contains($"Failed to set function context for invocation id '{invocationId}'", exception.Message);
+
+            // Cleanup: unblock the first task to avoid unobserved timeout exceptions
+            var httpContext = new DefaultHttpContext();
+            _ = _coordinator.SetHttpContextAsync(invocationId, httpContext);
+            _ = _coordinator.RunFunctionInvocationAsync(invocationId);
+            await firstSetFunctionTask;
+            _coordinator.CompleteFunctionInvocation(invocationId);
         }
-
-
 
         [Fact]
         public async Task FullWorkflow_WithCorrectOrder_CompletesSuccessfully()

@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public async Task<FunctionContext> SetHttpContextAsync(string invocationId, HttpContext context)
         {
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
-            if(!contextRef.HttpContextValueSource.TrySetResult(context))
+            if (!contextRef.HttpContextValueSource.TrySetResult(context))
             {
                 if (contextRef.HttpContextValueSource.Task.IsCanceled)
                 {
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         {
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
 
-            if(!contextRef.FunctionContextValueSource.TrySetResult(context))
+            if (!contextRef.FunctionContextValueSource.TrySetResult(context))
             {
                 if (contextRef.FunctionContextValueSource.Task.IsCanceled)
                 {

@@ -15,6 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
         private static readonly Container _inputContainer;
         private static readonly Container _outputContainer;
         private static readonly Container _leaseContainer;
+        private static readonly Container _avadContainer;
 
         static CosmosDBHelpers()
         {
@@ -24,6 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
             _inputContainer = database.GetContainer(Constants.CosmosDB.InputCollectionName);
             _outputContainer = database.GetContainer(Constants.CosmosDB.OutputCollectionName);
             _leaseContainer = database.GetContainer(Constants.CosmosDB.LeaseCollectionName);
+            _avadContainer = database.GetContainer(Constants.CosmosDB.AllVersionsAndDeletesCollectionName);
         }
 
         // keep
@@ -31,6 +33,19 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
         {
             var documentToTest = new { id = docId, Text = docText };
             await _inputContainer.CreateItemAsync(documentToTest, new PartitionKey(docId));
+        }
+
+        // Creates a document in the container monitored by the AllVersionsAndDeletes trigger.
+        public async static Task CreateAvadDocument(string docId, string docText = "test")
+        {
+            var documentToTest = new { id = docId, Text = docText };
+            await _avadContainer.CreateItemAsync(documentToTest, new PartitionKey(docId));
+        }
+
+        // Deletes a document from the container monitored by the AllVersionsAndDeletes trigger.
+        public async static Task DeleteAvadDocument(string docId)
+        {
+            await DeleteDocument(_avadContainer, docId);
         }
 
         // keep
@@ -94,7 +109,8 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
             await Task.WhenAll(
                 CreateCollection(database, Constants.CosmosDB.InputCollectionName),
                 CreateCollection(database, Constants.CosmosDB.OutputCollectionName),
-                CreateCollection(database, Constants.CosmosDB.LeaseCollectionName));
+                CreateCollection(database, Constants.CosmosDB.LeaseCollectionName),
+                CreateAvadCollection(database, Constants.CosmosDB.AllVersionsAndDeletesCollectionName));
 
             return true;
         }
@@ -105,7 +121,8 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
             await Task.WhenAll(
                 DeleteCollection(database, Constants.CosmosDB.InputCollectionName),
                 DeleteCollection(database, Constants.CosmosDB.OutputCollectionName),
-                DeleteCollection(database, Constants.CosmosDB.LeaseCollectionName));
+                DeleteCollection(database, Constants.CosmosDB.LeaseCollectionName),
+                DeleteCollection(database, Constants.CosmosDB.AllVersionsAndDeletesCollectionName));
         }
 
         private async static Task DeleteCollection(Database database, string collectionName)
@@ -127,6 +144,20 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
             {
                 Id = collectionName,
                 PartitionKeyPath = "/id"
+            };
+
+            await database.CreateContainerIfNotExistsAsync(containerProperties, throughput: 400);
+        }
+
+        // Creates a container with a full-fidelity change feed retention policy, which is required
+        // for the AllVersionsAndDeletes change feed mode.
+        private async static Task CreateAvadCollection(Database database, string collectionName)
+        {
+            var containerProperties = new ContainerProperties
+            {
+                Id = collectionName,
+                PartitionKeyPath = "/id",
+                ChangeFeedPolicy = new ChangeFeedPolicy { FullFidelityRetention = TimeSpan.FromMinutes(5) }
             };
 
             await database.CreateContainerIfNotExistsAsync(containerProperties, throughput: 400);

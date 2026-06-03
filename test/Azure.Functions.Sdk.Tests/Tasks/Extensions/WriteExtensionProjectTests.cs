@@ -68,7 +68,7 @@ public sealed class WriteExtensionProjectTests
     }
 
     [Fact]
-    public void ProjectFileExists_DeletesAndRecreatesFile()
+    public void ProjectFileExists_OverwritesFile()
     {
         // Arrange
         _fileSystem.AddFile(ProjectPath, new MockFileData("existing content"));
@@ -85,6 +85,25 @@ public sealed class WriteExtensionProjectTests
 
         string content = _fileSystem.File.ReadAllText(ProjectPath);
         ValidateProject(content, [package]);
+    }
+
+    [Fact]
+    public void Execute_NoTempFilesRemain()
+    {
+        // Arrange
+        TaskItem package = CreatePackage("TestPackage", "1.0.0");
+        WriteExtensionProject task = CreateTask(packages: [package]);
+
+        // Act
+        bool result = task.Execute();
+
+        // Assert
+        result.Should().BeTrue();
+        string directory = _fileSystem.Path.GetDirectoryName(ProjectPath)!;
+        _fileSystem.Directory.GetFiles(directory)
+            .Should().OnlyContain(f =>
+                f.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
+                || f.EndsWith(".csproj.hash", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

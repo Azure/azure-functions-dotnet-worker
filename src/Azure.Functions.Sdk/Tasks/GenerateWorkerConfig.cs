@@ -60,6 +60,14 @@ public partial class GenerateWorkerConfig(IFileSystem fileSystem)
     {
         Config config = new(Executable, EntryPoint);
         string json = JsonSerializer.Serialize(config, WorkerConfigContext.Default.Config);
+
+        // Skip write if content is unchanged to preserve timestamps for incremental builds.
+        if (_fileSystem.File.Exists(OutputPath)
+            && string.Equals(_fileSystem.File.ReadAllText(OutputPath), json, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
         _fileSystem.File.WriteAllText(OutputPath, json);
         return true;
     }

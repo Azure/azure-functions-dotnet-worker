@@ -45,4 +45,43 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
         ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
     }
+
+    [Fact]
+    public void Publish_NoBuild_SelfContained_GeneratesFreshWorkerConfig()
+    {
+        // Arrange: build with RID but without self-contained (config gets "dotnet")
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("RuntimeIdentifier", "win-x64")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+
+        Dictionary<string, string> buildProperties = new()
+        {
+            ["SelfContained"] = "true",
+        };
+
+        project.Build(restore: true, buildProperties).Should().BeSuccessful().And.HaveNoIssues();
+        ValidateConfig(
+            Path.Combine(project.GetOutputPath(), "worker.config.json"),
+            "{WorkerRoot}MyFunctionApp.exe",
+            "MyFunctionApp.dll");
+
+        // Act: publish with --no-build --self-contained false (same RID, removing SelfContained)
+        Dictionary<string, string> publishProperties = new()
+        {
+            ["NoBuild"] = "true",
+            ["SelfContained"] = "false",
+        };
+
+        BuildOutput output = project.Publish(build: false, restore: false, publishProperties);
+
+        // Assert: publish output should not have self-contained config
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        string publishPath = project.GetPublishPath();
+        ValidateConfig(
+            Path.Combine(publishPath, "worker.config.json"),
+            "dotnet",
+            "MyFunctionApp.dll");
+    }
 }

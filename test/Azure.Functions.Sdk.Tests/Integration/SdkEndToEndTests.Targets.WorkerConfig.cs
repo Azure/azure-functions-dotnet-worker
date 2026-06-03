@@ -74,32 +74,8 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             .Which.ItemSpec.Should().Be("{WorkerRoot}MyFunctionApp.exe");
     }
 
-    [Fact]
-    public void Target_PreGenerateWorkerConfig()
-    {
-        // Arrange
-        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
-            GetTempCsproj());
-
-        // Act
-        // We want partial IntermediateOutputPath.
-        project.Restore().Should().BeSuccessful();
-        TargetResult? result = project.RunTarget("_PreGenerateWorkerConfig");
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.ResultCode.Should().Be(TargetResultCode.Success);
-        result.Items.Should().ContainSingle()
-            .Which.Should().Satisfy<ITaskItem>(item =>
-            {
-                item.ItemSpec.Should().Be($"{project.GetRelativeIntermediateOutputPath()}worker.config.json");
-                item.GetMetadata("TargetPath").Should().Be("worker.config.json");
-            });
-    }
-
     [Theory]
     [InlineData("DesignTimeBuild")]
-    [InlineData("NoBuild")]
     public void Target_GenerateWorkerConfig_Skipped_NoOp(string condition)
     {
         // Arrange

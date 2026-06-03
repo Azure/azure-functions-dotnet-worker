@@ -63,6 +63,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
             public const string InputCollectionName = "ItemCollectionIn";
             public const string OutputCollectionName = "ItemCollectionOut";
             public const string LeaseCollectionName = "leases";
+            public const string AllVersionsAndDeletesCollectionName = "ItemCollectionAvad";
         }
 
         // EventHubs

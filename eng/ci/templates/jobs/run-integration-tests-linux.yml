@@ -8,7 +8,7 @@ jobs:
 
   pool:
     name: ${{ parameters.poolName }}
-    image: 1es-ubuntu-22.04
+    image: 1es-ubuntu-24.04-min
     os: linux
     ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
       demands:
@@ -30,7 +30,6 @@ jobs:
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
       DotnetVersion: 'net8'
-      UseCoreToolsBuild: $(UseCoreToolsBuildFromIntegrationTests)
       SkipCosmosDBEmulator: true
       SkipBuildOnPack: true
 

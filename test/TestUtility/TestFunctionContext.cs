@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
         }
 
-        public TestFunctionContext(IReadOnlyDictionary<string, string>? baggage = null)
+        public TestFunctionContext(IReadOnlyDictionary<string, string> baggage = null)
             : this(new TestFunctionDefinition(), new TestFunctionInvocation(baggage: baggage), CancellationToken.None)
         {
         }

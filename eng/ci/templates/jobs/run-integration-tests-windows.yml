@@ -22,10 +22,6 @@ jobs:
       - Priority -equals Low
 
   steps:
-
-  - pwsh: . "tools/start-emulators.ps1" -NoWait
-    displayName: "Start emulators (NoWait)"
-
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
   - task: DotNetCoreCLI@2
@@ -40,7 +36,6 @@ jobs:
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
       DotnetVersion: $(dotnetVersion)
-      UseCoreToolsBuild: $(UseCoreToolsBuildFromIntegrationTests)
       SkipBuildOnPack: true
 
   - task: DotNetCoreCLI@2

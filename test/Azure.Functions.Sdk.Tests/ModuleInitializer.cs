@@ -26,6 +26,11 @@ internal static class ModuleInitializer
         // work here.
         Environment.SetEnvironmentVariable("DOTNET_NUGET_SIGNATURE_VERIFICATION", "false");
         Environment.SetEnvironmentVariable("MSBUILDADDITIONALSDKRESOLVERSFOLDER", ResolverPath);
+
+        // Signature verification does not work in tests. NuGet wants to load a trusted root store off disk
+        // that is shipped with the dotnet SDK. However, it loads via relative path assumptions that won't
+        // work here.
+        Environment.SetEnvironmentVariable("DOTNET_NUGET_SIGNATURE_VERIFICATION", "false");
         MSBuildAssemblyResolver.Register();
         FormatterResolver.Initialize();
     }

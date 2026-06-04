@@ -3,6 +3,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Build.Evaluation;
 using Microsoft.Build.Utilities.ProjectCreation;
 
 namespace Azure.Functions.Sdk.Tests.Integration;
@@ -60,8 +61,10 @@ public partial class SdkEndToEndTests
     public void Build_Success(string tfm)
     {
         // Arrange
+        using ProjectCollection col = TestHelpers.CreateBinaryLoggerCollection();
+
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
-            GetTempCsproj(), targetFramework: tfm)
+            GetTempCsproj(), targetFramework: tfm, projectCollection: col)
             .Property("AssemblyName", "MyFunctionApp")
             .Property("LangVersion", "latest")
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);

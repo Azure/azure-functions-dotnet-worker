@@ -79,6 +79,50 @@ public partial class SdkEndToEndTests
     }
 
     [Fact]
+    public void Item_ExplicitPackageReference_OverridesImplicit()
+    {
+        // Arrange
+        string explicitVersion = "99.0.0";
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj())
+            .ItemPackageReference("Microsoft.Azure.Functions.Worker", explicitVersion);
+
+        // Act
+        project.TryGetItems("PackageReference", out IReadOnlyCollection<ProjectItem>? items);
+
+        // Assert - only one entry for Worker (no duplicate = no warning), using explicit version
+        items.Where(x => x.EvaluatedInclude == "Microsoft.Azure.Functions.Worker")
+            .Should().ContainSingle()
+            .Which.Should()
+            .HaveMetadata("Version", explicitVersion)
+            .And.NotHaveMetadata("IsImplicitlyDefined");
+    }
+
+    [Fact]
+    public void Item_CpmPackageVersion_OverridesImplicitVersion()
+    {
+        // Arrange
+        string cpmVersion = "99.0.0";
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(),
+            globalProperties: new Dictionary<string, string>
+            {
+                { "ManagePackageVersionsCentrally", "true" },
+            })
+            .ItemInclude("PackageVersion", "Microsoft.Azure.Functions.Worker",
+                metadata: new Dictionary<string, string?> { { "Version", cpmVersion } });
+
+        // Act
+        project.TryGetItems("PackageReference", out IReadOnlyCollection<ProjectItem>? items);
+
+        // Assert
+        items.Should().ContainSingle(x => x.EvaluatedInclude == "Microsoft.Azure.Functions.Worker")
+            .Which.Should()
+            .HaveMetadata("IsImplicitlyDefined", "true")
+            .And.HaveMetadata("Version", cpmVersion);
+    }
+
+    [Fact]
     public void Item_CompilerVisibleProperty_AreIncluded()
     {
         // Arrange

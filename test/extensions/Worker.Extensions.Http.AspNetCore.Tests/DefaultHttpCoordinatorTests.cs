@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
@@ -235,7 +236,7 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
-        public async Task SetHttpContextAsync_WhenCalledConcurrently_AndFunctionContextAlreadySet_ReturnsIt()
+        public async Task SetHttpContextAsync_WhenCalledConcurrently_AndFunctionContextAlreadySet_ThrowsInvalidOperationException()
         {
             // Arrange
             string invocationId = Guid.NewGuid().ToString();
@@ -251,14 +252,14 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             await setHttpTask1;
             await setFunctionTask;
 
-            // Now call SetHttpContextAsync again - TrySetResult fails, but FunctionContextValueSource
-            // is already completed so it returns the function context directly.
-            var result = await _coordinator.SetHttpContextAsync(invocationId, httpContext2);
+            // Now call SetHttpContextAsync again - TrySetResult fails (double-set), should throw
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await _coordinator.SetHttpContextAsync(invocationId, httpContext2));
 
             _coordinator.CompleteFunctionInvocation(invocationId);
 
             // Assert
-            Assert.Same(functionContext, result);
+            Assert.Contains($"Failed to set HTTP context for invocation id '{invocationId}'", exception.Message);
         }
 
         [Fact]
@@ -288,7 +289,7 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
-        public async Task SetFunctionContextAsync_WhenCalledConcurrently_AndHttpContextAlreadySet_ReturnsIt()
+        public async Task SetFunctionContextAsync_WhenCalledConcurrently_AndHttpContextAlreadySet_ThrowsInvalidOperationException()
         {
             // Arrange
             string invocationId = Guid.NewGuid().ToString();
@@ -304,14 +305,14 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             await setHttpTask;
             await setFunctionTask;
 
-            // Now call SetFunctionContextAsync again - TrySetResult fails, but HttpContextValueSource
-            // is already completed so it returns the HTTP context directly.
-            var result = await _coordinator.SetFunctionContextAsync(invocationId, functionContext2);
+            // Now call SetFunctionContextAsync again - TrySetResult fails (double-set), should throw
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await _coordinator.SetFunctionContextAsync(invocationId, functionContext2));
 
             _coordinator.CompleteFunctionInvocation(invocationId);
 
             // Assert
-            Assert.Same(httpContext, result);
+            Assert.Contains($"Failed to set function context for invocation id '{invocationId}'", exception.Message);
         }
 
         [Fact]
@@ -370,6 +371,54 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             mockContext.Setup(c => c.CancellationToken).Returns(cancellationToken);
             mockContext.Setup(c => c.InvocationId).Returns(Guid.NewGuid().ToString());
             return mockContext.Object;
+        }
+
+        [Fact]
+        public async Task SetHttpContextAsync_WhenHttpContextTaskFaulted_PropagatesOriginalException()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var httpContext = new DefaultHttpContext();
+            var expectedException = new InvalidOperationException("Something went wrong");
+
+            // Pre-create the context reference and fault the TCS
+            var contextRef = new ContextReference(invocationId);
+            contextRef.HttpContextValueSource.TrySetException(expectedException);
+
+            // Use reflection to insert the faulted context reference
+            var field = typeof(DefaultHttpCoordinator)
+                .GetField("_contextReferenceList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+            var dict = (ConcurrentDictionary<string, ContextReference>)field.GetValue(_coordinator)!;
+            dict[invocationId] = contextRef;
+
+            // Act & Assert - Should propagate the original exception
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await _coordinator.SetHttpContextAsync(invocationId, httpContext));
+            Assert.Same(expectedException, exception);
+        }
+
+        [Fact]
+        public async Task SetFunctionContextAsync_WhenFunctionContextTaskFaulted_PropagatesOriginalException()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var functionContext = CreateTestFunctionContext();
+            var expectedException = new InvalidOperationException("Something went wrong");
+
+            // Pre-create the context reference and fault the TCS
+            var contextRef = new ContextReference(invocationId);
+            contextRef.FunctionContextValueSource.TrySetException(expectedException);
+
+            // Use reflection to insert the faulted context reference
+            var field = typeof(DefaultHttpCoordinator)
+                .GetField("_contextReferenceList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+            var dict = (ConcurrentDictionary<string, ContextReference>)field.GetValue(_coordinator)!;
+            dict[invocationId] = contextRef;
+
+            // Act & Assert - Should propagate the original exception
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await _coordinator.SetFunctionContextAsync(invocationId, functionContext));
+            Assert.Same(expectedException, exception);
         }
     }
 }

@@ -29,16 +29,21 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
             if (!contextRef.HttpContextValueSource.TrySetResult(context))
             {
-                if (contextRef.HttpContextValueSource.Task.IsCanceled)
+                var httpContextTask = contextRef.HttpContextValueSource.Task;
+                if (httpContextTask.IsCanceled)
                 {
-                    throw new OperationCanceledException($"HTTP context for invocation id '{invocationId}' was cancelled.");
+                    // We throw our own exception rather than awaiting the cancelled task because a TaskCanceledException
+                    // from the TCS would not include the invocation ID needed for diagnostics.
+                    throw new OperationCanceledException($"HTTP context for invocation id '{invocationId}' was cancelled.", httpContextTask.Exception);
+                }
+
+                if (httpContextTask.IsFaulted)
+                {
+                    // Task has an exception — await to let it propagate naturally.
+                    await httpContextTask;
                 }
                 
-                if (contextRef.FunctionContextValueSource.Task.IsCompleted)
-                {
-                    return await contextRef.FunctionContextValueSource.Task;
-                }
-                
+                // Task already ran to completion (a concurrent double-set) — there is no exception to rethrow.
                 throw new InvalidOperationException($"Failed to set HTTP context for invocation id '{invocationId}'.");
             }
 
@@ -50,10 +55,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
             catch (OperationCanceledException e)
             {
+                // WaitAsync throws a generic OperationCanceledException without invocation context.
+                // We wrap it to include the invocation ID for diagnostics.
                 throw new OperationCanceledException($"HTTP request was cancelled while waiting for the function context to be set. Invocation: '{invocationId}'.", e);
             }
             catch (TimeoutException e)
             {
+                // WaitAsync throws a generic TimeoutException without invocation context.
+                // We wrap it to include the invocation ID for diagnostics.
                 throw new TimeoutException($"Timed out waiting for the function context to be set. Invocation: '{invocationId}'.", e);
             }
         }
@@ -64,16 +73,21 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             if (!contextRef.FunctionContextValueSource.TrySetResult(context))
             {
-                if (contextRef.FunctionContextValueSource.Task.IsCanceled)
+                var funcContextTask = contextRef.FunctionContextValueSource.Task;
+                if (funcContextTask.IsCanceled)
                 {
-                    throw new OperationCanceledException($"Function context for invocation id '{invocationId}' was cancelled.");
+                    // We throw our own exception rather than awaiting the cancelled task because a TaskCanceledException
+                    // from the TCS would not include the invocation ID needed for diagnostics.
+                    throw new OperationCanceledException($"Function context for invocation id '{invocationId}' was cancelled.", funcContextTask.Exception);
                 }
 
-                if(contextRef.HttpContextValueSource.Task.IsCompleted)
+                if (funcContextTask.IsFaulted)
                 {
-                    return await contextRef.HttpContextValueSource.Task;
+                    // Task has an exception — await to let it propagate naturally.
+                    await funcContextTask;
                 }
 
+                // Task already ran to completion (a concurrent double-set) — there is no exception to rethrow.
                 throw new InvalidOperationException($"Failed to set function context for invocation id '{invocationId}'.");
             }
 
@@ -90,6 +104,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
             catch (OperationCanceledException e)
             {
+                // WaitAsync throws a generic OperationCanceledException without invocation context.
+                // We wrap it to include the invocation ID and which wait step failed for diagnostics.
                 string message = waitStep == 0
                     ? $"Function invocation cancelled while waiting for start call. Invocation: '{invocationId}'."
                     : $"Function invocation cancelled while waiting for HTTP context. Invocation: '{invocationId}'.";
@@ -98,6 +114,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
             catch (TimeoutException e)
             {
+                // WaitAsync throws a generic TimeoutException without invocation context.
+                // We wrap it to include the invocation ID and which wait step failed for diagnostics.
                 string message = waitStep == 0
                     ? $"Timed out waiting for the function start call. Invocation: '{invocationId}'."
                     : $"Timed out waiting for the HTTP context to be set. Invocation: '{invocationId}'.";

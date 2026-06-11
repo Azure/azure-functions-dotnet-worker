@@ -15,11 +15,14 @@ using Microsoft.Azure.Functions.Worker.Extensions.ServiceBus;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Converter to bind to <see cref="ServiceBusReceivedMessage" /> or <see cref="ServiceBusReceivedMessage[]" /> type parameters.
+    /// Converter to bind to <see cref="ServiceBusReceivedMessage" />, <see cref="ServiceBusReceivedMessage[]" />,
+    /// <see cref="byte[]" />, or <see cref="string" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
     [SupportedTargetType(typeof(ServiceBusReceivedMessage))]
     [SupportedTargetType(typeof(ServiceBusReceivedMessage[]))]
+    [SupportedTargetType(typeof(byte[]))]
+    [SupportedTargetType(typeof(string))]
     internal class ServiceBusReceivedMessageConverter : IInputConverter
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -28,6 +31,10 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 ConversionResult result = context?.Source switch
                 {
+                    ModelBindingData binding when context.TargetType == typeof(byte[])
+                        => ConversionResult.Success(ConvertToBytes(binding)),
+                    ModelBindingData binding when context.TargetType == typeof(string)
+                        => ConversionResult.Success(ConvertToString(binding)),
                     ModelBindingData binding => ConversionResult.Success(ConvertToServiceBusReceivedMessage(binding)),
                     // Only array collections are currently supported, which matches the behavior of the in-proc extension.
                     CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingData
@@ -40,6 +47,18 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Failed(exception));
             }
+        }
+
+        private byte[] ConvertToBytes(ModelBindingData binding)
+        {
+            var message = ConvertToServiceBusReceivedMessage(binding);
+            return message.Body.ToArray();
+        }
+
+        private string ConvertToString(ModelBindingData binding)
+        {
+            var message = ConvertToServiceBusReceivedMessage(binding);
+            return message.Body.ToString();
         }
 
         private ServiceBusReceivedMessage ConvertToServiceBusReceivedMessage(ModelBindingData binding)

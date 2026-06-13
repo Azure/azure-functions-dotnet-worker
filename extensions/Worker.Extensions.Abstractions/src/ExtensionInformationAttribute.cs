@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 {
-    [AttributeUsage(AttributeTargets.Assembly)]
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public class ExtensionInformationAttribute : Attribute
     {
         public string ExtensionPackage { get; }

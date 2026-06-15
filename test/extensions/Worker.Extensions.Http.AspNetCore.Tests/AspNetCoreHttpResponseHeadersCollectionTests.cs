@@ -49,10 +49,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             _ = new AspNetCoreHttpResponseHeadersCollection(response);
 
             // Act - add a manual Set-Cookie header, then append cookies via ASP.NET Core
-            response.Headers.Append("Set-Cookie", "ManualCookie=AlsoDuplicated");
-            response.Cookies.Append("Cookie1", "one");
-            response.Cookies.Append("Cookie2", "two");
-            response.Cookies.Append("Cookie3", "three");
+            var secureCookieOptions = new CookieOptions { Secure = true };
+            response.Headers.Append("Set-Cookie", "ManualCookie=AlsoDuplicated; secure");
+            response.Cookies.Append("Cookie1", "one", secureCookieOptions);
+            response.Cookies.Append("Cookie2", "two", secureCookieOptions);
+            response.Cookies.Append("Cookie3", "three", secureCookieOptions);
 
             // Assert - should have exactly 4 Set-Cookie values (1 manual + 3 cookies)
             var setCookieValues = response.Headers["Set-Cookie"];
@@ -72,9 +73,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             _ = new AspNetCoreHttpResponseHeadersCollection(response);
 
             // Act
-            response.Cookies.Append("Cookie1", "one");
-            response.Cookies.Append("Cookie2", "two");
-            response.Cookies.Append("Cookie3", "three");
+            var secureCookieOptions = new CookieOptions { Secure = true };
+            response.Cookies.Append("Cookie1", "one", secureCookieOptions);
+            response.Cookies.Append("Cookie2", "two", secureCookieOptions);
+            response.Cookies.Append("Cookie3", "three", secureCookieOptions);
 
             // Assert - should have exactly 3 Set-Cookie values
             var setCookieValues = response.Headers["Set-Cookie"];

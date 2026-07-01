@@ -164,7 +164,7 @@ public sealed class ZipDeployTaskTests
             LogLevel.Error,
             Strings.Deploy_CompletedFailure,
             TestZipPath,
-            "https://functionapp.scm.test/api/zipdeploy?isAsync=true",
+            "https://functionapp.scm.test/api/zipdeploy",
             status);
     }
 
@@ -193,7 +193,7 @@ public sealed class ZipDeployTaskTests
             LogLevel.Error,
             Strings.Deploy_Failed,
             "Deployment failed: internal error",
-            "https://functionapp.scm.test/api/zipdeploy?isAsync=true",
+            "https://functionapp.scm.test/api/zipdeploy",
             HttpStatusCode.InternalServerError,
             DeployStatus.Failed);
     }
@@ -237,6 +237,36 @@ public sealed class ZipDeployTaskTests
         {
             capturedUri!.PathAndQuery.Should().Contain("api/zipdeploy");
         }
+    }
+
+    #endregion
+
+    #region Execute - Sensitive URL redaction
+
+    [Fact]
+    public void Execute_PublishUrlWithCredentialsAndQuery_RedactsUserInfoAndQueryInLog()
+    {
+        // Arrange - a publish url that embeds credentials as user info and a secret in the query string.
+        const string secretPublishUrl = "https://deployUser:PLACEHOLDER@functionapp.scm.test/?sig=PLACEHOLDER";
+        _fileSystem.AddFile(TestZipPath, new MockFileData("fake zip content"));
+        Mock<DeploymentClient> mockClient = new(MockBehavior.Strict, new HttpClient(), (Microsoft.Build.Utilities.TaskLoggingHelper?)null);
+        mockClient
+            .Setup(c => c.ZipDeployAsync(It.IsAny<ZipDeployRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DeployStatus.Failed);
+        using ZipDeploy task = CreateTask(mockClient.Object);
+        task.PublishUrl = secretPublishUrl;
+
+        // Act
+        bool result = task.Execute();
+
+        // Assert - the logged url retains only scheme, host, and path; credentials and query are gone.
+        result.Should().BeFalse();
+        _buildEngine.VerifyLog(
+            LogLevel.Error,
+            Strings.Deploy_CompletedFailure,
+            TestZipPath,
+            "https://functionapp.scm.test/api/zipdeploy",
+            DeployStatus.Failed);
     }
 
     #endregion

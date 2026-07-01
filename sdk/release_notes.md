@@ -11,3 +11,4 @@
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
 - Added compile-time duplicate function name detection (AZFW0017) (#3158)
+- Always emit the generated function metadata provider and executor, even when an app declares zero functions or all declared functions fail validation (including duplicate function names), so apps stay on the generated provider instead of failing at indexing time (#3446)

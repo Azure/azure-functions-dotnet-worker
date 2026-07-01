@@ -893,8 +893,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                     }
                 }";
 
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string? expectedOutput = EmptyMetadataProviderOutput;
 
                 var expectedDiagnosticResults = new List<DiagnosticResult>
                 {

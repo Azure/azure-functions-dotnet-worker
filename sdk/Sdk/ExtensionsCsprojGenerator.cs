@@ -46,13 +46,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal string GetCsProjContent()
         {
             string extensionReferences = GetExtensionReferences();
-            string targetFramework = Constants.Net80;
+            string targetFramework = Constants.Net10_0;
 
             if (_targetFrameworkIdentifier.Equals(Constants.NetCoreApp, StringComparison.OrdinalIgnoreCase))
             {
-                if (_azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) || _targetFrameworkVersion.Equals(Constants.NetCoreVersion31, StringComparison.OrdinalIgnoreCase))
+                if (_azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) || _targetFrameworkVersion.Equals(Constants.NetCoreVersion3_1, StringComparison.OrdinalIgnoreCase))
                 {
-                    targetFramework = Constants.NetCoreApp31;
+                    targetFramework = Constants.NetCoreApp3_1;
                 }
             }
 

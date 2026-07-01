@@ -204,8 +204,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
         {
             return version switch
             {
-                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, outputPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31),
-                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, outputPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion8),
+                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, outputPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion3_1),
+                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, outputPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion10_0),
                 _ => throw new ArgumentOutOfRangeException(nameof(version)),
             };
         }
@@ -249,7 +249,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             return @"
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
@@ -264,7 +264,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
 
     <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
         <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
-        <Error Condition=""'$(TargetFramework)' != 'net8.0'"" Text=""The target framework '$(TargetFramework)' must be 'net8.0'. Verify if target framework has been overridden by a global property."" />
+        <Error Condition=""'$(TargetFramework)' != 'net10.0'"" Text=""The target framework '$(TargetFramework)' must be 'net10.0'. Verify if target framework has been overridden by a global property."" />
     </Target>
 </Project>
 ";

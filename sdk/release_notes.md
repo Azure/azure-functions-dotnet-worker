@@ -7,6 +7,7 @@
 ### Microsoft.Azure.Functions.Worker.Sdk 2.0.7
 
 - Reversal of change to suppress generation of functions.metadata file
+- Updated the generated `WorkerExtensions` project to target `net10.0` instead of `net8.0` (#3444)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

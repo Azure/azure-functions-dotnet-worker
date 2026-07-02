@@ -4,6 +4,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
 
 namespace Azure.Functions.Sdk.Tests.Integration;
@@ -324,9 +325,15 @@ public partial class SdkEndToEndTests
         BuildOutput output = project.Build(restore: true);
 
         // Assert
-        output.Should().BeSuccessful().And.HaveSingleWarning()
-            .Which.Should().BeSdkMessage(LogMessage.Warning_FunctionsEnableWorkerIndexingDeprecated)
-            .And.HaveSender("FuncSdkLog");
+        // The validation target runs during both restore (CollectPackageReferences) and build, so the
+        // deprecation warning can be emitted more than once. Assert every warning is the expected one.
+        output.Should().BeSuccessful();
+        output.WarningEvents.Should().NotBeEmpty();
+        foreach (BuildWarningEventArgs warning in output.WarningEvents)
+        {
+            warning.Should().BeSdkMessage(LogMessage.Warning_FunctionsEnableWorkerIndexingDeprecated)
+                .And.HaveSender("FuncSdkLog");
+        }
     }
 
     [Fact]

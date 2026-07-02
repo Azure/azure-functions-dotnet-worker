@@ -71,7 +71,8 @@ internal static class UriLogExtensions
 
     /// <summary>
     /// Best-effort redaction for values that do not parse as an absolute URI. Removes any
-    /// query string or fragment (which may contain secrets) and any user info component.
+    /// query string or fragment (which may contain secrets) and any user info component
+    /// within an authority.
     /// </summary>
     private static string RedactRawUrl(string url)
     {
@@ -79,13 +80,22 @@ internal static class UriLogExtensions
         int queryOrFragment = url.IndexOfAny(['?', '#']);
         string result = queryOrFragment >= 0 ? url[..queryOrFragment] : url;
 
-        // Strip user info (anything between the "//" authority marker and the "@").
+        // Strip user info only when it appears in the authority.
         int authorityStart = result.IndexOf("//", StringComparison.Ordinal);
-        int start = authorityStart >= 0 ? authorityStart + 2 : 0;
-        int at = result.IndexOf('@', start);
-        if (at >= 0)
+        if (authorityStart >= 0)
         {
-            result = result[..start] + result[(at + 1)..];
+            int start = authorityStart + 2;
+            int authorityEnd = result.IndexOf('/', start);
+            if (authorityEnd < 0)
+            {
+                authorityEnd = result.Length;
+            }
+
+            int at = result.IndexOf('@', start);
+            if (at >= start && at < authorityEnd)
+            {
+                result = result[..start] + result[(at + 1)..];
+            }
         }
 
         return result;

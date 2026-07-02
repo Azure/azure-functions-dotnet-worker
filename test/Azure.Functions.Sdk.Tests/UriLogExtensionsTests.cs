@@ -164,5 +164,41 @@ public class UriLogExtensionsTests
         result.Should().NotContain("PLACEHOLDER");
     }
 
+    [Theory]
+    [InlineData("mailto:user@example.com")]
+    [InlineData("api/@me")]
+    public void RedactRawUrl_NoAuthority_PreservesAtSign(string url)
+    {
+        string result = InvokeRedactRawUrl(url);
+
+        result.Should().Be(url);
+    }
+
+    [Fact]
+    public void RedactRawUrl_AuthorityAtSignInPath_PreservesAtSign()
+    {
+        string result = InvokeRedactRawUrl("//host/api/@me");
+
+        result.Should().Be("//host/api/@me");
+    }
+
+    [Fact]
+    public void RedactRawUrl_AuthorityUserInfo_StripsUserInfo()
+    {
+        string result = InvokeRedactRawUrl("//user:PLACEHOLDER@host/path");
+
+        result.Should().Be("//host/path");
+        result.Should().NotContain("PLACEHOLDER");
+    }
+
     #endregion
+
+    private static string InvokeRedactRawUrl(string url)
+    {
+        System.Reflection.MethodInfo method = typeof(UriLogExtensions).GetMethod(
+            "RedactRawUrl",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+
+        return (string)method.Invoke(null, new object[] { url })!;
+    }
 }

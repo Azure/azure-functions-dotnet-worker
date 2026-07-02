@@ -54,6 +54,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FuncSdkLog Condition="'@(_SelectedFunctionVersion)' == ''" Resource="Error_UnknownFunctionsVersion" Arguments="$(_AzureFunctionsVersionStandardized)" />
     <FuncSdkLog Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', '$(_MinimumSupportedTfmInFunctions)'))"
       Resource="Warning_UnsupportedTargetFramework" Arguments="$(TargetFramework)" />
+    <FuncSdkLog Condition="'$(FunctionsEnableWorkerIndexing)' != ''" Resource="Warning_FunctionsEnableWorkerIndexingDeprecated" />
   </Target>
 
   <Target Name="_CheckForConflictingFunctionSdk">

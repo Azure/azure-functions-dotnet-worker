@@ -72,6 +72,12 @@ internal readonly struct LogMessage
         = new(nameof(Strings.AZFW0109_Warning_GeneratedProjectShouldNotBeBuilt));
 
     /// <summary>
+    /// Log message for when the deprecated 'FunctionsEnableWorkerIndexing' property is set.
+    /// </summary>
+    public static readonly LogMessage Warning_FunctionsEnableWorkerIndexingDeprecated
+        = new(nameof(Strings.AZFW0110_Warning_FunctionsEnableWorkerIndexingDeprecated));
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="LogMessage"/> struct.
     /// Parses the <see cref="Level"/> and <see cref="Code"/> properties from the given <paramref name="id"/>.
     /// LogMessages must:
@@ -160,6 +166,7 @@ internal readonly struct LogMessage
             nameof(Warning_UnsupportedTargetFramework) => Warning_UnsupportedTargetFramework,
             nameof(Warning_ExtensionsNotRestored) => Warning_ExtensionsNotRestored,
             nameof(Warning_GeneratedProjectShouldNotBeBuilt) => Warning_GeneratedProjectShouldNotBeBuilt,
+            nameof(Warning_FunctionsEnableWorkerIndexingDeprecated) => Warning_FunctionsEnableWorkerIndexingDeprecated,
             _ => throw new ArgumentException($"Log message with id '{id}' not found.", nameof(id)),
         };
     }

@@ -311,6 +311,25 @@ public partial class SdkEndToEndTests
     }
 
     [Fact]
+    public void Build_FunctionsEnableWorkerIndexing_Deprecated_Warning()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("FunctionsEnableWorkerIndexing", "true")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveSingleWarning()
+            .Which.Should().BeSdkMessage(LogMessage.Warning_FunctionsEnableWorkerIndexingDeprecated)
+            .And.HaveSender("FuncSdkLog");
+    }
+
+    [Fact]
     public void Build_Incremental_NoOp()
     {
         // Arrange

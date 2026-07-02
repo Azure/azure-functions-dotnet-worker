@@ -6,6 +6,7 @@
 
 ### Azure.Functions.Sdk <version>
 
+- feat: emit `AZFW0110` warning when the deprecated `FunctionsEnableWorkerIndexing` property is set (#3395)
 - feat: improve implicit package reference behavior (#3409)
   - now respects central package management
   - no longer emits a warning when manually overriding

@@ -4,6 +4,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
 
 namespace Azure.Functions.Sdk.Tests.Integration;
@@ -308,6 +309,31 @@ public partial class SdkEndToEndTests
 
         ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
         ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
+    }
+
+    [Fact]
+    public void Build_FunctionsEnableWorkerIndexing_Deprecated_Warning()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("FunctionsEnableWorkerIndexing", "true")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        // The validation target runs during both restore (CollectPackageReferences) and build, so the
+        // deprecation warning can be emitted more than once. Assert every warning is the expected one.
+        output.Should().BeSuccessful();
+        output.WarningEvents.Should().NotBeEmpty();
+        foreach (BuildWarningEventArgs warning in output.WarningEvents)
+        {
+            warning.Should().BeSdkMessage(LogMessage.Warning_FunctionsEnableWorkerIndexingDeprecated)
+                .And.HaveSender("FuncSdkLog");
+        }
     }
 
     [Fact]

@@ -14,3 +14,4 @@ Rules emitted by [Azure.Functions.Sdk](../../src/Azure.Functions.Sdk/README.md) 
 | [AZFW0107](AZFW0107.md) | UnsupportedTargetFramework | Warning | The `TargetFramework` is unsupported for this function app. |
 | [AZFW0108](AZFW0108.md) | ExtensionsNotRestored | Warning | Extension bundle was not restored prior to build. |
 | [AZFW0109](AZFW0109.md) | GeneratedProjectShouldNotBeBuilt | Warning | The generated `azure_functions.g.csproj` is being built directly. |
+| [AZFW0110](AZFW0110.md) | FunctionsEnableWorkerIndexingDeprecated | Warning | The `FunctionsEnableWorkerIndexing` property is deprecated and has no effect. |

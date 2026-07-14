@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 namespace Microsoft.Azure.Functions.Worker
@@ -17,5 +17,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// The access token for a client to connect to SignalR service.
         /// </summary>
         public string AccessToken { get; set; }
+
+        /// <summary>
+        /// The access token lifetime in seconds. A refresh-aware client can use this to schedule its next authentication refresh.
+        /// </summary>
+        public int? TokenLifetimeSeconds { get; set; }
     }
 }

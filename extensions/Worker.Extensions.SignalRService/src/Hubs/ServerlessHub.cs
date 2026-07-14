@@ -2,7 +2,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.AspNetCore.SignalR;
@@ -74,6 +77,22 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
                 Url = negotiateResponse.Url,
                 AccessToken = negotiateResponse.AccessToken,
             });
+        }
+
+        /// <summary>
+        /// Refreshes auth expiration and optional claims for an active connection, then returns a refreshed service access token.
+        /// </summary>
+        protected virtual Task<RefreshConnectionAuthenticationResult> RefreshConnectionAuthenticationAsync(string connectionToken, DateTimeOffset expireTime, IEnumerable<Claim>? claims = null, CancellationToken cancellationToken = default)
+        {
+            return HubContext.RefreshConnectionAuthenticationAsync(connectionToken, expireTime, claims, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets the current claims for an active connection.
+        /// </summary>
+        protected virtual Task<ConnectionClaimsResult> GetConnectionClaimsAsync(string connectionToken, CancellationToken cancellationToken = default)
+        {
+            return HubContext.GetConnectionClaimsAsync(connectionToken, cancellationToken);
         }
 
         [AttributeUsage(AttributeTargets.Class)]

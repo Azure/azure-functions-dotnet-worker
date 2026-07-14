@@ -80,8 +80,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                     }
                 }";
 
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string? expectedOutput = EmptyMetadataProviderOutput;
 
                 var expectedDiagnosticResults = new List<DiagnosticResult>
             {
@@ -141,8 +141,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                     }
                 }";
 
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string? expectedOutput = EmptyMetadataProviderOutput;
 
                 var expectedDiagnosticResults = new List<DiagnosticResult>
             {
@@ -197,8 +197,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                     }
                 }";
 
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string? expectedOutput = EmptyMetadataProviderOutput;
 
                 var expectedDiagnosticResults = new List<DiagnosticResult>
                 {
@@ -243,8 +243,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                     }
                 }";
 
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string? expectedOutput = EmptyMetadataProviderOutput;
 
                 var expectedDiagnosticResults = new List<DiagnosticResult>
                 {
@@ -295,8 +295,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                         }
                     }";
 
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
+                string? expectedGeneratedFileName = "GeneratedFunctionMetadataProvider.g.cs";
+                string? expectedOutput = DuplicateFunctionMetadataProviderOutput("MyFunc");
 
                 var expectedDiagnosticResults = new List<DiagnosticResult>
                 {
@@ -348,8 +348,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                         }
                     }";
 
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
+                string? expectedGeneratedFileName = "GeneratedFunctionMetadataProvider.g.cs";
+                string? expectedOutput = DuplicateFunctionMetadataProviderOutput("myfunc");
 
                 var expectedDiagnosticResults = new List<DiagnosticResult>
                 {

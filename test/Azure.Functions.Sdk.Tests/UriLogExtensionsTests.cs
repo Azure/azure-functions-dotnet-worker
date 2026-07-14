@@ -191,6 +191,18 @@ public class UriLogExtensionsTests
         result.Should().NotContain("PLACEHOLDER");
     }
 
+    [Fact]
+    public void RedactRawUrl_AuthorityUserInfoWithAtSignInPassword_StripsEntireUserInfo()
+    {
+        // A password containing an '@' must not defeat redaction; the user info ends at
+        // the last '@' in the authority, so nothing before "host" should remain.
+        string result = InvokeRedactRawUrl("//user:P@SSPLACEHOLDER@host/path");
+
+        result.Should().Be("//host/path");
+        result.Should().NotContain("PLACEHOLDER");
+        result.Should().NotContain("P@SS");
+    }
+
     #endregion
 
     private static string InvokeRedactRawUrl(string url)

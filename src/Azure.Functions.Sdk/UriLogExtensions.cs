@@ -91,8 +91,10 @@ internal static class UriLogExtensions
                 authorityEnd = result.Length;
             }
 
-            int at = result.IndexOf('@', start);
-            if (at >= start && at < authorityEnd)
+            // The user info ends at the last '@' in the authority; scanning from the end
+            // ensures a password that itself contains an '@' is fully redacted.
+            int at = result.LastIndexOf('@', authorityEnd - 1);
+            if (at >= start)
             {
                 result = result[..start] + result[(at + 1)..];
             }

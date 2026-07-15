@@ -15,6 +15,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
     <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
     <ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps>
+    <Configuration Condition="'$(Configuration)' == ''">release</Configuration>
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>

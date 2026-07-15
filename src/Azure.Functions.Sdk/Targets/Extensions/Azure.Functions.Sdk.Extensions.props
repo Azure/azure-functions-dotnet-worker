@@ -12,7 +12,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <PropertyGroup>
-    <_AzureFunctionsExtensionRemoveProps>TargetFramework;RuntimeIdentifier;SelfContained;PublishSingleFile;PublishReadyToRun;UseCurrentRuntimeIdentifier;WebPublishMethod;PublishProfile;DeployOnBuild;PublishDir;OutDir;OutputPath;ManagePackageVersionsCentrally;</_AzureFunctionsExtensionRemoveProps>
+    <_AzureFunctionsExtensionRemoveProps>TargetFramework;TargetFrameworks;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;UseCurrentRuntimeIdentifier;PublishAot;PublishSingleFile;PublishReadyToRun;WebPublishMethod;PublishProfile;DeployOnBuild;PublishDir;OutDir;OutputPath;BaseIntermediateOutputPath;IntermediateOutputPath;ManagePackageVersionsCentrally;Configuration;Platform;</_AzureFunctionsExtensionRemoveProps>
     <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
   </PropertyGroup>
 

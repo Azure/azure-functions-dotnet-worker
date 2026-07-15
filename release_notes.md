@@ -14,4 +14,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- <entry>
+- Ensured gRPC worker background stream loops do not capture an ambient SynchronizationContext, preventing a worker hang when the application uses a single-threaded context (e.g. Nito.AsyncEx AsyncContext).

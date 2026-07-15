@@ -314,10 +314,13 @@ public partial class SdkEndToEndTests
     [Fact]
     public void Build_MissingWorkerPackage_Warning()
     {
-        // Arrange - a project without any worker package reference.
+        // Arrange - a project without any worker package reference. A trivial entry point is
+        // provided so the build has something to compile; the worker package is intentionally
+        // absent to trigger the post-restore validation.
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: "net8.0", includeWorkerPackage: false)
-            .Property("AssemblyName", "MyFunctionApp");
+            .Property("AssemblyName", "MyFunctionApp")
+            .WriteSourceFile("Program.cs", "public class Program { public static void Main() { } }");
 
         // Act
         BuildOutput output = project.Build(restore: true);

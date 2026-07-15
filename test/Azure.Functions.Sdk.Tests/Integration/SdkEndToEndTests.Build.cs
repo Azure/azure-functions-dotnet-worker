@@ -322,7 +322,8 @@ public partial class SdkEndToEndTests
         // Act
         BuildOutput output = project.Build(restore: true);
 
-        // Assert - the SDK warns that no worker package was found after restore.
+        // Assert - build succeeds, but the SDK warns that no worker package was found after restore.
+        output.Should().BeSuccessful();
         output.WarningEvents
             .Where(x => x.Code == LogMessage.Warning_WorkerPackageNotReferenced.Code)
             .Should().NotBeEmpty()

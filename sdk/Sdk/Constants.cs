@@ -42,11 +42,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string IsBatchedKey = "IsBatched";
 
         // NetFramework
-        internal const string NetCoreApp31 = "netcoreapp3.1";
-        internal const string Net80 = "net8.0";
+        internal const string NetCoreApp3_1 = "netcoreapp3.1";
+        internal const string Net10_0 = "net10.0";
         internal const string NetCoreApp = ".NETCoreApp";
-        internal const string NetCoreVersion31 = "v3.1";
-        internal const string NetCoreVersion8 = "v8.0";
+        internal const string NetCoreVersion3_1 = "v3.1";
+        internal const string NetCoreVersion10_0 = "v10.0";
         internal const string AzureFunctionsVersion3 = "v3";
 
         // Binding directions

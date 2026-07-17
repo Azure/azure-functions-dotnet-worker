@@ -7,7 +7,9 @@
 ### Azure.Functions.Sdk <version>
 
 - fix: expand removed properties and pin `Configuration=release` when restoring/resolving the generated extension project (#3399)
+- fix: reliably resolve extension restore sources (#3393)
 - feat: emit `AZFW0110` warning when the deprecated `FunctionsEnableWorkerIndexing` property is set (#3395)
+- fix: redact sensitive information (credentials and query strings) from ZipDeploy publish logs (#3398)
 - feat: improve implicit package reference behavior (#3409)
   - now respects central package management
   - no longer emits a warning when manually overriding

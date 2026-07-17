@@ -80,9 +80,34 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <WriteExtensionProject Projects="@(_AzureFunctionsTargetFramework)" Packages="@(_ValidatedAzureFunctionPackageReference)" />
   </Target>
 
-  <Target Name="RestoreExtensionProject">
+  <!--
+    Restores the generated extension project. The generated project lives under the intermediate
+    (obj) directory, so we forward the outer project's fully-resolved restore sources to ensure the
+    inner restore uses the exact same feeds (including relative sources and prop-injected
+    RestoreAdditionalProjectSources, which would otherwise resolve against the wrong directory).
+
+    $(_OutputSources) is produced by NuGet's _GetRestoreSettings target. We depend on it explicitly
+    so the value is computed deterministically even when this target runs during build fallback
+    (see _VerifyRestoredFunctionsExtensions) or inside Visual Studio, where the outer Restore did not
+    run in the same MSBuild invocation.
+
+    Even though '$(_OutputSources)' is technically private, it has been stable for many versions of NuGet
+    and is the only way to deterministically forward the outer restore sources to an inner restore. The
+    alternative is to parse the outer project.assets.json, which is brittle and not guaranteed to be stable
+    across versions.
+
+    $(_FunctionsExtensionRestoreSources) is a single override seam. It allows for emergency escape hatch
+    if the behavior is not sufficient for some edge case. It is not intended to be used in normal scenarios,
+    and is not documented.
+  -->
+  <Target Name="RestoreExtensionProject" DependsOnTargets="_GetRestoreSettings">
+    <PropertyGroup>
+      <_FunctionsExtensionRestoreSources Condition="'$(_FunctionsExtensionRestoreSources)' == ''">$(_OutputSources)</_FunctionsExtensionRestoreSources>
+      <_FunctionsExtensionRestoreProps>IsRestoring=true</_FunctionsExtensionRestoreProps>
+      <_FunctionsExtensionRestoreProps Condition="'$(_FunctionsExtensionRestoreSources)' != ''">$(_FunctionsExtensionRestoreProps);RestoreSources=$(_FunctionsExtensionRestoreSources)</_FunctionsExtensionRestoreProps>
+    </PropertyGroup>
     <MSBuild Projects="@(_AzureFunctionsTargetFramework->'%(ProjectFile)')" Targets="Restore"
-      RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources)" />
+      RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)" Properties="$(_FunctionsExtensionRestoreProps)" />
     <Touch Files="@(_AzureFunctionsTargetFramework->'%(MarkerFile)')" AlwaysCreate="True" />
   </Target>
 

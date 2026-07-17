@@ -30,7 +30,7 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
         if (response.Headers.Location is Uri location)
         {
             // If the response contains a location header, we can assume the deployment is asynchronous
-            _logger?.LogMessageFromResources(nameof(Strings.Deploy_AsyncDeployment), location);
+            _logger?.LogMessageFromResources(nameof(Strings.Deploy_AsyncDeployment), location.ToLogSafeString());
             return await PollDeploymentStatusAsync(location, httpRequest.Headers.Authorization, cancellation);
         }
 
@@ -83,7 +83,7 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
 
                 _logger?.LogWarningFromResources(
                     nameof(Strings.Deploy_PollFailure),
-                    location,
+                    location.ToLogSafeString(),
                     ex.StatusCode,
                     retry,
                     RetryCount);

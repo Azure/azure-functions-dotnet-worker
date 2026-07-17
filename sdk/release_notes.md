@@ -7,6 +7,7 @@
 ### Microsoft.Azure.Functions.Worker.Sdk 2.0.7
 
 - Reversal of change to suppress generation of functions.metadata file
+- Emit a build warning directing users to the `Azure.Functions.Sdk` MSBuild SDK when targeting .NET 11 (#3435)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

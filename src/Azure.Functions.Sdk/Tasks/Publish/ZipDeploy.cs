@@ -96,7 +96,7 @@ public sealed class ZipDeploy(IFileSystem fileSystem, DeploymentClient? client =
     private async Task<bool> DeployAsync(DeploymentClient client, CancellationToken cancellation)
     {
         Log.LogMessageFromResources(
-            MessageImportance.High, nameof(Strings.Deploy_BeginPublish), ZipContentsPath, PublishUrl);
+            MessageImportance.High, nameof(Strings.Deploy_BeginPublish), ZipContentsPath, PublishUrl.ToLogSafeString());
 
         using FileSystemStream content = _fileSystem.File.OpenRead(ZipContentsPath);
         ZipDeployRequest request = new(DeploymentUsername, DeploymentPassword, content)
@@ -110,19 +110,19 @@ public sealed class ZipDeploy(IFileSystem fileSystem, DeploymentClient? client =
             DeployStatus state = await client.ZipDeployAsync(request, cancellation);
             if (state is DeployStatus.Success or DeployStatus.PartialSuccess)
             {
-                Log.LogMessageFromResources(nameof(Strings.Deploy_CompletedSuccess), ZipContentsPath, uri, state);
+                Log.LogMessageFromResources(nameof(Strings.Deploy_CompletedSuccess), ZipContentsPath, uri.ToLogSafeString(), state);
                 return true;
             }
             else
             {
-                Log.LogErrorFromResources(nameof(Strings.Deploy_CompletedFailure), ZipContentsPath, uri, state);
+                Log.LogErrorFromResources(nameof(Strings.Deploy_CompletedFailure), ZipContentsPath, uri.ToLogSafeString(), state);
                 return false;
             }
         }
         catch (DeploymentException ex)
         {
             Log.LogErrorFromResources(
-                nameof(Strings.Deploy_Failed), ex.Message, uri, ex.StatusCode, ex.DeployStatus);
+                nameof(Strings.Deploy_Failed), ex.Message, uri.ToLogSafeString(), ex.StatusCode, ex.DeployStatus);
             return false;
         }
     }
@@ -154,13 +154,13 @@ public sealed class ZipDeploy(IFileSystem fileSystem, DeploymentClient? client =
 
         if (!Uri.TryCreate(PublishUrl, UriKind.Absolute, out uri) || !IsHttp(uri))
         {
-            Log.LogErrorFromResources(nameof(Strings.Deploy_InvalidPublishUrl), PublishUrl);
+            Log.LogErrorFromResources(nameof(Strings.Deploy_InvalidPublishUrl), PublishUrl.ToLogSafeString());
             return false;
         }
 
         if (!AllowInsecureRemoteConnections && uri.Scheme == Uri.UriSchemeHttp)
         {
-            Log.LogErrorFromResources(nameof(Strings.Deploy_InsecurePublishUrl), PublishUrl);
+            Log.LogErrorFromResources(nameof(Strings.Deploy_InsecurePublishUrl), PublishUrl.ToLogSafeString());
             return false;
         }
 

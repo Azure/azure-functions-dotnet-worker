@@ -4,24 +4,34 @@ steps:
     $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
 
     if ($IsWindows) {
-      $os = "win"
+      $os = "Windows"
     }
     elseif ($IsMacOS) {
-      $os = "osx"
+      $os = "MacOS"
     }
     else {
-      $os = "linux"
+      $os = "Linux"
     }
 
-    # Resolve latest v4 version from the CLI feed (no auth required)
+    # Resolve latest v4 version and download URL from the CLI feed (no auth required)
     $cliFeedUrl = "https://functionscdn.azureedge.net/public/cli-feed-v4.json"
     $cliFeed = Invoke-RestMethod -Uri $cliFeedUrl
     $version = $cliFeed.tags.v4.release
     Write-Host "Latest Core Tools version: $version"
 
-    # Download from Azure Functions CDN
-    $fileName = "Azure.Functions.Cli.$os-$arch.$version.zip"
-    $coreToolsUrl = "https://functionscdn.azureedge.net/public/$version/$fileName"
+    $release = $cliFeed.releases.$version
+    if (-not $release) {
+      Write-Error "Could not find release '$version' in the CLI feed"
+      exit 1
+    }
+
+    $asset = $release.coreTools | Where-Object { $_.OS -eq $os -and $_.Architecture -eq $arch }
+    if (-not $asset) {
+      Write-Error "Could not find a Core Tools download for OS '$os' and arch '$arch'"
+      exit 1
+    }
+
+    $coreToolsUrl = $asset.downloadLink
     Write-Host "Downloading Azure Functions Core Tools from $coreToolsUrl"
 
     $zipPath = "$(Agent.TempDirectory)/Azure.Functions.Cli.zip"

@@ -13,6 +13,15 @@ namespace Microsoft.Azure.Functions.Worker
     public enum OAuthBearerMethod
     {
         Default,
-        Oidc
+        Oidc,
+
+        /// <summary>
+        /// OIDC client-credentials flow performed in managed .NET code rather than
+        /// delegated to librdkafka's libcurl-based token fetch. Requires a host
+        /// extension (Microsoft.Azure.WebJobs.Extensions.Kafka) that supports this
+        /// mode; avoids the platform-specific CA-bundle issue that affects
+        /// librdkafka's OIDC path on some Linux images (e.g. Azure Functions Flex).
+        /// </summary>
+        OidcManaged
     }
 }

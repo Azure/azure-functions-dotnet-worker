@@ -67,16 +67,23 @@ internal static class ProjectCreatorExtensions
             string? targetFramework = "net8.0",
             ProjectCollection? projectCollection = null,
             IDictionary<string, string>? globalProperties = null,
+            bool includeWorkerPackage = true,
             Action<ProjectCreator>? configure = null)
         {
-            return ProjectCreator.Create(
+            ProjectCreator project = ProjectCreator.Create(
                 path: path,
                 projectCollection: projectCollection,
                 sdk: "Azure.Functions.Sdk/99.99.99",
                 globalProperties: GetGlobalProperties(globalProperties))
                 .PropertyGroup()
-                .Property("TargetFramework", targetFramework)
-                .CustomAction(configure);
+                .Property("TargetFramework", targetFramework);
+
+            if (includeWorkerPackage)
+            {
+                project.ItemPackageReference(NugetPackage.Worker);
+            }
+
+            return project.CustomAction(configure);
         }
 
         public ProjectCreator NetCoreProject(

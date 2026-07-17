@@ -27,10 +27,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </ItemGroup>
 
   <ItemGroup>
-    <_FuncSdkPackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Update="local.settings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" Condition="Exists('local.settings.json')" />
   </ItemGroup>
 

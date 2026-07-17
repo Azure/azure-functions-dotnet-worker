@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -90,7 +90,7 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         /// <summary>
         /// Gets the current claims for an active connection.
         /// </summary>
-        protected virtual Task<ConnectionClaimsResult> GetConnectionClaimsAsync(string connectionToken, CancellationToken cancellationToken = default)
+        protected virtual Task<ConnectionClaims> GetConnectionClaimsAsync(string connectionToken, CancellationToken cancellationToken = default)
         {
             return HubContext.GetConnectionClaimsAsync(connectionToken, cancellationToken);
         }

@@ -2,9 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Mono.Cecil;
 
 namespace Azure.Functions.Sdk;
 
@@ -16,24 +16,36 @@ public static class ExtensionReference
     private const string ExtensionsInformationType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute";
 
     /// <summary>
-    /// Gets the root path of the Azure Functions SDK module.
+    /// Gets the extension reference, if any, from the given assembly.
     /// </summary>
-    /// <param name="path">The path to the assembly.</param>
+    /// <param name="assembly">The assembly to scan.</param>
     /// <param name="sourcePackageId">The source package ID.</param>
     /// <param name="extensionReference">The resulting extension reference, if found.</param>
-    public static bool TryGetFromModule(
-        string path,
+    /// <returns><c>true</c> if an extension reference was found; <c>false</c> otherwise.</returns>
+    public static bool TryGetFromAssembly(
+        Assembly assembly,
         string sourcePackageId,
         [NotNullWhen(true)] out ITaskItem? extensionReference)
     {
-        // Read the assembly from the specified path
-        using AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(path);
+        Throw.IfNull(assembly);
 
         // Find the extension attribute
-        foreach (CustomAttribute customAttribute in assembly.CustomAttributes)
+        foreach (CustomAttributeData customAttribute in assembly.GetCustomAttributesData())
         {
+            string? attributeTypeName;
+            try
+            {
+                // Accessing AttributeType forces the metadata load context to resolve the assembly
+                // defining the attribute. Tolerate unresolvable attribute types rather than failing.
+                attributeTypeName = customAttribute.AttributeType.FullName;
+            }
+            catch (Exception ex) when (ex is FileNotFoundException or BadImageFormatException)
+            {
+                continue;
+            }
+
             if (string.Equals(
-                    customAttribute.AttributeType.FullName,
+                    attributeTypeName,
                     ExtensionsInformationType,
                     StringComparison.Ordinal))
             {

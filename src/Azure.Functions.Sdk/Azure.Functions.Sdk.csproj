@@ -29,10 +29,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Bcl.TimeProvider" Version="9.0.10" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    <PackageReference Include="Microsoft.Bcl.TimeProvider" Version="10.0.10" />
     <PackageReference Include="NuGet.ProjectModel" Version="6.14.0" />
     <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="22.0.15" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>

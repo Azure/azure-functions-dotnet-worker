@@ -75,7 +75,7 @@ public partial class WriteExtensionMetadata(IFileSystem fileSystem)
 
         List<WebJobsReference> references = [];
         MSBuildNugetLogger logger = new(Log);
-        FunctionsAssemblyScanner scanner = FunctionsAssemblyScanner.FromTaskItems(ExtensionReferences);
+        using FunctionsAssemblyScanner scanner = FunctionsAssemblyScanner.FromTaskItems(ExtensionReferences);
         foreach (ITaskItem item in assemblies)
         {
             _cts.Token.ThrowIfCancellationRequested();

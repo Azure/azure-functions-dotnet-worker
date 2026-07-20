@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Reflection;
-using Mono.Cecil;
 using NuGet.Common;
 
 namespace Azure.Functions.Sdk;
@@ -15,55 +14,54 @@ public sealed partial class WebJobsReference
     /// <summary>
     /// Gets any WebJobs references from the specified assembly.
     /// </summary>
-    public static IEnumerable<WebJobsReference> FromModule(AssemblyDefinition assembly, ILogger? logger = null)
+    public static IEnumerable<WebJobsReference> FromModule(Assembly assembly, ILogger? logger = null)
     {
         Throw.IfNull(assembly);
         logger ??= NullLogger.Instance;
 
-        IEnumerable<CustomAttribute> startupAttributes = assembly.Modules
-            .SelectMany(p => p.GetCustomAttributes())
-            .Where(a => IsWebJobsStartupAttributeType(a.AttributeType, logger));
+        IEnumerable<CustomAttributeData> startupAttributes = assembly.GetCustomAttributesData()
+            .Where(a => IsWebJobsStartupAttributeType(a, logger));
 
-        foreach (CustomAttribute attribute in startupAttributes)
+        foreach (CustomAttributeData attribute in startupAttributes)
         {
-            attribute.GetArguments(out TypeDefinition typeDef, out string name);
+            attribute.GetArguments(out Type typeDef, out string name);
             name = GetName(name, typeDef);
             string assemblyQualifiedName = Assembly.CreateQualifiedName(
-                typeDef.Module.Assembly.FullName, typeDef.GetReflectionFullName());
-            string fileName = Path.GetFileName(assembly.MainModule.FileName);
+                typeDef.Assembly.FullName, typeDef.GetReflectionFullName());
+            string fileName = Path.GetFileName(assembly.Location);
             string hintPath = $@"{ExtensionsBinaryDirectoryPath}/{fileName}";
             yield return new WebJobsReference(name, assemblyQualifiedName, hintPath);
         }
     }
 
-    private static bool IsWebJobsStartupAttributeType(TypeReference attributeType, ILogger logger)
+    private static bool IsWebJobsStartupAttributeType(CustomAttributeData attribute, ILogger logger)
     {
         try
         {
-            return attributeType.CheckTypeInheritance(
+            // Accessing AttributeType (and walking its base types) forces the metadata load context to
+            // resolve the assemblies defining those types. If any cannot be resolved, treat it as a
+            // non-match rather than failing the scan (mirroring the previous Cecil-based behavior).
+            return attribute.AttributeType.CheckTypeInheritance(
                 type => string.Equals(type.FullName, WebJobsStartupAttributeType, StringComparison.OrdinalIgnoreCase));
         }
         catch (Exception ex) when (ex is FileNotFoundException or BadImageFormatException)
         {
-            string typeName = attributeType.GetReflectionFullName();
-            string fileName = Path.GetFileName(attributeType.Module.FileName);
             logger.LogDebug(
-                $"Error checking type inheritance for the attribute type '{typeName}' used in the assembly"
-                + $" '{fileName}' because the assembly defining its base type could not be found or was invalid."
-                + $" Exception message: {ex.Message}");
+                "Error checking type inheritance for a custom attribute because the assembly defining its type"
+                + $" or a base type could not be found or was invalid. Exception message: {ex.Message}");
             return false;
         }
     }
 
     // Copying the WebJobsStartup constructor logic from:
     // https://github.com/Azure/azure-webjobs-sdk/blob/e5417775bcb8c8d3d53698932ca8e4e265eac66d/src/Microsoft.Azure.WebJobs.Host/Hosting/WebJobsStartupAttribute.cs#L33-L47.
-    private static string GetName(string name, TypeDefinition startupTypeDef)
+    private static string GetName(string name, Type startupType)
     {
         if (string.IsNullOrEmpty(name))
         {
             // for a startup class named 'CustomConfigWebJobsStartup' or 'CustomConfigStartup',
             // default to a name 'CustomConfig'
-            name = startupTypeDef.Name;
+            name = startupType.Name;
             int idx = name.IndexOf("WebJobsStartup");
             if (idx < 0)
             {

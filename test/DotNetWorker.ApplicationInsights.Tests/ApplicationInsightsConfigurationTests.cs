@@ -68,8 +68,7 @@ public class ApplicationInsightsConfigurationTests
     public async Task AddingServiceAndLogger_WithAndWithoutOptions_OnlyAddsServicesOnceAndAppliesOptions()
     {
         var builder = new HostBuilder().ConfigureServices(
-            services => services
-                .AddApplicationInsightsTelemetryWorkerService()
+            services => AddDeterministicApplicationInsights(services)
                 .ConfigureFunctionsApplicationInsights()
                 .ConfigureFunctionsApplicationInsights(o => o.MaxTelemetryBufferDelay = TimeSpan.FromSeconds(15)));
 
@@ -84,10 +83,13 @@ public class ApplicationInsightsConfigurationTests
     [Fact]
     public async Task MaxTelemetryBufferDelay_AppliedRegardlessOfRegistrationOrder()
     {
-        var builder = new HostBuilder().ConfigureServices(
-            services => services
-                .ConfigureFunctionsApplicationInsights(o => o.MaxTelemetryBufferDelay = TimeSpan.FromSeconds(15))
-                .AddApplicationInsightsTelemetryWorkerService());
+        var builder = new HostBuilder().ConfigureServices(services =>
+        {
+            // Intentionally configure the buffer delay BEFORE adding the App Insights SDK to prove
+            // the value is applied regardless of registration order.
+            services.ConfigureFunctionsApplicationInsights(o => o.MaxTelemetryBufferDelay = TimeSpan.FromSeconds(15));
+            AddDeterministicApplicationInsights(services);
+        });
 
         using var host = builder.Build();
         var channel = await ApplyChannelConfigurationAsync(host);
@@ -98,8 +100,7 @@ public class ApplicationInsightsConfigurationTests
     public async Task MaxTelemetryBufferDelay_DefaultsTo8Seconds()
     {
         var builder = new HostBuilder().ConfigureServices(
-            services => services
-                .AddApplicationInsightsTelemetryWorkerService()
+            services => AddDeterministicApplicationInsights(services)
                 .ConfigureFunctionsApplicationInsights());
 
         using var host = builder.Build();
@@ -113,8 +114,7 @@ public class ApplicationInsightsConfigurationTests
     public async Task MaxTelemetryBufferDelay_CanBeOverridden(int seconds)
     {
         var builder = new HostBuilder().ConfigureServices(
-            services => services
-                .AddApplicationInsightsTelemetryWorkerService()
+            services => AddDeterministicApplicationInsights(services)
                 .ConfigureFunctionsApplicationInsights(o => o.MaxTelemetryBufferDelay = TimeSpan.FromSeconds(seconds)));
 
         using var host = builder.Build();
@@ -130,8 +130,7 @@ public class ApplicationInsightsConfigurationTests
     public async Task MaxTelemetryBufferDelay_ThrowsForValueBelowMinimum(int seconds)
     {
         var builder = new HostBuilder().ConfigureServices(
-            services => services
-                .AddApplicationInsightsTelemetryWorkerService()
+            services => AddDeterministicApplicationInsights(services)
                 .ConfigureFunctionsApplicationInsights(o => o.MaxTelemetryBufferDelay = TimeSpan.FromSeconds(seconds)));
 
         using var host = builder.Build();
@@ -145,6 +144,19 @@ public class ApplicationInsightsConfigurationTests
         await service.StartAsync(CancellationToken.None);
         return Assert.IsType<ServerTelemetryChannel>(host.Services.GetRequiredService<TelemetryConfiguration>().TelemetryChannel);
     }
+
+    private static IServiceCollection AddDeterministicApplicationInsights(IServiceCollection services)
+        => services.AddApplicationInsightsTelemetryWorkerService(options =>
+        {
+            // Disable background telemetry modules so these unit tests stay deterministic and do not
+            // spin up live-metrics/perf-counter threads that could add load to other tests in the assembly.
+            options.EnableAdaptiveSampling = false;
+            options.EnableQuickPulseMetricStream = false;
+            options.EnablePerformanceCounterCollectionModule = false;
+            options.EnableEventCounterCollectionModule = false;
+            options.EnableDependencyTrackingTelemetryModule = false;
+            options.EnableHeartbeat = false;
+        });
 
     [Fact]
     public void ConfigureFunctionsApplicationInsights_NullOptions_Throws()

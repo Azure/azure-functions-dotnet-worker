@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Azure.Functions.Sdk <version>
+### Azure.Functions.Sdk 0.5.0
 
 - fix: no longer add `Microsoft.Azure.Functions.Worker` as an implicit package reference, which caused silent version downgrades and runtime `MissingMethodException` failures (#3450)
   - reference `Microsoft.Azure.Functions.Worker` explicitly in your project

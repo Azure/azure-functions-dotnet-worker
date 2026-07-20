@@ -150,6 +150,9 @@
   <data name="AZFW0110_Warning_FunctionsEnableWorkerIndexingDeprecated" xml:space="preserve">
     <value>The 'FunctionsEnableWorkerIndexing' property is deprecated and no longer has any effect. Worker indexing is always enabled with Azure.Functions.Sdk. Please remove this property from your project.</value>
   </data>
+  <data name="AZFW0111_Warning_WorkerPackageNotReferenced" xml:space="preserve">
+    <value>No Azure Functions worker package was found after restore. Add a package reference to 'Microsoft.Azure.Functions.Worker' (or a package that depends on it) so the worker runtime is available.</value>
+  </data>
   <data name="Deploy_AsyncDeployment" xml:space="preserve">
     <value>Asynchronous deployment. Polling status at {0}</value>
   </data>

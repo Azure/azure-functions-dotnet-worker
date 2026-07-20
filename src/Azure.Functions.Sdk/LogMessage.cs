@@ -78,6 +78,12 @@ internal readonly struct LogMessage
         = new(nameof(Strings.AZFW0110_Warning_FunctionsEnableWorkerIndexingDeprecated));
 
     /// <summary>
+    /// Log message for when the Azure Functions worker package is not available after restore.
+    /// </summary>
+    public static readonly LogMessage Warning_WorkerPackageNotReferenced
+        = new(nameof(Strings.AZFW0111_Warning_WorkerPackageNotReferenced));
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="LogMessage"/> struct.
     /// Parses the <see cref="Level"/> and <see cref="Code"/> properties from the given <paramref name="id"/>.
     /// LogMessages must:
@@ -167,6 +173,7 @@ internal readonly struct LogMessage
             nameof(Warning_ExtensionsNotRestored) => Warning_ExtensionsNotRestored,
             nameof(Warning_GeneratedProjectShouldNotBeBuilt) => Warning_GeneratedProjectShouldNotBeBuilt,
             nameof(Warning_FunctionsEnableWorkerIndexingDeprecated) => Warning_FunctionsEnableWorkerIndexingDeprecated,
+            nameof(Warning_WorkerPackageNotReferenced) => Warning_WorkerPackageNotReferenced,
             _ => throw new ArgumentException($"Log message with id '{id}' not found.", nameof(id)),
         };
     }

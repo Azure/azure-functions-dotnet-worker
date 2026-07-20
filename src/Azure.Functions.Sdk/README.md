@@ -14,8 +14,9 @@ Set the `Sdk` attribute on your project's `<Project>` element:
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="[WORKER_VERSION]" />
     <!-- Include extension packages or other packages as necessary. -->
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="[EXT_VERSION]" />
   </ItemGroup>
 
 </Project>
@@ -24,12 +25,23 @@ Set the `Sdk` attribute on your project's `<Project>` element:
 The SDK automatically provides:
 
 - `Microsoft.NET.Sdk.Worker` (the underlying worker SDK)
-- `Microsoft.Azure.Functions.Worker` package reference
 - `AzureFunctionsVersion` set to `v4`
 - Source generators and analyzers for function metadata
 - Azure Functions tooling integration (`dotnet run` launches the Functions host)
 
-You only need to add your trigger and binding extension packages.
+You need to add a reference to `Microsoft.Azure.Functions.Worker` (the worker runtime) along with your
+trigger and binding extension packages:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="[WORKER_VERSION]" />
+  <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="[EXT_VERSION]" />
+</ItemGroup>
+```
+
+> **Note:** The worker package is referenced explicitly (not implicitly by the SDK) so that NuGet can
+> resolve the highest version required by your dependency graph. If it is missing after restore, the SDK
+> emits [AZFW0111](https://github.com/Azure/azure-functions-dotnet-worker/blob/main/docs/sdk-rules/AZFW0111.md).
 
 ## Migrating from Microsoft.Azure.Functions.Worker.Sdk
 
@@ -60,9 +72,8 @@ To migrate, make the following project file changes:
 
 1. **Change the `Sdk` attribute** from `Microsoft.NET.Sdk` to `Azure.Functions.Sdk/<version>`.
 2. **Remove the `Microsoft.Azure.Functions.Worker.Sdk` package reference** — it is now the SDK itself.
-3. **Remove the `Microsoft.Azure.Functions.Worker` package reference** — it is included implicitly by the SDK.
-4. **Remove `OutputType`** — the worker SDK sets this automatically.
-5. **Remove `AzureFunctionsVersion`** — the SDK defaults to `v4`.
+3. **Remove `OutputType`** — the worker SDK sets this automatically.
+4. **Remove `AzureFunctionsVersion`** — the SDK defaults to `v4`.
 
 ```xml
 <!-- After: Azure.Functions.Sdk -->
@@ -73,6 +84,7 @@ To migrate, make the following project file changes:
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
   </ItemGroup>
 

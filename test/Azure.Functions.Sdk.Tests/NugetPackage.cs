@@ -10,6 +10,9 @@ public record NugetPackage(string Name, string Version)
     public static readonly NugetPackage SystemTextJson = new(
         Name: "System.Text.Json", Version: "10.0.1");
 
+    public static readonly NugetPackage Worker = new(
+        Name: "Microsoft.Azure.Functions.Worker", Version: "2.52.0");
+
     public static readonly WorkerPackage ServiceBus = new(
         Name: "Microsoft.Azure.Functions.Worker.Extensions.ServiceBus",
         Version: "5.23.0",

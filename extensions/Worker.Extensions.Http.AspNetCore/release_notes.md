@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 2.2.0
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 2.1.1
 
 - Fix response cookie duplication in ASP.NET Core integration by giving `IHeaderDictionary` indexer setters replace semantics, including removing the header when assigned `StringValues.Empty` (#3353)
 - Pass cancellation tokens (RequestAborted / CancellationToken) through to WaitAsync calls so cancelled HTTP

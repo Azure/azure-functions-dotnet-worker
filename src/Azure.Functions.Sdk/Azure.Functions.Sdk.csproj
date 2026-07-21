@@ -32,7 +32,7 @@
     <PackageReference Include="Microsoft.Bcl.TimeProvider" Version="10.0.10" />
     <PackageReference Include="NuGet.ProjectModel" Version="6.14.0" />
     <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="22.0.15" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="10.0.10" />
+    <PackageReference Include="System.Reflection.Metadata" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>

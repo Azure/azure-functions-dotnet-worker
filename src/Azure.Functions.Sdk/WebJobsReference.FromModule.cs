@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Reflection;
+using System.Reflection.Metadata;
 using NuGet.Common;
 
 namespace Azure.Functions.Sdk;
@@ -12,56 +14,87 @@ public sealed partial class WebJobsReference
     private const string WebJobsStartupAttributeType = "Microsoft.Azure.WebJobs.Hosting.WebJobsStartupAttribute";
 
     /// <summary>
-    /// Gets any WebJobs references from the specified assembly.
+    /// Gets any WebJobs references from the specified assembly metadata.
     /// </summary>
-    public static IEnumerable<WebJobsReference> FromModule(Assembly assembly, ILogger? logger = null)
+    /// <param name="reader">The metadata reader for the assembly to scan.</param>
+    /// <param name="assemblyPath">The disk path of the assembly being scanned.</param>
+    /// <param name="logger">The optional logger.</param>
+    /// <returns>The found WebJobs references, if any.</returns>
+    public static IReadOnlyList<WebJobsReference> FromModule(
+        MetadataReader reader, string assemblyPath, ILogger? logger = null)
     {
-        Throw.IfNull(assembly);
+        Throw.IfNull(reader);
+        Throw.IfNullOrEmpty(assemblyPath);
         logger ??= NullLogger.Instance;
 
-        IEnumerable<CustomAttributeData> startupAttributes = assembly.GetCustomAttributesData()
-            .Where(a => IsWebJobsStartupAttributeType(a, logger));
+        List<WebJobsReference> references = [];
+        string? assemblyFullName = null;
+        string fileName = Path.GetFileName(assemblyPath);
 
-        foreach (CustomAttributeData attribute in startupAttributes)
+        foreach (CustomAttributeHandle handle in reader.GetAssemblyDefinition().GetCustomAttributes())
         {
-            attribute.GetArguments(out Type typeDef, out string name);
-            name = GetName(name, typeDef);
-            string assemblyQualifiedName = Assembly.CreateQualifiedName(
-                typeDef.Assembly.FullName, typeDef.GetReflectionFullName());
-            string fileName = Path.GetFileName(assembly.Location);
+            CustomAttribute attribute = reader.GetCustomAttribute(handle);
+            if (!IsWebJobsStartupAttribute(reader, attribute, logger))
+            {
+                continue;
+            }
+
+            ImmutableArray<CustomAttributeTypedArgument<string>> arguments =
+                MetadataAttributeReader.DecodeArguments(attribute).FixedArguments;
+
+            // WebJobsStartupAttribute ctor args: (Type startupType, string name). The name is optional
+            // and materialized as an empty string by the compiler when omitted.
+            string startupTypeName = arguments.Length > 0 ? arguments[0].Value as string ?? string.Empty : string.Empty;
+            string name = arguments.Length > 1 ? arguments[1].Value as string ?? string.Empty : string.Empty;
+
+            name = GetName(name, startupTypeName);
+            assemblyFullName ??= reader.GetAssemblyDefinition().GetAssemblyName().FullName;
+            string assemblyQualifiedName = BuildAssemblyQualifiedName(startupTypeName, assemblyFullName);
             string hintPath = $@"{ExtensionsBinaryDirectoryPath}/{fileName}";
-            yield return new WebJobsReference(name, assemblyQualifiedName, hintPath);
+            references.Add(new WebJobsReference(name, assemblyQualifiedName, hintPath));
         }
+
+        return references;
     }
 
-    private static bool IsWebJobsStartupAttributeType(CustomAttributeData attribute, ILogger logger)
+    private static bool IsWebJobsStartupAttribute(MetadataReader reader, CustomAttribute attribute, ILogger logger)
     {
         try
         {
-            // Accessing AttributeType (and walking its base types) forces the metadata load context to
-            // resolve the assemblies defining those types. If any cannot be resolved, treat it as a
-            // non-match rather than failing the scan (mirroring the previous Cecil-based behavior).
-            return attribute.AttributeType.CheckTypeInheritance(
-                type => string.Equals(type.FullName, WebJobsStartupAttributeType, StringComparison.OrdinalIgnoreCase));
+            // Match by metadata type name, walking the attribute's base-type chain only as far as types
+            // defined in the scanned assembly. This never resolves the (intentionally absent) assembly
+            // that defines WebJobsStartupAttribute, mirroring the previous Cecil-based behavior.
+            return MetadataAttributeReader.AttributeInheritsFrom(
+                reader, attribute, WebJobsStartupAttributeType, StringComparison.OrdinalIgnoreCase);
         }
-        catch (Exception ex) when (ex is FileNotFoundException or BadImageFormatException)
+        catch (BadImageFormatException ex)
         {
             logger.LogDebug(
-                "Error checking type inheritance for a custom attribute because the assembly defining its type"
-                + $" or a base type could not be found or was invalid. Exception message: {ex.Message}");
+                "Error checking a custom attribute because its metadata could not be read."
+                + $" Exception message: {ex.Message}");
             return false;
         }
     }
 
+    // The startup type argument is serialized by name. When the type lives in the scanned assembly
+    // (the normal case) the name is unqualified, so we qualify it with the scanned assembly's full name.
+    // When a cross-assembly typeof was used, the serialized name already carries the assembly qualifier.
+    private static string BuildAssemblyQualifiedName(string startupTypeName, string assemblyFullName)
+    {
+        return startupTypeName.Contains(',')
+            ? startupTypeName
+            : Assembly.CreateQualifiedName(assemblyFullName, startupTypeName);
+    }
+
     // Copying the WebJobsStartup constructor logic from:
     // https://github.com/Azure/azure-webjobs-sdk/blob/e5417775bcb8c8d3d53698932ca8e4e265eac66d/src/Microsoft.Azure.WebJobs.Host/Hosting/WebJobsStartupAttribute.cs#L33-L47.
-    private static string GetName(string name, Type startupType)
+    private static string GetName(string name, string startupTypeName)
     {
         if (string.IsNullOrEmpty(name))
         {
             // for a startup class named 'CustomConfigWebJobsStartup' or 'CustomConfigStartup',
             // default to a name 'CustomConfig'
-            name = startupType.Name;
+            name = GetSimpleTypeName(startupTypeName);
             int idx = name.IndexOf("WebJobsStartup");
             if (idx < 0)
             {
@@ -74,5 +107,17 @@ public sealed partial class WebJobsReference
         }
 
         return name;
+    }
+
+    private static string GetSimpleTypeName(string typeName)
+    {
+        int comma = typeName.IndexOf(',');
+        if (comma >= 0)
+        {
+            typeName = typeName[..comma];
+        }
+
+        int separator = typeName.LastIndexOfAny(['.', '+']);
+        return separator >= 0 ? typeName[(separator + 1)..] : typeName;
     }
 }

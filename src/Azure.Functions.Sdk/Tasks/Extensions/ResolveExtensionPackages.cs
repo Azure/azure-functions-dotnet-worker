@@ -59,8 +59,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
                 return false;
             }
 
-            using FunctionsAssemblyScanner scanner = CreateScanner(target, resolver);
-            foreach (ITaskItem ext in GetExtensionPackages(target, resolver, scanner))
+            foreach (ITaskItem ext in GetExtensionPackages(target, resolver))
             {
                 extensionPackages.Add(ext);
             }
@@ -103,7 +102,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
     }
 
     private IEnumerable<ITaskItem> GetExtensionPackages(
-        LockFileTarget target, FallbackPackagePathResolver resolver, FunctionsAssemblyScanner scanner)
+        LockFileTarget target, FallbackPackagePathResolver resolver)
     {
         foreach (LockFileTargetLibrary library in target.Libraries)
         {
@@ -121,7 +120,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
             foreach (LockFileItem assembly in library.RuntimeAssemblies)
             {
                 string path = _fileSystem.Path.Combine(packagePath, assembly.Path);
-                if (TryGetExtensionReference(scanner, path, library, out ITaskItem? ext))
+                if (TryGetExtensionReference(path, library, out ITaskItem? ext))
                 {
                     ext.TargetFramework = target.TargetFramework.ToString();
                     yield return ext;
@@ -131,7 +130,6 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
     }
 
     private bool TryGetExtensionReference(
-        FunctionsAssemblyScanner scanner,
         string path,
         LockFileTargetLibrary library,
         [NotNullWhen(true)] out ITaskItem? ext)
@@ -145,7 +143,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
 
         try
         {
-            if (scanner.TryGetExtensionReference(path, library.Name!, out ext))
+            if (FunctionsAssemblyScanner.TryGetExtensionReference(path, library.Name!, out ext))
             {
                 Log.LogMessage(
                     MessageImportance.Low,
@@ -171,33 +169,5 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
 
         ext = null;
         return false;
-    }
-
-    private FunctionsAssemblyScanner CreateScanner(LockFileTarget target, FallbackPackagePathResolver resolver)
-    {
-        // Collect the runtime assembly paths of all packages in the target so the metadata load context can
-        // resolve dependencies, including assemblies that define the attributes we scan for (e.g. the extension
-        // abstractions).
-        List<string> assemblyPaths = [];
-        foreach (LockFileTargetLibrary library in target.Libraries)
-        {
-            if (library.Type != LibraryType.Package || library.Name is null)
-            {
-                continue;
-            }
-
-            string? packagePath = resolver.GetPackageDirectory(library.Name, library.Version);
-            if (string.IsNullOrEmpty(packagePath))
-            {
-                continue;
-            }
-
-            foreach (LockFileItem assembly in library.RuntimeAssemblies)
-            {
-                assemblyPaths.Add(_fileSystem.Path.Combine(packagePath, assembly.Path));
-            }
-        }
-
-        return new FunctionsAssemblyScanner(assemblyPaths);
     }
 }

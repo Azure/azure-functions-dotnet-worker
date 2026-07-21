@@ -2,37 +2,37 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
 {
     /// <summary>
     /// Applies <see cref="FunctionsApplicationInsightsOptions.MaxTelemetryBufferDelay" /> to the Application Insights
-    /// <see cref="ServerTelemetryChannel" /> on startup. This runs after the container is fully built, so the value is
-    /// applied regardless of whether <c>ConfigureFunctionsApplicationInsights</c> was called before or after
+    /// <see cref="ServerTelemetryChannel" />. This participates in the standard Application Insights options pipeline as
+    /// an <see cref="IConfigureOptions{TelemetryConfiguration}" />. The channel is resolved from the container (the same
+    /// singleton the SDK assigns to <see cref="TelemetryConfiguration.TelemetryChannel" />) rather than read from the
+    /// <see cref="TelemetryConfiguration" /> instance, so the value is applied regardless of whether
+    /// <c>ConfigureFunctionsApplicationInsights</c> was called before or after
     /// <c>AddApplicationInsightsTelemetryWorkerService</c>.
     /// </summary>
-    internal class ServerTelemetryChannelConfigurationService : IHostedService
+    internal sealed class ConfigureServerTelemetryChannel : IConfigureOptions<TelemetryConfiguration>
     {
         private static readonly TimeSpan MinTelemetryBufferDelay = TimeSpan.FromSeconds(5);
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ITelemetryChannel _channel;
         private readonly FunctionsApplicationInsightsOptions _options;
 
-        public ServerTelemetryChannelConfigurationService(IServiceProvider serviceProvider, IOptions<FunctionsApplicationInsightsOptions> options)
+        public ConfigureServerTelemetryChannel(ITelemetryChannel channel, IOptions<FunctionsApplicationInsightsOptions> options)
         {
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _channel = channel ?? throw new ArgumentNullException(nameof(channel));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public void Configure(TelemetryConfiguration configuration)
         {
-            if (_serviceProvider.GetService<TelemetryConfiguration>()?.TelemetryChannel is ServerTelemetryChannel channel)
+            if (_channel is ServerTelemetryChannel serverTelemetryChannel)
             {
                 if (_options.MaxTelemetryBufferDelay < MinTelemetryBufferDelay)
                 {
@@ -42,12 +42,8 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
                         $"{nameof(FunctionsApplicationInsightsOptions.MaxTelemetryBufferDelay)} must be at least {MinTelemetryBufferDelay.TotalSeconds} seconds.");
                 }
 
-                channel.MaxTelemetryBufferDelay = _options.MaxTelemetryBufferDelay;
+                serverTelemetryChannel.MaxTelemetryBufferDelay = _options.MaxTelemetryBufferDelay;
             }
-
-            return Task.CompletedTask;
         }
-
-        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

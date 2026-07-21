@@ -83,7 +83,7 @@ namespace Microsoft.Azure.Functions.Worker
                     "Application Insights SDK has not been added. Please add and configure the Application Insights SDK. See https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service for more information.");
 
             services.AddHostedService<ApplicationInsightsValidationService>();
-            services.AddHostedService<ServerTelemetryChannelConfigurationService>();
+            services.AddSingleton<IConfigureOptions<TelemetryConfiguration>, ConfigureServerTelemetryChannel>();
 
             // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.
             services.Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerApplicationInsightsLoggingEnabled"] = bool.TrueString);

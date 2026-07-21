@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
@@ -65,7 +63,7 @@ public class ApplicationInsightsConfigurationTests
     }
 
     [Fact]
-    public async Task AddingServiceAndLogger_WithAndWithoutOptions_OnlyAddsServicesOnceAndAppliesOptions()
+    public void AddingServiceAndLogger_WithAndWithoutOptions_OnlyAddsServicesOnceAndAppliesOptions()
     {
         var builder = new HostBuilder().ConfigureServices(
             services => AddDeterministicApplicationInsights(services)
@@ -76,12 +74,12 @@ public class ApplicationInsightsConfigurationTests
 
         // The second call is idempotent for registration but still applies the provided options.
         Assert.Single(host.Services.GetServices<ITelemetryModule>().OfType<FunctionsTelemetryModule>());
-        var channel = await ApplyChannelConfigurationAsync(host);
+        var channel = GetConfiguredChannel(host);
         Assert.Equal(TimeSpan.FromSeconds(15), channel.MaxTelemetryBufferDelay);
     }
 
     [Fact]
-    public async Task MaxTelemetryBufferDelay_AppliedRegardlessOfRegistrationOrder()
+    public void MaxTelemetryBufferDelay_AppliedRegardlessOfRegistrationOrder()
     {
         var builder = new HostBuilder().ConfigureServices(services =>
         {
@@ -92,33 +90,33 @@ public class ApplicationInsightsConfigurationTests
         });
 
         using var host = builder.Build();
-        var channel = await ApplyChannelConfigurationAsync(host);
+        var channel = GetConfiguredChannel(host);
         Assert.Equal(TimeSpan.FromSeconds(15), channel.MaxTelemetryBufferDelay);
     }
 
     [Fact]
-    public async Task MaxTelemetryBufferDelay_DefaultsTo8Seconds()
+    public void MaxTelemetryBufferDelay_DefaultsTo8Seconds()
     {
         var builder = new HostBuilder().ConfigureServices(
             services => AddDeterministicApplicationInsights(services)
                 .ConfigureFunctionsApplicationInsights());
 
         using var host = builder.Build();
-        var channel = await ApplyChannelConfigurationAsync(host);
+        var channel = GetConfiguredChannel(host);
         Assert.Equal(TimeSpan.FromSeconds(8), channel.MaxTelemetryBufferDelay);
     }
 
     [Theory]
     [InlineData(5)]
     [InlineData(20)]
-    public async Task MaxTelemetryBufferDelay_CanBeOverridden(int seconds)
+    public void MaxTelemetryBufferDelay_CanBeOverridden(int seconds)
     {
         var builder = new HostBuilder().ConfigureServices(
             services => AddDeterministicApplicationInsights(services)
                 .ConfigureFunctionsApplicationInsights(o => o.MaxTelemetryBufferDelay = TimeSpan.FromSeconds(seconds)));
 
         using var host = builder.Build();
-        var channel = await ApplyChannelConfigurationAsync(host);
+        var channel = GetConfiguredChannel(host);
         Assert.Equal(TimeSpan.FromSeconds(seconds), channel.MaxTelemetryBufferDelay);
     }
 
@@ -127,22 +125,23 @@ public class ApplicationInsightsConfigurationTests
     [InlineData(-5)]
     [InlineData(1)]
     [InlineData(4)]
-    public async Task MaxTelemetryBufferDelay_ThrowsForValueBelowMinimum(int seconds)
+    public void MaxTelemetryBufferDelay_ThrowsForValueBelowMinimum(int seconds)
     {
         var builder = new HostBuilder().ConfigureServices(
             services => AddDeterministicApplicationInsights(services)
                 .ConfigureFunctionsApplicationInsights(o => o.MaxTelemetryBufferDelay = TimeSpan.FromSeconds(seconds)));
 
-        using var host = builder.Build();
-        var service = host.Services.GetServices<IHostedService>().OfType<ServerTelemetryChannelConfigurationService>().Single();
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.StartAsync(CancellationToken.None));
+        // The below-minimum guard runs while the TelemetryConfiguration options pipeline is materialized,
+        // which the host resolves during Build (the App Insights logger provider needs TelemetryConfiguration).
+        Assert.Throws<ArgumentOutOfRangeException>(() => builder.Build());
     }
 
-    private static async Task<ServerTelemetryChannel> ApplyChannelConfigurationAsync(IHost host)
+    private static ServerTelemetryChannel GetConfiguredChannel(IHost host)
     {
-        var service = host.Services.GetServices<IHostedService>().OfType<ServerTelemetryChannelConfigurationService>().Single();
-        await service.StartAsync(CancellationToken.None);
-        return Assert.IsType<ServerTelemetryChannel>(host.Services.GetRequiredService<TelemetryConfiguration>().TelemetryChannel);
+        // Resolving TelemetryConfiguration runs the IConfigureOptions<TelemetryConfiguration> pipeline,
+        // including ConfigureServerTelemetryChannel which applies MaxTelemetryBufferDelay.
+        var config = host.Services.GetRequiredService<TelemetryConfiguration>();
+        return Assert.IsType<ServerTelemetryChannel>(config.TelemetryChannel);
     }
 
     private static IServiceCollection AddDeterministicApplicationInsights(IServiceCollection services)

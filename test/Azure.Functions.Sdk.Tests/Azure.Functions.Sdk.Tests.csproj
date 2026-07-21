@@ -30,8 +30,8 @@
     the defining assembly, mirroring how Microsoft.Azure.WebJobs.Host is absent from the payload.
   -->
   <ItemGroup>
-    <SampleExtensionProject Include="$(TestRoot)FunctionsAssemblyScanner.Samples\**\*.csproj"
-                            Exclude="$(TestRoot)FunctionsAssemblyScanner.Samples\TestExtension.Abstractions\TestExtension.Abstractions.csproj" />
+    <SampleExtensionProject Include="$(TestRoot)Resources\AssemblyScanner\**\*.csproj"
+                            Exclude="$(TestRoot)Resources\AssemblyScanner\TestExtension.Abstractions\TestExtension.Abstractions.csproj" />
     <ProjectReference Include="@(SampleExtensionProject)" ReferenceOutputAssembly="false" />
   </ItemGroup>
 

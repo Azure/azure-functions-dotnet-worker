@@ -24,14 +24,15 @@
 
   <!--
     Sample extension assemblies scanned by FunctionsAssemblyScannerTests. They are built but not
-    referenced (ReferenceOutputAssembly=false). The attribute-defining TestExtension.Abstractions
-    is excluded so only the extension assemblies are copied next to the tests - the attributes
-    therefore surface as external TypeReferences that the scanner must match without resolving
+    referenced (ReferenceOutputAssembly=false). Each extension references the real WebJobs /
+    Worker.Extensions.Abstractions packages that define the marker attributes, but only the
+    extension's own primary assembly is copied next to the tests (see _IncludeSampleExtensions) -
+    the attribute-defining assemblies are therefore absent from the scanned payload, so the
+    attributes surface as external TypeReferences that the scanner must match without resolving
     the defining assembly, mirroring how Microsoft.Azure.WebJobs.Host is absent from the payload.
   -->
   <ItemGroup>
-    <SampleExtensionProject Include="$(TestRoot)Resources\AssemblyScanner\**\*.csproj"
-                            Exclude="$(TestRoot)Resources\AssemblyScanner\TestExtension.Abstractions\TestExtension.Abstractions.csproj" />
+    <SampleExtensionProject Include="$(TestRoot)Resources\AssemblyScanner\**\*.csproj" />
     <ProjectReference Include="@(SampleExtensionProject)" ReferenceOutputAssembly="false" />
   </ItemGroup>
 

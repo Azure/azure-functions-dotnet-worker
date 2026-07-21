@@ -9,10 +9,11 @@ public class FunctionsAssemblyScannerTests
 {
     // Sample extension assemblies are built by the projects under
     // test/Resources/AssemblyScanner and copied into an "extensions" folder next to the
-    // test assembly. The attribute-defining TestExtension.Abstractions assembly is intentionally
-    // NOT copied, so scanning succeeds only because the scanner matches attributes by metadata
-    // name without resolving the defining assembly - mirroring how Microsoft.Azure.WebJobs.Host is
-    // excluded from the extension payload in production.
+    // test assembly. Each extension references the real WebJobs / Worker.Extensions.Abstractions
+    // packages that define the marker attributes, but those package assemblies are intentionally
+    // NOT copied alongside, so scanning succeeds only because the scanner matches attributes by
+    // metadata name without resolving the defining assembly - mirroring how
+    // Microsoft.Azure.WebJobs.Host is excluded from the extension payload in production.
     private static readonly string ExtensionsDirectory = Path.Combine(
         Path.GetDirectoryName(GetAssemblyLocation())!, "extensions");
 

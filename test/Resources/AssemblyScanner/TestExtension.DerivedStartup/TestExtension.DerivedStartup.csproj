@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\TestExtension.Abstractions\TestExtension.Abstractions.csproj" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.41" />
   </ItemGroup>
 
 </Project>

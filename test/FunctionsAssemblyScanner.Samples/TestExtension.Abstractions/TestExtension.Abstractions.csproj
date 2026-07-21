@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Defines the marker attributes in a standalone assembly so that, when applied by an extension
+    fixture, they surface as external TypeReferences - exactly like the real WebJobs/Worker
+    attributes. This assembly is intentionally NOT copied alongside the extensions when scanned,
+    proving the scanner matches by metadata name without resolving the defining assembly.
+  -->
+
+</Project>

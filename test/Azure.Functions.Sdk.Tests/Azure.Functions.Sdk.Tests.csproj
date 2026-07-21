@@ -22,10 +22,41 @@
     <ProjectReference Include="$(ResolverProject)" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <!--
+    Sample extension assemblies scanned by FunctionsAssemblyScannerTests. They are built but not
+    referenced (ReferenceOutputAssembly=false). The attribute-defining TestExtension.Abstractions
+    is excluded so only the extension assemblies are copied next to the tests - the attributes
+    therefore surface as external TypeReferences that the scanner must match without resolving
+    the defining assembly, mirroring how Microsoft.Azure.WebJobs.Host is absent from the payload.
+  -->
+  <ItemGroup>
+    <SampleExtensionProject Include="$(TestRoot)FunctionsAssemblyScanner.Samples\**\*.csproj"
+                            Exclude="$(TestRoot)FunctionsAssemblyScanner.Samples\TestExtension.Abstractions\TestExtension.Abstractions.csproj" />
+    <ProjectReference Include="@(SampleExtensionProject)" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!--
+    Register the sample extension outputs as copy-to-output content under an "extensions" folder.
+    This mirrors the resolver project's approach so the files are deployed (and shadow-copied by
+    the net472 test host) next to the test assembly, where the tests resolve them via
+    Assembly.Location.
+  -->
+  <Target Name="_IncludeSampleExtensions"
+          AfterTargets="ResolveProjectReferences"
+          BeforeTargets="GetCopyToOutputDirectoryItems">
+    <MSBuild Projects="@(SampleExtensionProject)" Targets="GetTargetPath" RemoveProperties="TargetFramework">
+      <Output TaskParameter="TargetOutputs" ItemName="_SampleExtensionOutput" />
+    </MSBuild>
+    <ItemGroup>
+      <AllItemsFullPathWithTargetPath Include="@(_SampleExtensionOutput)"
+          CopyToOutputDirectory="PreserveNewest"
+          TargetPath="extensions/%(_SampleExtensionOutput.Filename)%(_SampleExtensionOutput.Extension)" />
+    </ItemGroup>
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.3.0" />
     <PackageReference Include="AwesomeAssertions.Analyzers" Version="9.0.8" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
     <PackageReference Include="Moq" Version="4.18.4" />
     <PackageReference Include="MSBuild.ProjectCreation" Version="16.1.0" />

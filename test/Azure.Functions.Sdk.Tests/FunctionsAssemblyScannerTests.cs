@@ -7,14 +7,41 @@ namespace Azure.Functions.Sdk.Tests;
 
 public class FunctionsAssemblyScannerTests
 {
-    // Sample extension assemblies are built by the projects under test/Resources/AssemblyScanner and
-    // scanned in place from their own build output directories - the _GenerateSampleExtensionPaths
-    // target records each sample's absolute path in the generated SampleExtensions.Paths map. Each
-    // extension references the real WebJobs / Worker.Extensions.Abstractions packages that define the
-    // marker attributes, but those package assemblies do NOT sit alongside the extension, so scanning
-    // succeeds only because the scanner matches attributes by metadata name without resolving the
-    // defining assembly - mirroring how Microsoft.Azure.WebJobs.Host is excluded from the extension
-    // payload in production.
+    // Sample extension assemblies are built in place by the projects under
+    // test/Resources/AssemblyScanner (referenced with ReferenceOutputAssembly=false) and scanned
+    // directly from their own build output directories, located here by relative-path convention.
+    // Each extension references the real WebJobs / Worker.Extensions.Abstractions packages that
+    // define the marker attributes, but those package assemblies do NOT sit in the sample's output
+    // directory, so scanning succeeds only because the scanner matches attributes by metadata name
+    // without resolving the defining assembly - mirroring how Microsoft.Azure.WebJobs.Host is
+    // excluded from the extension payload in production.
+    //
+    // The test assembly runs from <repo>/test/Azure.Functions.Sdk.Tests/bin/<Config>/<tfm>, and each
+    // sample builds to <repo>/test/Resources/AssemblyScanner/<Name>/bin/<Config>/netstandard2.0. Both
+    // share the same <Config>, so we anchor at the test assembly's real output directory, read the
+    // configuration from it, and walk up to the shared test root.
+    private const string SampleTargetFramework = "netstandard2.0";
+
+    private static readonly string TestOutputDirectory = Path.GetDirectoryName(GetAssemblyLocation())!;
+
+    private static readonly string Configuration =
+        Path.GetFileName(Path.GetDirectoryName(TestOutputDirectory))!;
+
+    private static readonly string SampleExtensionsRoot = Path.GetFullPath(
+        Path.Combine(TestOutputDirectory, "..", "..", "..", "..", "Resources", "AssemblyScanner"));
+
+    private static string GetAssemblyLocation()
+    {
+#if NET
+        return typeof(FunctionsAssemblyScannerTests).Assembly.Location;
+#else
+        // On net472 the test host shadow-copies the assembly, so Assembly.Location points at the
+        // shadow-copy cache, which is not under the repo. CodeBase resolves to the original build
+        // output directory that the relative-path convention is anchored on.
+        Uri uri = new Uri(typeof(FunctionsAssemblyScannerTests).Assembly.CodeBase!);
+        return uri.LocalPath;
+#endif
+    }
 
     public static TheoryData<string> ShouldScanPackageFalseData =>
         new()
@@ -162,5 +189,6 @@ public class FunctionsAssemblyScannerTests
         act.Should().Throw<ArgumentException>();
     }
 
-    private static string ExtensionPath(string assemblyName) => SampleExtensions.Paths[assemblyName];
+    private static string ExtensionPath(string assemblyName) => Path.Combine(
+        SampleExtensionsRoot, assemblyName, "bin", Configuration, SampleTargetFramework, assemblyName + ".dll");
 }

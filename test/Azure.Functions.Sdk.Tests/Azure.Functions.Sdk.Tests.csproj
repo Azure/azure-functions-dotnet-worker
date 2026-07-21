@@ -23,63 +23,19 @@
   </ItemGroup>
 
   <!--
-    Sample extension assemblies scanned by FunctionsAssemblyScannerTests. They are built but not
-    referenced (ReferenceOutputAssembly=false). Each extension references the real WebJobs /
-    Worker.Extensions.Abstractions packages that define the marker attributes. OutputItemType
-    captures each sample's own primary assembly (not its package dependencies) into
-    @(SampleExtensionOutput) as part of ResolveProjectReferences.
+    Sample extension assemblies scanned by FunctionsAssemblyScannerTests. The ProjectReferences build
+    each sample in place but are not referenced for compilation (ReferenceOutputAssembly=false). Each
+    extension references the real WebJobs / Worker.Extensions.Abstractions packages that define the
+    marker attributes, but those package assemblies do not sit in the sample's own output directory,
+    so scanning succeeds only because the scanner matches attributes by metadata name without
+    resolving the defining assembly - mirroring how Microsoft.Azure.WebJobs.Host is absent from the
+    production payload. The tests locate each sample's build output by relative-path convention (see
+    FunctionsAssemblyScannerTests), so nothing needs copying next to the test assembly.
   -->
   <ItemGroup>
     <SampleExtensionProject Include="$(TestRoot)Resources/AssemblyScanner/**/*.csproj" />
-    <ProjectReference Include="@(SampleExtensionProject)"
-                      ReferenceOutputAssembly="false"
-                      OutputItemType="SampleExtensionOutput" />
+    <ProjectReference Include="@(SampleExtensionProject)" ReferenceOutputAssembly="false" />
   </ItemGroup>
-
-  <!--
-    Rather than copying the sample assemblies next to the test binary, generate a source file that
-    records the absolute path of each sample's build output and scan them in place. Each extension
-    is read from its own output directory, where only that extension's assembly lives - the
-    attribute-defining packages (Microsoft.Azure.WebJobs.Host, Worker.Extensions.Abstractions) are
-    absent, so the scanner must match the marker attributes as external TypeReferences without
-    resolving the defining assembly, mirroring how Microsoft.Azure.WebJobs.Host is absent from the
-    production payload. Scanning in place also sidesteps the net472 shadow-copy problem that a
-    deployed content folder had (Assembly.Location points at the shadow cache, not the payload).
-    Runs after ResolveProjectReferences (which populates @(SampleExtensionOutput)) and before
-    CoreCompile so the generated file is part of the compilation.
-  -->
-  <Target Name="_GenerateSampleExtensionPaths"
-          DependsOnTargets="ResolveProjectReferences"
-          BeforeTargets="CoreCompile">
-    <PropertyGroup>
-      <_SampleExtensionPathsFile>$(IntermediateOutputPath)SampleExtensions.g.cs</_SampleExtensionPathsFile>
-    </PropertyGroup>
-    <ItemGroup>
-      <_SampleExtensionEntry Include="@(SampleExtensionOutput)">
-        <Line>            ["%(Filename)"] = @"%(FullPath)",</Line>
-      </_SampleExtensionEntry>
-      <_SampleExtensionsLine Include="// &lt;auto-generated/&gt;" />
-      <_SampleExtensionsLine Include="namespace Azure.Functions.Sdk.Tests%3B" />
-      <_SampleExtensionsLine Include="internal static class SampleExtensions" />
-      <_SampleExtensionsLine Include="{" />
-      <_SampleExtensionsLine Include="    public static readonly System.Collections.Generic.IReadOnlyDictionary&lt;string, string&gt; Paths =" />
-      <_SampleExtensionsLine Include="        new System.Collections.Generic.Dictionary&lt;string, string&gt;(System.StringComparer.OrdinalIgnoreCase)" />
-      <_SampleExtensionsLine Include="        {" />
-      <_SampleExtensionsLine Include="@(_SampleExtensionEntry->'%(Line)')" />
-      <_SampleExtensionsLine Include="        }%3B" />
-      <_SampleExtensionsLine Include="}" />
-    </ItemGroup>
-
-    <WriteLinesToFile File="$(_SampleExtensionPathsFile)"
-                      Lines="@(_SampleExtensionsLine)"
-                      Overwrite="true"
-                      WriteOnlyWhenDifferent="true" />
-
-    <ItemGroup>
-      <Compile Include="$(_SampleExtensionPathsFile)" />
-      <FileWrites Include="$(_SampleExtensionPathsFile)" />
-    </ItemGroup>
-  </Target>
 
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.3.0" />

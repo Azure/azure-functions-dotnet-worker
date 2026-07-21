@@ -32,14 +32,23 @@
     the defining assembly, mirroring how Microsoft.Azure.WebJobs.Host is absent from the payload.
   -->
   <ItemGroup>
-    <SampleExtensionProject Include="$(TestRoot)Resources\AssemblyScanner\**\*.csproj" />
-    <ProjectReference Include="@(SampleExtensionProject)" ReferenceOutputAssembly="false" />
+    <SampleExtensionProject Include="$(TestRoot)Resources/AssemblyScanner/**/*.csproj" />
+    <!--
+      OutputItemType captures each sample's actual build output (its primary assembly only, not the
+      package dependencies) into @(SampleExtensionOutput) as part of ResolveProjectReferences. This
+      is what gets copied below, so we never predict an output path or assume the reference was
+      already built - avoiding the platform/ordering-dependent "file not found" copy failures that
+      GetTargetPath (which returns a path without building) produced on CI.
+    -->
+    <ProjectReference Include="@(SampleExtensionProject)"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="SampleExtensionOutput" />
   </ItemGroup>
 
   <!--
     Copy each sample extension's own primary assembly into an "extensions" folder next to the test
-    assembly. GetTargetPath returns just the extension's output (not its package dependencies), so
-    the attribute-defining assemblies (Microsoft.Azure.WebJobs.Host, Worker.Extensions.Abstractions)
+    assembly. Only the extension's own output is captured (see OutputItemType above), so the
+    attribute-defining assemblies (Microsoft.Azure.WebJobs.Host, Worker.Extensions.Abstractions)
     stay out of the scanned payload - the scanner must therefore match the marker attributes as
     external TypeReferences without resolving the defining assembly. Hooked after
     CopyFilesToOutputDirectory (per-inner-build, with OutDir set) and copied explicitly rather than
@@ -49,10 +58,7 @@
   -->
   <Target Name="_IncludeSampleExtensions"
           AfterTargets="CopyFilesToOutputDirectory">
-    <MSBuild Projects="@(SampleExtensionProject)" Targets="GetTargetPath" RemoveProperties="TargetFramework">
-      <Output TaskParameter="TargetOutputs" ItemName="_SampleExtensionOutput" />
-    </MSBuild>
-    <Copy SourceFiles="@(_SampleExtensionOutput)"
+    <Copy SourceFiles="@(SampleExtensionOutput)"
           DestinationFolder="$(OutDir)extensions"
           SkipUnchangedFiles="true" />
   </Target>

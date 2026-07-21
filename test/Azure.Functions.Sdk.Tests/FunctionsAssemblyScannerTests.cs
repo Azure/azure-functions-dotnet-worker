@@ -7,28 +7,14 @@ namespace Azure.Functions.Sdk.Tests;
 
 public class FunctionsAssemblyScannerTests
 {
-    // Sample extension assemblies are built by the projects under
-    // test/Resources/AssemblyScanner and copied into an "extensions" folder next to the
-    // test assembly. Each extension references the real WebJobs / Worker.Extensions.Abstractions
-    // packages that define the marker attributes, but those package assemblies are intentionally
-    // NOT copied alongside, so scanning succeeds only because the scanner matches attributes by
-    // metadata name without resolving the defining assembly - mirroring how
-    // Microsoft.Azure.WebJobs.Host is excluded from the extension payload in production.
-    private static readonly string ExtensionsDirectory = Path.Combine(
-        Path.GetDirectoryName(GetAssemblyLocation())!, "extensions");
-
-    private static string GetAssemblyLocation()
-    {
-#if NET
-        return typeof(FunctionsAssemblyScannerTests).Assembly.Location;
-#else
-        // On net472 the test host shadow-copies the assembly, so Assembly.Location points at the
-        // shadow-copy cache where the "extensions" content folder is absent. CodeBase resolves to
-        // the original build output directory where the folder was deployed.
-        Uri uri = new Uri(typeof(FunctionsAssemblyScannerTests).Assembly.CodeBase!);
-        return uri.LocalPath;
-#endif
-    }
+    // Sample extension assemblies are built by the projects under test/Resources/AssemblyScanner and
+    // scanned in place from their own build output directories - the _GenerateSampleExtensionPaths
+    // target records each sample's absolute path in the generated SampleExtensions.Paths map. Each
+    // extension references the real WebJobs / Worker.Extensions.Abstractions packages that define the
+    // marker attributes, but those package assemblies do NOT sit alongside the extension, so scanning
+    // succeeds only because the scanner matches attributes by metadata name without resolving the
+    // defining assembly - mirroring how Microsoft.Azure.WebJobs.Host is excluded from the extension
+    // payload in production.
 
     public static TheoryData<string> ShouldScanPackageFalseData =>
         new()
@@ -176,6 +162,5 @@ public class FunctionsAssemblyScannerTests
         act.Should().Throw<ArgumentException>();
     }
 
-    private static string ExtensionPath(string assemblyName) =>
-        Path.Combine(ExtensionsDirectory, assemblyName + ".dll");
+    private static string ExtensionPath(string assemblyName) => SampleExtensions.Paths[assemblyName];
 }

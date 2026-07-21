@@ -12,6 +12,6 @@
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.5.5
 
-- <entry>
+- Update `Microsoft.Azure.WebJobs.Extensions.Storage.Queues` to `5.3.8`

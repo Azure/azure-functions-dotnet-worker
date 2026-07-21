@@ -37,22 +37,24 @@
   </ItemGroup>
 
   <!--
-    Register the sample extension outputs as copy-to-output content under an "extensions" folder.
-    This mirrors the resolver project's approach so the files are deployed (and shadow-copied by
-    the net472 test host) next to the test assembly, where the tests resolve them via
-    Assembly.Location.
+    Copy each sample extension's own primary assembly into an "extensions" folder next to the test
+    assembly. GetTargetPath returns just the extension's output (not its package dependencies), so
+    the attribute-defining assemblies (Microsoft.Azure.WebJobs.Host, Worker.Extensions.Abstractions)
+    stay out of the scanned payload - the scanner must therefore match the marker attributes as
+    external TypeReferences without resolving the defining assembly. Hooked after
+    CopyFilesToOutputDirectory (per-inner-build, with OutDir set) and copied explicitly rather than
+    via the content pipeline, which does not reliably deploy items injected into the test project
+    itself. The net472 test host shadow-copies the test assembly, but the tests resolve the folder
+    via Assembly.CodeBase, which points back at OutDir where these files live.
   -->
   <Target Name="_IncludeSampleExtensions"
-          AfterTargets="ResolveProjectReferences"
-          BeforeTargets="GetCopyToOutputDirectoryItems">
+          AfterTargets="CopyFilesToOutputDirectory">
     <MSBuild Projects="@(SampleExtensionProject)" Targets="GetTargetPath" RemoveProperties="TargetFramework">
       <Output TaskParameter="TargetOutputs" ItemName="_SampleExtensionOutput" />
     </MSBuild>
-    <ItemGroup>
-      <AllItemsFullPathWithTargetPath Include="@(_SampleExtensionOutput)"
-          CopyToOutputDirectory="PreserveNewest"
-          TargetPath="extensions/%(_SampleExtensionOutput.Filename)%(_SampleExtensionOutput.Extension)" />
-    </ItemGroup>
+    <Copy SourceFiles="@(_SampleExtensionOutput)"
+          DestinationFolder="$(OutDir)extensions"
+          SkipUnchangedFiles="true" />
   </Target>
 
   <ItemGroup>

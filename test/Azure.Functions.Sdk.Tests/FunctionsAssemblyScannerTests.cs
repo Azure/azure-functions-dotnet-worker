@@ -143,7 +143,7 @@ public class FunctionsAssemblyScannerTests
     [Fact]
     public void TryGetExtensionReference_ReturnsTrue_WithoutResolvingAttributeAssembly()
     {
-        string assemblyPath = ExtensionPath("TestExtension.Startup");
+        string assemblyPath = ExtensionPath("TestExtension.Information");
 
         bool result = FunctionsAssemblyScanner.TryGetExtensionReference(
             assemblyPath, "Some.Package.Id", out ITaskItem? extensionReference);

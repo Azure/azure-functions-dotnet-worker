@@ -40,7 +40,7 @@ public sealed partial class WebJobsReference
             }
 
             ImmutableArray<CustomAttributeTypedArgument<string>> arguments =
-                MetadataAttributeReader.DecodeArguments(attribute).FixedArguments;
+                ReflectionExtensions.DecodeArguments(attribute).FixedArguments;
 
             // WebJobsStartupAttribute ctor args: (Type startupType, string name). The name is optional
             // and materialized as an empty string by the compiler when omitted.
@@ -64,8 +64,8 @@ public sealed partial class WebJobsReference
             // Match by metadata type name, walking the attribute's base-type chain only as far as types
             // defined in the scanned assembly. This never resolves the (intentionally absent) assembly
             // that defines WebJobsStartupAttribute, mirroring the previous Cecil-based behavior.
-            return MetadataAttributeReader.AttributeInheritsFrom(
-                reader, attribute, WebJobsStartupAttributeType, StringComparison.OrdinalIgnoreCase);
+            return reader.AttributeInheritsFrom(
+                attribute, WebJobsStartupAttributeType, StringComparison.OrdinalIgnoreCase);
         }
         catch (BadImageFormatException ex)
         {

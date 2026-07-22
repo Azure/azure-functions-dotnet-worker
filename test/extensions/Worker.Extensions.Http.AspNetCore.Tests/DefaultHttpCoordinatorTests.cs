@@ -159,7 +159,11 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
 
             // Act
             var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
-            _ = _coordinator.RunFunctionInvocationAsync(invocationId);
+            var invocationTask = _coordinator.RunFunctionInvocationAsync(invocationId);
+
+            // Allow the function start continuation to complete before cancelling,
+            // so cancellation hits the HTTP context wait step (waitStep == 1).
+            await Task.Yield();
             cts.Cancel();
 
             // Assert
@@ -374,7 +378,7 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
-        public async Task RunFunctionInvocationAsync_WhenCancelled_ThrowsTaskCanceledException()
+        public async Task RunFunctionInvocationAsync_WhenCancelled_ThrowsOperationCanceledException()
         {
             // Arrange
             string invocationId = Guid.NewGuid().ToString();

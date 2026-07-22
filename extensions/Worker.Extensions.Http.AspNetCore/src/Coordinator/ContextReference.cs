@@ -9,8 +9,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class ContextReference
     {
-        private readonly TaskCompletionSource<bool> _functionStartTask = new();
-        private readonly TaskCompletionSource<bool> _functionCompletionTask = new();
+        private readonly TaskCompletionSource<bool> _functionStartTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> _functionCompletionTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private CancellationTokenRegistration _cancellationRegistration;
 
@@ -37,8 +37,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             if (cancellationToken.CanBeCanceled)
             {
                 _cancellationRegistration = cancellationToken.Register(
-                    static state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(),
-                    _functionCompletionTask);
+                    static state =>
+                    {
+                        var (tcs, ct) = ((TaskCompletionSource<bool>, CancellationToken))state!;
+                        tcs.TrySetCanceled(ct);
+                    },
+                    (_functionCompletionTask, cancellationToken));
             }
 
             return _functionCompletionTask.Task;

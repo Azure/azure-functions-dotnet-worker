@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Storage</AssemblyName>
@@ -6,7 +6,7 @@
     <Description>Azure Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>6.8.1</VersionPrefix>
+    <VersionPrefix>6.8.2</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

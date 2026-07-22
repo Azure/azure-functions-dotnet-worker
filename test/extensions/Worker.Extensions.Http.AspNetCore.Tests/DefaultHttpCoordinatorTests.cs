@@ -160,6 +160,10 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             // Act
             var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
             _ = _coordinator.RunFunctionInvocationAsync(invocationId);
+
+            // Allow the function start continuation to complete before cancelling,
+            // so cancellation hits the HTTP context wait step (waitStep == 1).
+            await Task.Yield();
             cts.Cancel();
 
             // Assert
@@ -371,6 +375,109 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             mockContext.Setup(c => c.CancellationToken).Returns(cancellationToken);
             mockContext.Setup(c => c.InvocationId).Returns(Guid.NewGuid().ToString());
             return mockContext.Object;
+        }
+
+        [Fact]
+        public async Task RunFunctionInvocationAsync_WhenCancelled_ThrowsOperationCanceledException()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var httpContext = new DefaultHttpContext();
+            var functionContext = CreateTestFunctionContext();
+            var cts = new CancellationTokenSource();
+
+            var setHttpTask = _coordinator.SetHttpContextAsync(invocationId, httpContext);
+            var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
+
+            // Act
+            var invocationTask = _coordinator.RunFunctionInvocationAsync(invocationId, cts.Token);
+
+            await setHttpTask;
+            await setFunctionTask;
+
+            // Cancel the token (simulates client disconnect)
+            cts.Cancel();
+
+            // Assert - The invocation task should be cancelled
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await invocationTask);
+        }
+
+        [Fact]
+        public async Task RunFunctionInvocationAsync_WhenCancelledAfterCompletion_DoesNotThrow()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var httpContext = new DefaultHttpContext();
+            var functionContext = CreateTestFunctionContext();
+            var cts = new CancellationTokenSource();
+
+            var setHttpTask = _coordinator.SetHttpContextAsync(invocationId, httpContext);
+            var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
+            var invocationTask = _coordinator.RunFunctionInvocationAsync(invocationId, cts.Token);
+
+            await setHttpTask;
+            await setFunctionTask;
+
+            // Complete the function before cancelling
+            _coordinator.CompleteFunctionInvocation(invocationId);
+            await invocationTask;
+
+            // Act - Cancel after completion should be a no-op
+            cts.Cancel();
+
+            // Assert - Task already completed successfully
+            Assert.True(invocationTask.IsCompletedSuccessfully);
+        }
+
+        [Fact]
+        public async Task RunFunctionInvocationAsync_WhenCompletedAfterCancellation_RemainsInCancelledState()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var httpContext = new DefaultHttpContext();
+            var functionContext = CreateTestFunctionContext();
+            var cts = new CancellationTokenSource();
+
+            var setHttpTask = _coordinator.SetHttpContextAsync(invocationId, httpContext);
+            var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
+            var invocationTask = _coordinator.RunFunctionInvocationAsync(invocationId, cts.Token);
+
+            await setHttpTask;
+            await setFunctionTask;
+
+            // Cancel first
+            cts.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await invocationTask);
+
+            // Act - Complete after cancellation (simulates worker finishing after client disconnects)
+            _coordinator.CompleteFunctionInvocation(invocationId);
+
+            // Assert - Task should still be in cancelled state (TrySetResult returns false)
+            Assert.True(invocationTask.IsCanceled);
+        }
+
+        [Fact]
+        public async Task RunFunctionInvocationAsync_WithDefaultToken_CompletesNormally()
+        {
+            // Arrange
+            string invocationId = Guid.NewGuid().ToString();
+            var httpContext = new DefaultHttpContext();
+            var functionContext = CreateTestFunctionContext();
+
+            var setHttpTask = _coordinator.SetHttpContextAsync(invocationId, httpContext);
+            var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
+
+            // Act - Use default token (no cancellation)
+            var invocationTask = _coordinator.RunFunctionInvocationAsync(invocationId);
+
+            await setHttpTask;
+            await setFunctionTask;
+
+            _coordinator.CompleteFunctionInvocation(invocationId);
+            await invocationTask;
+
+            // Assert
+            Assert.True(invocationTask.IsCompletedSuccessfully);
         }
 
         [Fact]

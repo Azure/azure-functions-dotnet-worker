@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
@@ -8,8 +9,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class ContextReference
     {
-        private readonly TaskCompletionSource<bool> _functionStartTask = new();
-        private readonly TaskCompletionSource<bool> _functionCompletionTask = new();
+        private readonly TaskCompletionSource<bool> _functionStartTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> _functionCompletionTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private CancellationTokenRegistration _cancellationRegistration;
 
         private TaskCompletionSource<HttpContext> _httpContextValueSource = new();
         private TaskCompletionSource<FunctionContext> _functionContextValueSource = new();
@@ -27,14 +30,28 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public TaskCompletionSource<FunctionContext> FunctionContextValueSource { get => _functionContextValueSource; set => _functionContextValueSource = value; }
 
-        internal Task InvokeFunctionAsync()
+        internal Task InvokeFunctionAsync(CancellationToken cancellationToken)
         {
+            if (cancellationToken.CanBeCanceled)
+            {
+                _cancellationRegistration = cancellationToken.Register(
+                    static state =>
+                    {
+                        var (tcs, ct) = ((TaskCompletionSource<bool>, CancellationToken))state!;
+                        tcs.TrySetCanceled(ct);
+                    },
+                    (_functionCompletionTask, cancellationToken));
+            }
+
             _functionStartTask.SetResult(true);
+
             return _functionCompletionTask.Task;
         }
 
         internal void CompleteFunction()
         {
+            _cancellationRegistration.Dispose();
+
             if (_functionCompletionTask.Task.IsCompleted)
             {
                 return;

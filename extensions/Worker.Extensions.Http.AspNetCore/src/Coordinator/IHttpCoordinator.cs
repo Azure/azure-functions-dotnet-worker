@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
@@ -29,8 +30,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         /// Signals the Functions middleware pipeline that it can continue with the specified invocation.
         /// </summary>
         /// <param name="invocationId">The invocation id.</param>
+        /// <param name="cancellationToken">Token to cancel the wait when the client disconnects.</param>
         /// <returns>A Task that completes when the function invocation is complete.</returns>
-        public Task RunFunctionInvocationAsync(string invocationId);
+        public Task RunFunctionInvocationAsync(string invocationId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Signals that the function invocation is complete. Allows the ASP.NET middleware pipeline to continue.

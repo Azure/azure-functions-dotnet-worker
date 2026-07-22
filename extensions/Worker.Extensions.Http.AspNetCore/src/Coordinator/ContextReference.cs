@@ -32,8 +32,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         internal Task InvokeFunctionAsync(CancellationToken cancellationToken)
         {
-            _functionStartTask.SetResult(true);
-
             if (cancellationToken.CanBeCanceled)
             {
                 _cancellationRegistration = cancellationToken.Register(
@@ -44,6 +42,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     },
                     (_functionCompletionTask, cancellationToken));
             }
+
+            _functionStartTask.SetResult(true);
 
             return _functionCompletionTask.Task;
         }

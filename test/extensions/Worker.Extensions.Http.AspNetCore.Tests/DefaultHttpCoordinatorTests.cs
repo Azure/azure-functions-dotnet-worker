@@ -159,7 +159,7 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
 
             // Act
             var setFunctionTask = _coordinator.SetFunctionContextAsync(invocationId, functionContext);
-            var invocationTask = _coordinator.RunFunctionInvocationAsync(invocationId);
+            _ = _coordinator.RunFunctionInvocationAsync(invocationId);
 
             // Allow the function start continuation to complete before cancelling,
             // so cancellation hits the HTTP context wait step (waitStep == 1).

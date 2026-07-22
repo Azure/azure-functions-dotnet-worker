@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
@@ -124,14 +125,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
         }
 
-        public Task RunFunctionInvocationAsync(string invocationId)
+        public Task RunFunctionInvocationAsync(string invocationId, CancellationToken cancellationToken = default)
         {
             if (!_contextReferenceList.TryGetValue(invocationId, out var contextReference))
             {
                 throw new InvalidOperationException($"Context for invocation id '{invocationId}' does not exist.");
             }
 
-            return contextReference.InvokeFunctionAsync();
+            return contextReference.InvokeFunctionAsync(cancellationToken);
         }
 
         // TODO:See about making this not public

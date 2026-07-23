@@ -320,19 +320,17 @@ public partial class SdkEndToEndTests
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: "net8.0", includeWorkerPackage: false)
             .Property("AssemblyName", "MyFunctionApp")
-            .WriteSourceFile("Program.cs", "public class Program { public static void Main() { } }");
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
 
         // Act
         BuildOutput output = project.Build(restore: true);
 
         // Assert - build succeeds, but the SDK warns that no worker package was found after restore.
         output.Should().BeSuccessful();
-        output.WarningEvents
-            .Where(x => x.Code == LogMessage.Warning_WorkerPackageNotReferenced.Code)
-            .Should().NotBeEmpty()
+        output.WarningEvents.Should().Contain(x => x.Code == LogMessage.Warning_WorkerPackageNotReferenced.Code)
             .And.AllSatisfy(warning => warning.Should()
                 .BeSdkMessage(LogMessage.Warning_WorkerPackageNotReferenced)
-                .And.HaveSender("FuncSdkLog"));
+                .And.HaveSender("ResolveWorkerPackageReference"));
     }
 
     [Fact]

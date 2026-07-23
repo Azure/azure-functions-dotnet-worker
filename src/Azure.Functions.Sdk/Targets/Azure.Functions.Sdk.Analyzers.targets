@@ -11,8 +11,30 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
 <Project>
 
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).ResolveWorkerPackageReference" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+
   <PropertyGroup>
     <FunctionsGeneratedCodeNamespace Condition="'$(FunctionsGeneratedCodeNamespace)' == ''">$(RootNamespace.Replace("-", "_"))</FunctionsGeneratedCodeNamespace>
   </PropertyGroup>
+
+  <Target Name="_ConfigureWorkerSourceGen"
+    BeforeTargets="GenerateMSBuildEditorConfigFileCore;CoreCompile">
+    <PropertyGroup>
+      <!-- In multi-targeting, $(ProjectAssetsFile) may be empty in some paths, so we backfill it. -->
+      <_ProjectAssetsFile>$(ProjectAssetsFile)</_ProjectAssetsFile>
+      <_ProjectAssetsFile Condition="'$(_ProjectAssetsFile)' == ''">$(BaseIntermediateOutputPath)project.assets.json</_ProjectAssetsFile>
+    </PropertyGroup>
+
+    <ResolveWorkerPackageReference ProjectAssetsFile="$(_ProjectAssetsFile)" TargetFramework="$(TargetFramework)">
+      <Output TaskParameter="WorkerPackages" ItemName="_ResolvedWorkerPackages" />
+    </ResolveWorkerPackageReference>
+
+    <PropertyGroup Condition="'@(_ResolvedWorkerPackages)' == ''">
+      <FunctionsEnableMetadataSourceGen>false</FunctionsEnableMetadataSourceGen>
+      <FunctionsEnableExecutorSourceGen>false</FunctionsEnableExecutorSourceGen>
+      <FunctionsAutoRegisterGeneratedMetadataProvider>false</FunctionsAutoRegisterGeneratedMetadataProvider>
+      <FunctionsAutoRegisterGeneratedFunctionsExecutor>false</FunctionsAutoRegisterGeneratedFunctionsExecutor>
+    </PropertyGroup>
+  </Target>
 
 </Project>

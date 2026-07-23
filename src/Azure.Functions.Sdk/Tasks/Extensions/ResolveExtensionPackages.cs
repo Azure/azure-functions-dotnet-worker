@@ -119,7 +119,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
             foreach (LockFileItem assembly in library.RuntimeAssemblies)
             {
                 string path = _fileSystem.Path.Combine(packagePath, assembly.Path);
-                if (TryGetExtensionReference(path, library, out ITaskItem? ext))
+                foreach (ITaskItem ext in GetExtensionReferences(path, library))
                 {
                     ext.TargetFramework = target.TargetFramework.ToString();
                     yield return ext;
@@ -128,30 +128,19 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
         }
     }
 
-    private bool TryGetExtensionReference(
-        string path, LockFileTargetLibrary library, [NotNullWhen(true)] out ITaskItem? ext)
+    private IEnumerable<ITaskItem> GetExtensionReferences(
+        string path, LockFileTargetLibrary library)
     {
         // Lock file will sometimes insert '_._' for assemblies that are not present on disk for a given RID.
         if (Path.GetExtension(path).ToLowerInvariant() is not (".dll" or ".exe") || !_fileSystem.File.Exists(path))
         {
-            ext = null;
-            return false;
+            return [];
         }
 
+        List<ITaskItem> extensions;
         try
         {
-            if (ExtensionReference.TryGetFromModule(path, library.Name!, out ext))
-            {
-                Log.LogMessage(
-                    MessageImportance.Low,
-                    "Extension {0}/{1} referenced by {2}/{3}",
-                    ext.ItemSpec,
-                    ext.Version,
-                    library.Name,
-                    library.Version);
-
-                return true;
-            }
+            extensions = ExtensionReference.GetFromModule(path, library.Name!);
         }
         catch (Exception ex) when (!ex.IsFatal())
         {
@@ -162,9 +151,20 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
                 library.Version,
                 ex.GetType(),
                 ex.Message);
+            return [];
         }
 
-        ext = null;
-        return false;
+        foreach (ITaskItem ext in extensions)
+        {
+            Log.LogMessage(
+                MessageImportance.Low,
+                "Extension {0}/{1} referenced by {2}/{3}",
+                ext.ItemSpec,
+                ext.Version,
+                library.Name,
+                library.Version);
+        }
+
+        return extensions;
     }
 }

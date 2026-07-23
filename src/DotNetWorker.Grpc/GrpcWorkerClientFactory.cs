@@ -63,7 +63,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
                 var eventStream = _grpcClient.EventStream(cancellationToken: token);
 
-                await SendStartStreamMessageAsync(eventStream.RequestStream);
+                await SendStartStreamMessageAsync(eventStream.RequestStream).ConfigureAwait(false);
 
                 _ = StartWriterAsync(eventStream.RequestStream);
                 _ = StartReaderAsync(eventStream.ResponseStream);
@@ -81,24 +81,24 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                     StartStream = str
                 };
 
-                await requestStream.WriteAsync(startStream);
+                await requestStream.WriteAsync(startStream).ConfigureAwait(false);
             }
 
             public ValueTask SendMessageAsync(StreamingMessage message) => _outputWriter.WriteAsync(message);
 
             private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
             {
-                await foreach (StreamingMessage rpcWriteMsg in _outputReader.ReadAllAsync())
+                await foreach (StreamingMessage rpcWriteMsg in _outputReader.ReadAllAsync().ConfigureAwait(false))
                 {
-                    await requestStream.WriteAsync(rpcWriteMsg);
+                    await requestStream.WriteAsync(rpcWriteMsg).ConfigureAwait(false);
                 }
             }
 
             private async Task StartReaderAsync(IAsyncStreamReader<StreamingMessage> responseStream)
             {
-                while (await responseStream.MoveNext())
+                while (await responseStream.MoveNext().ConfigureAwait(false))
                 {
-                    await _processor!.ProcessMessageAsync(responseStream.Current);
+                    await _processor!.ProcessMessageAsync(responseStream.Current).ConfigureAwait(false);
                 }
             }
 

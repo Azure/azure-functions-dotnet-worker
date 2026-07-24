@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
 {
     public class StreamTests
     {
-        private readonly BlobStorageConverter _blobStorageConverter;
+        private readonly BlobConverterTestDispatcher _converter;
         private readonly Mock<BlobServiceClient> _mockBlobServiceClient;
 
         public StreamTests()
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
 
             var workerOptions = host.Services.GetService<IOptions<WorkerOptions>>();
-            var logger = host.Services.GetService<ILogger<BlobStorageConverter>>();
+            var loggerFactory = host.Services.GetService<ILoggerFactory>();
 
             _mockBlobServiceClient = new Mock<BlobServiceClient>();
 
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockBlobOptions.Object);
 
-            _blobStorageConverter = new BlobStorageConverter(workerOptions, mockBlobOptionsMonitor.Object, logger);
+            _converter = new BlobConverterTestDispatcher(workerOptions, mockBlobOptionsMonitor.Object, loggerFactory);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
             // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
             var streamResult = (Stream)conversionResult.Value;
 
             // Assert
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
             // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
             var streamResult = (Stream)conversionResult.Value;
 
             // Assert
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
 
 
             // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
             // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
             var streamResult = (IEnumerable<Stream>)conversionResult.Value;
 
             // Assert
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
             // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
             var streamResult = (Stream[])conversionResult.Value;
 
             // Assert
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
             // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
             var streamResult = (Stream[])conversionResult.Value;
 
             // Assert
@@ -241,7 +241,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
             // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);

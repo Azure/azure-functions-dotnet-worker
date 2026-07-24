@@ -1,0 +1,22 @@
+<Project>
+
+  <!--
+    Throwaway extension fixtures scanned by FunctionsAssemblyScannerTests. They are built via
+    ReferenceOutputAssembly=false ProjectReferences from the test project, but are never linked,
+    packed, or shipped. Import the repo-root props so these projects still see RepoRoot, audit
+    settings, etc.
+  -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <!-- Fixtures are matched by attribute type name, not assembly identity, so signing is unneeded. -->
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+
+</Project>

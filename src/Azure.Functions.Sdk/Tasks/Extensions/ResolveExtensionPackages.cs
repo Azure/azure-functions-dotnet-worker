@@ -101,7 +101,8 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
         return true;
     }
 
-    private IEnumerable<ITaskItem> GetExtensionPackages(LockFileTarget target, FallbackPackagePathResolver resolver)
+    private IEnumerable<ITaskItem> GetExtensionPackages(
+        LockFileTarget target, FallbackPackagePathResolver resolver)
     {
         foreach (LockFileTargetLibrary library in target.Libraries)
         {
@@ -129,7 +130,9 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
     }
 
     private bool TryGetExtensionReference(
-        string path, LockFileTargetLibrary library, [NotNullWhen(true)] out ITaskItem? ext)
+        string path,
+        LockFileTargetLibrary library,
+        [NotNullWhen(true)] out ITaskItem? ext)
     {
         // Lock file will sometimes insert '_._' for assemblies that are not present on disk for a given RID.
         if (Path.GetExtension(path).ToLowerInvariant() is not (".dll" or ".exe") || !_fileSystem.File.Exists(path))
@@ -140,7 +143,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
 
         try
         {
-            if (ExtensionReference.TryGetFromModule(path, library.Name!, out ext))
+            if (FunctionsAssemblyScanner.TryGetExtensionReference(path, library.Name!, out ext))
             {
                 Log.LogMessage(
                     MessageImportance.Low,

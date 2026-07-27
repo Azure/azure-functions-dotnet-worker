@@ -43,15 +43,15 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
 
         private async Task ProcessInbound()
         {
-            await foreach (StreamingMessage msg in _inbound.Reader.ReadAllAsync())
+            await foreach (StreamingMessage msg in _inbound.Reader.ReadAllAsync().ConfigureAwait(false))
             {
-                await _messageProcessor.ProcessMessageAsync(msg);
+                await _messageProcessor.ProcessMessageAsync(msg).ConfigureAwait(false);
             }
         }
 
         private async Task ProcessOutbound()
         {
-            await foreach (StreamingMessage msg in _outputChannelReader.ReadAllAsync())
+            await foreach (StreamingMessage msg in _outputChannelReader.ReadAllAsync().ConfigureAwait(false))
             {
                 NativeMethods.SendStreamingMessage(msg);
             }

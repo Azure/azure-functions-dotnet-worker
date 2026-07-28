@@ -117,7 +117,6 @@ public class ResolveWorkerPackageReference(IFileSystem fileSystem)
 
             lockFile = null;
             WorkerPackages = [];
-            Log.LogMessage(LogMessage.Warning_WorkerPackageNotReferenced);
             return false;
         }
 

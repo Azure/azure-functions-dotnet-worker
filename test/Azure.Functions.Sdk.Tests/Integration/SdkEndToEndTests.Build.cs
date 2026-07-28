@@ -328,9 +328,8 @@ public partial class SdkEndToEndTests
         // Assert - build succeeds, but the SDK warns that no worker package was found after restore.
         output.Should().BeSuccessful();
         output.WarningEvents.Should().Contain(x => x.Code == LogMessage.Warning_WorkerPackageNotReferenced.Code)
-            .And.AllSatisfy(warning => warning.Should()
-                .BeSdkMessage(LogMessage.Warning_WorkerPackageNotReferenced)
-                .And.HaveSender("ResolveWorkerPackageReference"));
+            .Which.Should().BeSdkMessage(LogMessage.Warning_WorkerPackageNotReferenced)
+            .And.HaveSender("ResolveWorkerPackageReference");
     }
 
     [Fact]

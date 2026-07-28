@@ -26,11 +26,11 @@ public sealed class ResolveWorkerPackageReferenceTests : IDisposable
     }
 
     [Fact]
-    public void LockFileDoesNotExist_EmitsWarning_AndReturnsNoPackage()
+    public void LockFileDoesNotExist_NoWarning_AndReturnsNoPackage()
     {
         // Arrange
         Mock<IBuildEngine> buildEngine = new();
-        ResolveWorkerPackageReference task = CreateTask("C:/missing/project.assets.json", buildEngine.Object, new MockFileSystem());
+        ResolveWorkerPackageReference task = CreateTask("./does/not/exist/project.assets.json", buildEngine.Object, new MockFileSystem());
 
         // Act
         bool result = task.Execute();
@@ -38,7 +38,6 @@ public sealed class ResolveWorkerPackageReferenceTests : IDisposable
         // Assert
         result.Should().BeTrue();
         task.WorkerPackages.Should().BeEmpty();
-        buildEngine.VerifyLog(LogMessage.Warning_WorkerPackageNotReferenced);
     }
 
     [Fact]

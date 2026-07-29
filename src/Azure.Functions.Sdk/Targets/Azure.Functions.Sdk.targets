@@ -64,21 +64,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       Resource="Error_UsingIncompatibleSdk" Arguments="Microsoft.NET.Sdk.Functions" />
   </Target>
 
-  <!--
-    The Azure Functions worker package is no longer added implicitly. It must be referenced by the
-    project (directly or transitively) so NuGet can resolve the highest version required by the
-    dependency graph. This target runs post-restore (after package assets are resolved) and warns
-    when no 'Microsoft.Azure.Functions.Worker.Core' assembly is present in the resolved closure.
-  -->
-  <Target Name="_ValidateWorkerPackageReference"
-    AfterTargets="ResolvePackageAssets"
-    Condition="'$(DesignTimeBuild)' != 'true'">
-    <PropertyGroup>
-      <_FunctionsHasWorkerCoreReference>@(ResolvedCompileFileDefinitions->AnyHaveMetadataValue('NuGetPackageId', 'Microsoft.Azure.Functions.Worker.Core'))</_FunctionsHasWorkerCoreReference>
-    </PropertyGroup>
-    <FuncSdkLog Condition="'$(_FunctionsHasWorkerCoreReference)' != 'true'" Resource="Warning_WorkerPackageNotReferenced" />
-  </Target>
-
   <Target Name="_FunctionsCheckForCoreTools">
     <Exec Command="func --version" IgnoreExitCode="true">
       <Output TaskParameter="ExitCode" PropertyName="_FuncCliExitCode" />

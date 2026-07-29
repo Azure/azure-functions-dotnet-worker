@@ -24,7 +24,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </_FuncSdkPackageReference>
-    <_FuncSdkPackageReference Include="Microsoft.Azure.Functions.Worker.Sdk.Generators" Version="1.3.6" IsImplicitlyDefined="true">
+    <_FuncSdkPackageReference Include="Microsoft.Azure.Functions.Worker.Sdk.Generators" Version="1.4.0" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </_FuncSdkPackageReference>

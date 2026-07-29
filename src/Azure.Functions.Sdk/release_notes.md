@@ -9,6 +9,7 @@
 - fix: no longer add `Microsoft.Azure.Functions.Worker` as an implicit package reference, which caused silent version downgrades and runtime `MissingMethodException` failures (#3450)
   - reference `Microsoft.Azure.Functions.Worker` explicitly in your project
   - emit `AZFW0111` warning when no worker package is found after restore
+  - source generators are skipped if this package is missing
 - fix: expand removed properties and pin `Configuration=release` when restoring/resolving the generated extension project (#3399)
 - fix: reliably resolve extension restore sources (#3393)
 - feat: emit `AZFW0110` warning when the deprecated `FunctionsEnableWorkerIndexing` property is set (#3395)

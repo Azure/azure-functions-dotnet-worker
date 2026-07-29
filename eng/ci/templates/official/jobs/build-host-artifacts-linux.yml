@@ -24,10 +24,7 @@ jobs:
       - Priority -equals Low
 
   steps:
-  - task: UseDotNet@2
-    displayName: Install .NET SDK from global.json
-    inputs:
-      useGlobalJson: true
+  - template: /eng/ci/templates/steps/install-dotnet.yml
 
   - script: |
       sudo apt-get update

@@ -13,3 +13,6 @@ steps:
   inputs:
     packageType: 'sdk'
     useGlobalJson: true
+
+- task: NuGetAuthenticate@1
+  displayName: Authenticate with NuGet feeds

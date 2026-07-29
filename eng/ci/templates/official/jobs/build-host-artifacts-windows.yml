@@ -12,10 +12,7 @@ jobs:
       artifact: _functionsNetHostPackagesWindows
 
   steps:
-  - task: UseDotNet@2
-    displayName: Install .NET SDK from global.json
-    inputs:
-      useGlobalJson: true
+  - template: /eng/ci/templates/steps/install-dotnet.yml
 
   - task: DotnetCoreCLI@2
     displayName: Dotnet Publish

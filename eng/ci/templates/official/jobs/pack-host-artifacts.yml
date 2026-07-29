@@ -12,10 +12,7 @@ jobs:
       artifact: NugetPackages
 
   steps:
-  - task: UseDotNet@2
-    displayName: Install .NET SDK from global.json
-    inputs:
-      useGlobalJson: true
+  - template: /eng/ci/templates/steps/install-dotnet.yml
 
   - task: DownloadPipelineArtifact@2
     displayName: Download prelaunch artifacts

@@ -18,6 +18,7 @@ Write-Host "Skip Storage Emulator: $SkipStorageEmulator"
 $startedCosmos = $false
 $startedStorage = $false
 $npmRegistry = "https://pkgs.dev.azure.com/azfunc/public/_packaging/upstream-public/npm/registry/"
+$npmConfigPath = Join-Path (Split-Path -Parent $PSScriptRoot) ".npmrc"
 
 if (!$IsWindows -and !$IsLinux -and !$IsMacOs)
 {
@@ -93,12 +94,22 @@ if (!$SkipStorageEmulator)
     {
         if ($IsWindows)
         {
-            npm install -g azurite --registry $npmRegistry
+            $previousNpmConfig = $env:NPM_CONFIG_USERCONFIG
+            try
+            {
+                $env:NPM_CONFIG_USERCONFIG = $npmConfigPath
+                npm install -g azurite --registry $npmRegistry
+            }
+            finally
+            {
+                $env:NPM_CONFIG_USERCONFIG = $previousNpmConfig
+            }
+
             Start-Process azurite.cmd -ArgumentList "--silent"
         }
         else
         {
-            sudo npm install -g azurite --registry $npmRegistry
+            sudo env "NPM_CONFIG_USERCONFIG=$npmConfigPath" npm install -g azurite --registry $npmRegistry
             sudo mkdir azurite
             sudo azurite --silent --location azurite --debug azurite\debug.log &
         }

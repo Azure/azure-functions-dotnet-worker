@@ -1,5 +1,8 @@
 steps:
 
+- task: NuGetAuthenticate@1
+  displayName: Authenticate NuGet feeds
+
 # Our tests target net8.0
 - task: UseDotNet@2
   displayName: 'Install .NET8 SDK'

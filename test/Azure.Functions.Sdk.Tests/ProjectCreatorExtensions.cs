@@ -17,7 +17,7 @@ internal static class ProjectCreatorExtensions
             KeyValuePair.Create("ImportDirectoryBuildProps", bool.FalseString),
             KeyValuePair.Create("ImportDirectoryPackagesProps", bool.FalseString),
             KeyValuePair.Create("ImportDirectoryBuildTargets", bool.FalseString),
-            KeyValuePair.Create("RestoreSources", "https://api.nuget.org/v3/index.json" )
+            KeyValuePair.Create("RestoreSources", "https://pkgs.dev.azure.com/azfunc/public/_packaging/upstream-public/nuget/v3/index.json")
         ]);
 
     private static IDictionary<string, string>? CombineProperties(

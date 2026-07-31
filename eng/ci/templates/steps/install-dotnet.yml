@@ -1,5 +1,8 @@
 steps:
 
+- task: NuGetAuthenticate@1
+  displayName: Authenticate NuGet feeds
+
 - task: UseDotNet@2 # Needed by our projects and CI steps
   displayName: Install .NET 6
   inputs:

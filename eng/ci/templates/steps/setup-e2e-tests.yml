@@ -20,6 +20,12 @@ parameters:
 
 steps:
 
+- ${{ if not(parameters.SkipStorageEmulator) }}:
+  - task: npmAuthenticate@0
+    displayName: Authenticate npm feed
+    inputs:
+      workingFile: $(Build.SourcesDirectory)/.npmrc
+
 - task: PowerShell@2
   displayName: 'Setup E2E tests'
   inputs:

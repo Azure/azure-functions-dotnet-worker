@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} -s {UpstreamPublicPackages} -s {LocalPackages} -p:SdkVersion={SdkVersion}";
+            string dotnetArgs = $"restore \"{projectNameToTest}\" -s \"{UpstreamPublicPackages}\" -s \"{LocalPackages}\" -p:SdkVersion={SdkVersion}";
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} -s {UpstreamPublicPackages} -s {LocalPackages} -p:SdkVersion={SdkVersion}";
+            string dotnetArgs = $"restore \"{projectNameToTest}\" -s \"{UpstreamPublicPackages}\" -s \"{LocalPackages}\" -p:SdkVersion={SdkVersion}";
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");

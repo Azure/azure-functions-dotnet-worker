@@ -21,6 +21,11 @@ steps:
   - template: /eng/ci/templates/steps/install-core-tools.yml@self
 
 - ${{ if not(parameters.SkipStorageEmulator) }}:
+  - task: npmAuthenticate@0
+    displayName: Authenticate npm feed
+    inputs:
+      workingFile: $(Build.SourcesDirectory)/.npmrc
+
   - task: UseNode@1
     inputs:
       version: 26.x

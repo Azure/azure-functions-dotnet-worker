@@ -37,7 +37,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
         public static readonly string TestOutputDir = Path.Combine(Path.GetTempPath(), "FunctionsWorkerSdk.E2ETests");
         public static readonly string TestResourcesProjectsRoot = Path.Combine(TestRoot, "Resources", "Projects");
 
-        public static readonly string NuGetOrgPackages = "https://api.nuget.org/v3/index.json";
+        public static readonly string UpstreamPublicPackages = "https://pkgs.dev.azure.com/azfunc/public/_packaging/upstream-public/nuget/v3/index.json";
         public static readonly string NuGetPackageSource = LocalPackages;
         public static readonly string SdkVersion = "99.99.99-test";
         public static readonly string SdkBuildProj = Path.Combine(PathToRepoRoot, "build", "Sdk.slnf");
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} -s {NuGetOrgPackages} -s {LocalPackages} -p:SdkVersion={SdkVersion}";
+            string dotnetArgs = $"restore \"{projectNameToTest}\" -s \"{UpstreamPublicPackages}\" -s \"{LocalPackages}\" -p:SdkVersion={SdkVersion}";
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} -s {NuGetOrgPackages} -s {LocalPackages} -p:SdkVersion={SdkVersion}";
+            string dotnetArgs = $"restore \"{projectNameToTest}\" -s \"{UpstreamPublicPackages}\" -s \"{LocalPackages}\" -p:SdkVersion={SdkVersion}";
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");

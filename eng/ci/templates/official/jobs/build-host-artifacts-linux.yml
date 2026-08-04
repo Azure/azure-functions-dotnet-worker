@@ -26,6 +26,9 @@ jobs:
     inputs:
       useGlobalJson: true
 
+  - task: NuGetAuthenticate@1
+    displayName: Authenticate NuGet feeds
+
   - script: |
       sudo apt-get install clang zlib1g-dev
     displayName: Install dependencies

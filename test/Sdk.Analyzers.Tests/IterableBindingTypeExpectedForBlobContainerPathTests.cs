@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 
+using Microsoft.Azure.Functions.Tests.Analyzers;
+
 namespace Sdk.Analyzers.Tests
 {
     public class IterableBindingTypeExpectedForBlobContainerPathTests
@@ -32,7 +34,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
@@ -70,7 +72,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
@@ -107,7 +109,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
@@ -145,7 +147,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
@@ -181,7 +183,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
@@ -216,7 +218,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
@@ -251,7 +253,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
@@ -287,7 +289,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
@@ -323,7 +325,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),

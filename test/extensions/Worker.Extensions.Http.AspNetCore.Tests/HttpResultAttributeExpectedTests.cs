@@ -6,6 +6,7 @@ using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<Mi
 using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForHttpResultAttribute, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForHttpResultAttribute, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.Azure.Functions.Tests.Analyzers;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
@@ -522,7 +523,7 @@ namespace AspNetIntegration
 
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
-            var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithPackages(ImmutableArray.Create(
+            var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                 new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.22.0"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.17.4"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),

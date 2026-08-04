@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 
+using Microsoft.Azure.Functions.Tests.Analyzers;
+
 namespace Sdk.Analyzers.Tests
 {
     public class BindingTypeNotSupportedTests
@@ -51,7 +53,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                                         new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"))),
                 TestCode = testCode
             };
@@ -99,7 +101,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                                         new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"))),
                 TestCode = testCode
             };
@@ -148,7 +150,7 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                                         new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"))),
                 TestCode = testCode
             };

@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 
+using Microsoft.Azure.Functions.Tests.Analyzers;
+
 namespace Sdk.Analyzers.Tests
 {
     public class WebJobsAttributesNotSupportedTests
@@ -34,7 +36,7 @@ namespace FunctionApp
             var test = new AnalyzerTest
             {
                 // TODO: This needs to pull from a local source
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.WebJobs.Extensions", "4.0.1"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.10.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.7.0"),
@@ -72,7 +74,7 @@ namespace FunctionApp
 }";
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.10.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.7.0"),
                     new PackageIdentity("Microsoft.Azure.WebJobs.Extensions.Storage", "5.0.1"),
@@ -110,7 +112,7 @@ namespace FunctionApp
 }";
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.10.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.7.0"),
                     new PackageIdentity("Microsoft.Azure.WebJobs.Extensions.Storage", "5.0.1"),
@@ -148,7 +150,7 @@ namespace GH258IsolatedReturnWebJobsAttr
             var test = new AnalyzerTest
             {
                 // TODO: This needs to pull from a local source
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.10.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.7.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Timer", "4.0.1"))),

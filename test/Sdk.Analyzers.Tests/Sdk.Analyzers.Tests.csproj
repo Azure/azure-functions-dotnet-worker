@@ -25,6 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(TestRoot)Shared/RepoReferenceAssemblies.cs" Link="Shared/RepoReferenceAssemblies.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\sdk\Sdk.Analyzers\Sdk.Analyzers.csproj" />
     <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />

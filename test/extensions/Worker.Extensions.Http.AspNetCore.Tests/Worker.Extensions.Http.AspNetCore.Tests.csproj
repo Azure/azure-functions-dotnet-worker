@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(TestRoot)Shared/RepoReferenceAssemblies.cs" Link="Shared/RepoReferenceAssemblies.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.Http.AspNetCore/src/Worker.Extensions.Http.AspNetCore.csproj" />
   </ItemGroup>
 

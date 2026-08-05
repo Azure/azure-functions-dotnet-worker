@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 using System.Threading;
 
+using Microsoft.Azure.Functions.Tests.Analyzers;
+
 namespace Sdk.Analyzers.Tests
 {
     public sealed class AsyncVoidAnalyzerTests
@@ -171,7 +173,7 @@ namespace FunctionApp4
 
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
-            var referenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+            var referenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
                 new PackageIdentity("Microsoft.Azure.WebJobs.Extensions", "4.0.1"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.1.0"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage", "4.0.4")));

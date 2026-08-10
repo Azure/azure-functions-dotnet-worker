@@ -10,6 +10,9 @@ namespace Azure.Functions.Sdk;
 public sealed partial class WebJobsReference
 {
     private const string ExtensionsBinaryDirectoryPath = $@"./{Constants.ExtensionsOutputFolder}";
+    private const string FunctionsStartupAttributeType = "Microsoft.Azure.Functions.Extensions.DependencyInjection.FunctionsStartupAttribute";
+    private const string StringType = "System.String";
+    private const string TypeType = "System.Type";
     private const string WebJobsStartupAttributeType = "Microsoft.Azure.WebJobs.Hosting.WebJobsStartupAttribute";
 
     /// <summary>
@@ -26,8 +29,8 @@ public sealed partial class WebJobsReference
 
         foreach (CustomAttribute attribute in startupAttributes)
         {
-            attribute.GetArguments(out TypeDefinition typeDef, out string name);
-            name = GetName(name, typeDef);
+            GetStartupTypeAndName(attribute, out TypeDefinition typeDef, out string name);
+
             string assemblyQualifiedName = Assembly.CreateQualifiedName(
                 typeDef.Module.Assembly.FullName, typeDef.GetReflectionFullName());
             string fileName = Path.GetFileName(assembly.MainModule.FileName);
@@ -36,12 +39,40 @@ public sealed partial class WebJobsReference
         }
     }
 
+    private static void GetStartupTypeAndName(
+        CustomAttribute attribute,
+        out TypeDefinition startupType,
+        out string name)
+    {
+        IList<CustomAttributeArgument> arguments = attribute.ConstructorArguments;
+        if (arguments.Count == 1
+            && string.Equals(arguments[0].Type.FullName, TypeType, StringComparison.Ordinal))
+        {
+            startupType = (TypeDefinition)arguments[0].Value;
+            name = startupType.Name;
+            return;
+        }
+
+        if (arguments.Count == 2
+            && string.Equals(arguments[0].Type.FullName, TypeType, StringComparison.Ordinal)
+            && string.Equals(arguments[1].Type.FullName, StringType, StringComparison.Ordinal))
+        {
+            startupType = (TypeDefinition)arguments[0].Value;
+            name = GetName((string)arguments[1].Value, startupType);
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Unexpected constructor signature for startup attribute '{attribute.AttributeType.FullName}'.");
+    }
+
     private static bool IsWebJobsStartupAttributeType(TypeReference attributeType, ILogger logger)
     {
         try
         {
             return attributeType.CheckTypeInheritance(
-                type => string.Equals(type.FullName, WebJobsStartupAttributeType, StringComparison.OrdinalIgnoreCase));
+                type => string.Equals(type.FullName, WebJobsStartupAttributeType, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(type.FullName, FunctionsStartupAttributeType, StringComparison.OrdinalIgnoreCase));
         }
         catch (Exception ex) when (ex is FileNotFoundException or BadImageFormatException)
         {

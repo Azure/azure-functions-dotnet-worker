@@ -12,7 +12,7 @@ jobs:
         imageName: '1es-ubuntu-24.04-min'
         osName: 'linux'
       windows:
-        imageName: '1es-windows-2022'
+        imageName: '1es-windows-2025-min'
         osName: 'windows'
 
   templateContext:

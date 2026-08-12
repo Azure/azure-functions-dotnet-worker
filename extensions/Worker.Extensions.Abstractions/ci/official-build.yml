@@ -35,7 +35,7 @@ extends:
   parameters:
     pool:
       name: 1es-pool-azfunc
-      image: 1es-windows-2022
+      image: 1es-windows-2025-min
       os: windows
       ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
         demands:
@@ -43,7 +43,7 @@ extends:
     sdl:
       sourceAnalysisPool:
         name: 1es-pool-azfunc
-        image: 1es-windows-2022
+        image: 1es-windows-2025-min
         os: windows
 
     stages:

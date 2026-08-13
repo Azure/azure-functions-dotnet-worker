@@ -22,6 +22,21 @@
     <ProjectReference Include="$(ResolverProject)" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <!--
+    Sample extension assemblies scanned by FunctionsAssemblyScannerTests. The ProjectReferences build
+    each sample in place but are not referenced for compilation (ReferenceOutputAssembly=false). Each
+    extension references the real WebJobs / Worker.Extensions.Abstractions packages that define the
+    marker attributes, but those package assemblies do not sit in the sample's own output directory,
+    so scanning succeeds only because the scanner matches attributes by metadata name without
+    resolving the defining assembly - mirroring how Microsoft.Azure.WebJobs.Host is absent from the
+    production payload. The tests locate each sample's build output by relative-path convention (see
+    FunctionsAssemblyScannerTests), so nothing needs copying next to the test assembly.
+  -->
+  <ItemGroup>
+    <SampleExtensionProject Include="$(TestRoot)Resources/AssemblyScanner/**/*.csproj" />
+    <ProjectReference Include="@(SampleExtensionProject)" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.3.0" />
     <PackageReference Include="AwesomeAssertions.Analyzers" Version="9.0.8" PrivateAssets="all" />

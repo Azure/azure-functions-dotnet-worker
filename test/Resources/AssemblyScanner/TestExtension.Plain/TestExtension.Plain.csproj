@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- No reference to the abstractions: a plain assembly carrying none of the marker attributes. -->
+
+</Project>

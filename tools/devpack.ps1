@@ -17,12 +17,11 @@
 # Packs the SDK locally, and (by default) updates the Sample to use this package, then builds.
 # Specify --E2E to instead target the E2E test app.
 
-# Use metadata to provide a version that is always head of the latest stable package
-# E.g: Nuget packages will be named 2.0.0 with the version metedata set to 2.0.0+202501311440-local
-$buildNumber = "+" + [System.DateTime]::Now.ToString("yyyyMMddHHmm")
+# Use a unique prerelease version so local NuGet caches cannot reuse a package from an earlier run.
+$version = "42.42.42-local." + [System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss")
 
 Write-Host
-Write-Host "Building packages with BuildNumber $buildNumber"
+Write-Host "Building packages with version $version"
 
 $rootPath = Split-Path -Parent $PSScriptRoot
 $projects = @("$rootPath/samples/FunctionApp/FunctionApp.csproj")
@@ -48,10 +47,11 @@ if (!(Test-Path $localPack))
 {
   New-Item -Path $localPack -ItemType directory | Out-Null
 }
+
 Write-Host
 Write-Host "---Updating projects with local SDK pack---"
 Write-Host "Packing Core .NET Worker projects to $localPack"
-& "dotnet" "pack" $sdkProject "-p:PackageOutputPath=$localPack" "-nologo" "-p:VersionSuffix=$buildNumber" $AdditionalPackArgs
+& "dotnet" "pack" $sdkProject "-p:PackageOutputPath=$localPack" "-nologo" "--version" $version $AdditionalPackArgs
 Write-Host
 
 foreach ($project in $projects) {
@@ -59,11 +59,6 @@ foreach ($project in $projects) {
     & "dotnet" "remove" $project "package" "Microsoft.Azure.Functions.Worker.Sdk"
     Write-Host
 
-    Write-Host "Finding latest local SDK package in $localPack"
-    $package = Find-Package "Microsoft.Azure.Functions.Worker.Sdk" -Source $localPack
-    $version = $package.Version
-    Write-Host "Found $version"
-    Write-Host
     Write-Host "Adding SDK package version $version to $project"
     & "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-v" $version "-s" $localPack "-n"
     Write-Host

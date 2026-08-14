@@ -4,15 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage 6.8.2
+### Microsoft.Azure.Functions.Worker.Extensions.Storage <version>
 
-- Update `Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs` to `6.8.2` (#3470)
-- Update `Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues` to `5.5.5` (#3470)
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.8.2
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
 
-- Update `Microsoft.Azure.WebJobs.Extensions.Storage.Blobs` to `5.3.8` (#3470)
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.5.5
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
 
-- Update `Microsoft.Azure.WebJobs.Extensions.Storage.Queues` to `5.3.8` (#3470)
+- <entry>

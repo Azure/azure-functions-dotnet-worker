@@ -19,6 +19,23 @@ namespace Microsoft.Azure.Functions.Worker
 {
     public static class FunctionsApplicationInsightsExtensions
     {
+        public static IServiceCollection ConfigureFunctionsApplicationInsights(this IServiceCollection services, Action<FunctionsApplicationInsightsOptions> configureOptions)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (configureOptions == null)
+            {
+                throw new ArgumentNullException(nameof(configureOptions));
+            }
+
+            services.Configure(configureOptions);
+
+            return services.ConfigureFunctionsApplicationInsights();
+        }
+
         public static IServiceCollection ConfigureFunctionsApplicationInsights(this IServiceCollection services)
         {
             if (services == null)
@@ -59,12 +76,14 @@ namespace Microsoft.Azure.Functions.Worker
                 return ActivatorUtilities.CreateInstance<FunctionsRoleEnvironmentTelemetryInitializer>(provider);
             });
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryModule, FunctionsTelemetryModule>());
-            services.AddOptions<FunctionsApplicationInsightsOptions>()
+
+            services.AddOptions<ApplicationInsightsSdkValidationMarker>()
                 .Validate<IServiceProvider>(
                     (_, sp) => sp.GetService<TelemetryClient>() is not null,
                     "Application Insights SDK has not been added. Please add and configure the Application Insights SDK. See https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service for more information.");
 
             services.AddHostedService<ApplicationInsightsValidationService>();
+            services.AddSingleton<IConfigureOptions<TelemetryConfiguration>, ConfigureServerTelemetryChannel>();
 
             // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.
             services.Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerApplicationInsightsLoggingEnabled"] = bool.TrueString);
@@ -72,25 +91,23 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         /// <summary>
-        /// Options for configuring Functions Application Insights.
+        /// A private marker options type used solely to trigger validation that an Application Insights SDK has also
+        /// been configured. This is kept separate from the public <see cref="FunctionsApplicationInsightsOptions" />
+        /// so that reading those options while building the <see cref="TelemetryConfiguration" /> does not trigger the
+        /// <see cref="TelemetryClient" /> resolution (and the resulting circular dependency).
         /// </summary>
-        /// <remarks>
-        /// This is a private nested class as we have no public options to expose (yet). This is just a vessel to trigger validating that
-        /// an Application Insights SDK has also been configured.
-        /// When we do have options to configure, this can be moved to be a public top-level class.
-        /// </remarks>
-        private class FunctionsApplicationInsightsOptions
+        private class ApplicationInsightsSdkValidationMarker
         {
         }
 
         /// <summary>
-        /// This services is for a singular purpose: trigger validation of <see cref="FunctionsApplicationInsightsOptions" /> on startup.
+        /// This service is for a singular purpose: trigger validation of <see cref="ApplicationInsightsSdkValidationMarker" /> on startup.
         /// </summary>
         private class ApplicationInsightsValidationService : IHostedService
         {
-            private readonly FunctionsApplicationInsightsOptions _options;
+            private readonly ApplicationInsightsSdkValidationMarker _options;
 
-            public ApplicationInsightsValidationService(IOptions<FunctionsApplicationInsightsOptions> options)
+            public ApplicationInsightsValidationService(IOptions<ApplicationInsightsSdkValidationMarker> options)
             {
                 _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             }

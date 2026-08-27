@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.SignalRService <version>
+### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 2.1.0
 
-- <entry>
+- Updated `Microsoft.Azure.WebJobs.Extensions.SignalRService` to 2.2.0 to resolve transitive vulnerable `MessagePack 2.5.192` dependency (CVE-2026-48109, CVE-2026-48506) (#3492)

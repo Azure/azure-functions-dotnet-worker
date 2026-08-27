@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Kafka" Version="4.3.2" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Kafka" Version="4.3.3" />
   </ItemGroup>
 
 </Project>

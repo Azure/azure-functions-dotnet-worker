@@ -95,6 +95,11 @@ To migrate, make the following project file changes:
 
 > **Note:** The `FunctionsEnableWorkerIndexing` property is deprecated with `Azure.Functions.Sdk`. Worker indexing is always enabled, so setting this property has no effect and emits [AZFW0110](https://github.com/Azure/azure-functions-dotnet-worker/blob/main/docs/sdk-rules/AZFW0110.md). Remove it from your project file.
 
+## Known Gaps
+
+- Attributes derived from `WebJobsStartupAttribute` are not supported. Only direct uses of `WebJobsStartupAttribute` and `FunctionsStartupAttribute` are recognized.
+- `ExtensionInformationAttribute` metadata from project-to-project references is not used.
+
 ## Generated Extension Project (`azure_functions.g.csproj`)
 
 During restore, the SDK generates a helper project named `azure_functions.g.csproj` in your `obj/` directory. This project is used to resolve the function extension assemblies required by the Azure Functions host. It is restored automatically and its outputs are included in your build and publish output.

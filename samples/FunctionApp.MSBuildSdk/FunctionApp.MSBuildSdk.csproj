@@ -1,4 +1,4 @@
-﻿<Project Sdk="Azure.Functions.Sdk/0.4.0">
+﻿<Project Sdk="Azure.Functions.Sdk/0.5.0">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Microsoft.Azure.Functions.Worker already included by the SDK. -->
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
   </ItemGroup>
 

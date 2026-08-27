@@ -14,10 +14,14 @@ Minimal getting-started project:
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="[WORKER_VERSION]" />
+  </ItemGroup>
 </Project>
 ```
 
-This will automatically include the base package-references needed for the dotnet isolated worker runtime.
+The worker runtime package must be referenced explicitly.
 
 ## What is different?
 

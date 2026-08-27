@@ -104,9 +104,9 @@ pipelines:
         credscan:
           lastModifiedDate: 2024-10-07
         eslint:
-          lastModifiedDate: 2026-08-27
+          lastModifiedDate: 2024-10-07
         armory:
-          lastModifiedDate: 2026-08-27
+          lastModifiedDate: 2024-10-07
   500:
     usedNonDefaultBranch: true
     retail:
@@ -204,9 +204,9 @@ pipelines:
         credscan:
           lastModifiedDate: 2024-10-09
         eslint:
-          lastModifiedDate: 2024-10-09
+          lastModifiedDate: 2026-08-27
         armory:
-          lastModifiedDate: 2024-10-09
+          lastModifiedDate: 2026-08-27
   504:
     usedNonDefaultBranch: true
     retail:

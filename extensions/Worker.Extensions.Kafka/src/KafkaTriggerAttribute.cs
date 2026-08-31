@@ -205,6 +205,19 @@ namespace Microsoft.Azure.Functions.Worker
         public string OAuthBearerTokenEndpointUrl { get; set; }
 
         /// <summary>
+        /// File or directory path to CA certificates for verifying the OAuth/OIDC token endpoint certificate.
+        /// The special value "probe" uses the operating system's default certificate paths.
+        /// https.ca.location in librdkafka
+        /// </summary>
+        public string HttpsCaLocation { get; set; }
+
+        /// <summary>
+        /// CA certificate for verifying the OAuth/OIDC token endpoint certificate in PEM format.
+        /// https.ca.pem in librdkafka
+        /// </summary>
+        public string HttpsCaPem { get; set; }
+
+        /// <summary>
         /// OAuth Bearer extensions.
         /// Allow additional information to be provided to the broker.
         /// Comma-separated list of key=value pairs. E.g., "supportFeatureX=true,organizationId=sales-emea"

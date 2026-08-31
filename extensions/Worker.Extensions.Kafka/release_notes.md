@@ -4,6 +4,8 @@
 - My change description (#PR/#issue)
 -->
 
+### Microsoft.Azure.Functions.Worker.Extensions.Kafka 4.3.3
+
 - Add `HttpsCaLocation` and `HttpsCaPem` to Kafka trigger and output bindings for OAuth/OIDC token endpoint certificate validation (azure-functions-kafka-extension#649)
 - Update `Microsoft.Azure.WebJobs.Extensions.Kafka` dependency from 4.3.2 to 4.3.3
 

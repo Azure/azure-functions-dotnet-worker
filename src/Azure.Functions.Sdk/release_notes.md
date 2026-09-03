@@ -7,7 +7,3 @@
 ### Azure.Functions.Sdk 1.0.1
 
 - Fix ZipDeploy publishing on clean project trees (#3504)
-
-### Azure.Functions.Sdk 1.0.0
-
-- Support `FunctionsStartupAttribute` scanning (#3482)

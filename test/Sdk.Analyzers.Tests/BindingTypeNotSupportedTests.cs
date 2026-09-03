@@ -53,8 +53,8 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
-                                        new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"))),
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100.WithRepoNuGetConfig().WithPackages(
+                    [new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0")]),
                 TestCode = testCode
             };
 
@@ -101,8 +101,8 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
-                                        new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"))),
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100.WithRepoNuGetConfig().WithPackages(
+                    [new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0")]),
                 TestCode = testCode
             };
 
@@ -150,8 +150,8 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
-                                        new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"))),
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100.WithRepoNuGetConfig().WithPackages(
+                    [new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0")]),
                 TestCode = testCode
             };
 

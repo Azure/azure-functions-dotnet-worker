@@ -11,7 +11,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
 <Project>
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.CreateFuncZipFile" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
-  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.ZipDeploy" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.FuncZipDeploy" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
     <_DotNetPublishFiles>
@@ -33,7 +33,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <_ZipPublishUrl Condition="'$(_ZipPublishUrl)' == ''">https://$(DeployIisAppPath).scm.azurewebsites.net/</_ZipPublishUrl>
     </PropertyGroup>
 
-    <ZipDeploy ZipContentsPath="$(ZippedPublishContentsPath)" PublishUrl="$(_ZipPublishUrl)"
+    <FuncZipDeploy ZipContentsPath="$(ZippedPublishContentsPath)" PublishUrl="$(_ZipPublishUrl)"
       DeploymentUsername="$(UserName)" DeploymentPassword="$(Password)"
       UseBlobContainerDeploy="$(UseBlobContainerDeploy)"
       AllowInsecureRemoteConnections="$(PublishAllowInsecureRemoteConnections)"

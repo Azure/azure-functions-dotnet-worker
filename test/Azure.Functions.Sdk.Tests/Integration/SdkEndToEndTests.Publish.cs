@@ -84,4 +84,30 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             "dotnet",
             "MyFunctionApp.dll");
     }
+
+    [Fact]
+    public void Publish_ZipDeploy_UsesFunctionsTask()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+        Dictionary<string, string> publishProperties = new()
+        {
+            ["PublishProtocol"] = "ZipDeploy",
+            ["PublishUrl"] = "not-an-absolute-url",
+            ["UserName"] = "test-user",
+            ["Password"] = "test-password",
+        };
+
+        // Act
+        BuildOutput output = project.Publish(build: true, restore: true, publishProperties);
+
+        // Assert
+        output.Should().BeFailed();
+        output.ErrorEvents.Should().ContainSingle()
+            .Which.Message.Should().Be(
+                "The publish url 'not-an-absolute-url' is invalid. Publish url must be an absolute HTTP or HTTPS url.");
+    }
 }

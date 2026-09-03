@@ -15,7 +15,7 @@
     <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
     <DevelopmentDependency>true</DevelopmentDependency>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.0.1</VersionPrefix>
     <VersionSuffix>$(BuildNumber)</VersionSuffix>
     <PolySharpExcludeGeneratedTypes>System.Runtime.CompilerServices.ModuleInitializerAttribute;System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute</PolySharpExcludeGeneratedTypes>
     <MetadataLoaderExtensionProject>$(RepoRoot)sdk/FunctionMetadataLoaderExtension/FunctionMetadataLoaderExtension.csproj</MetadataLoaderExtensionProject>

@@ -78,6 +78,7 @@ public sealed class CreateFuncZipFile(TimeProvider time) : Microsoft.Build.Utili
     {
         string zipFileName = ProjectName + _time.GetLocalNow().ToString("yyyyMMddHHmmssFFF") + ".zip";
         string destination = Path.Combine(PublishIntermediateTempPath, zipFileName);
+        Directory.CreateDirectory(PublishIntermediateTempPath);
         ZipFile.CreateFromDirectory(SourceFolder, destination);
 
         // Is the executable part of the zip file itself? If so, ensure it is marked executable on unix.

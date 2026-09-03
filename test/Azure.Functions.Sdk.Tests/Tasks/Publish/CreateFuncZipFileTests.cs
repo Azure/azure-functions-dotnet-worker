@@ -76,12 +76,14 @@ public sealed class CreateFuncZipFileTests : IDisposable
         // arrange
         SetupZipFolder();
         CreateFuncZipFile task = CreateTask();
+        Directory.Exists(IntermediatePath).Should().BeFalse();
 
         // act
         bool result = task.Execute();
 
         // assert
         result.Should().BeTrue();
+        Directory.Exists(IntermediatePath).Should().BeTrue();
         VerifyZipFile(task.CreatedZipPath);
     }
 

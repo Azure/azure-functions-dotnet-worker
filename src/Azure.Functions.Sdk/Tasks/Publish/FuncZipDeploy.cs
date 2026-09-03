@@ -10,7 +10,7 @@ using Microsoft.Build.Framework;
 
 namespace Azure.Functions.Sdk.Tasks.Publish;
 
-public sealed class ZipDeploy(IFileSystem fileSystem, DeploymentClient? client = null)
+public sealed class FuncZipDeploy(IFileSystem fileSystem, DeploymentClient? client = null)
     : Microsoft.Build.Utilities.Task, ICancelableTask, IDisposable
 {
     internal static readonly ProductInfoHeaderValue SdkUserAgentHeader = new(
@@ -27,7 +27,7 @@ public sealed class ZipDeploy(IFileSystem fileSystem, DeploymentClient? client =
 
     private HttpClient? _httpClient; // tracked for disposal, if created by this class.
 
-    public ZipDeploy()
+    public FuncZipDeploy()
         : this(new FileSystem())
     {
     }
@@ -167,4 +167,3 @@ public sealed class ZipDeploy(IFileSystem fileSystem, DeploymentClient? client =
         return true;
     }
 }
-

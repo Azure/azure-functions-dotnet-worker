@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DotNetWorker.ApplicationInsights\DotNetWorker.ApplicationInsights.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
+    <ProjectReference Include="..\Resources\Projects\WorkerCoreNullCompatibility\WorkerCoreNullCompatibility.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
   </ItemGroup>
 

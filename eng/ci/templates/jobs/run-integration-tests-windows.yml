@@ -48,3 +48,8 @@ jobs:
         **/Sdk.E2ETests.csproj
     env:
       DOTNET_VERSION: $(dotnetVersion)
+
+  - pwsh: test/Testing.Conformance/run.ps1 -RuntimeOnly -RequireRuntimeLane
+    displayName: Testing Core Tools and Azurite runtime smoke
+    env:
+      DOTNET_VERSION: $(dotnetVersion)

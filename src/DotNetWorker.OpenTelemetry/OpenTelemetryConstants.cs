@@ -12,6 +12,9 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
         internal const string RegionNameEnvVar = "REGION_NAME";
         internal const string ResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
         internal const string OwnerNameEnvVar = "WEBSITE_OWNER_NAME";
+        internal const string InstanceIdEnvVar = "WEBSITE_INSTANCE_ID";
+        internal const string PodNameEnvVar = "WEBSITE_POD_NAME";
+        internal const string ContainerNameEnvVar = "CONTAINER_NAME";
         internal const string ServiceNameEnvVar = "OTEL_SERVICE_NAME";
         internal const string ResourceAttributeEnvVar = "OTEL_RESOURCE_ATTRIBUTES";
         internal const string SiteUpdateIdEnvVar = "FUNCTIONS_SITE_UPDATE_ID";

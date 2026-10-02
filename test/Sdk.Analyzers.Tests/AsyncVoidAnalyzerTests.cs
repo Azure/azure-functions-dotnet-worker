@@ -8,7 +8,6 @@ using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Micr
 using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidCodeFixProvider, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
-using System.Collections.Immutable;
 using System.Threading;
 
 using Microsoft.Azure.Functions.Tests.Analyzers;
@@ -47,9 +46,9 @@ namespace FunctionApp4
             };
 
             var expectedDiagnosticResult = AnalyzerVerifier
-                                                .Diagnostic(DiagnosticId)
-                                                .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                                                .WithSpan(11, 34, 11, 37);  // 11th line, 34th character(Run method)
+                .Diagnostic(DiagnosticId)
+                .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                .WithSpan(11, 34, 11, 37);  // 11th line, 34th character(Run method)
 
             test.ExpectedDiagnostics.Add(expectedDiagnosticResult);
 
@@ -173,10 +172,12 @@ namespace FunctionApp4
 
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
-            var referenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
+            var referenceAssemblies = ReferenceAssemblies.Net.Net100.WithRepoNuGetConfig().WithPackages(
+            [
                 new PackageIdentity("Microsoft.Azure.WebJobs.Extensions", "4.0.1"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.1.0"),
-                new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage", "4.0.4")));
+                new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage", "4.0.4"),
+            ]);
 
             return referenceAssemblies;
         }

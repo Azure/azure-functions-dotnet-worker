@@ -6,7 +6,6 @@ using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Mi
 using Verify = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.DeferredBindingAttributeNotSupported, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
-using System.Collections.Immutable;
 
 using Microsoft.Azure.Functions.Tests.Analyzers;
 
@@ -30,10 +29,12 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100.WithRepoNuGetConfig().WithPackages(
+                [
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.12.1-preview1"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"),
+                ]),
 
                 TestCode = testCode
             };
@@ -59,10 +60,12 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100.WithRepoNuGetConfig().WithPackages(
+                [
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.12.1-preview1"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"),
+                ]),
 
                 TestCode = testCode
             };
@@ -88,18 +91,20 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100.WithRepoNuGetConfig().WithPackages(
+                [
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.12.1-preview1"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"),
+                ]),
 
                 TestCode = testCode
             };
 
             test.ExpectedDiagnostics.Add(Verify.Diagnostic()
-                                        .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                                        .WithSpan(6, 22, 6, 45)
-                                        .WithArguments("SupportsDeferredBindingAttribute"));
+                .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                .WithSpan(6, 22, 6, 45)
+                .WithArguments("SupportsDeferredBindingAttribute"));
 
             await test.RunAsync();
         }
@@ -120,18 +125,20 @@ namespace Sdk.Analyzers.Tests
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100.WithRepoNuGetConfig().WithPackages(
+                [
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.12.1-preview1"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"),
+                ]),
 
                 TestCode = testCode
             };
 
             test.ExpectedDiagnostics.Add(Verify.Diagnostic()
-                                        .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                                        .WithSpan(6, 22, 6, 45)
-                                        .WithArguments("SupportsDeferredBindingAttribute"));
+                .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                .WithSpan(6, 22, 6, 45)
+                .WithArguments("SupportsDeferredBindingAttribute"));
 
             await test.RunAsync();
         }

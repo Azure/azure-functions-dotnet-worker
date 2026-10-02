@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Testing;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.Azure.Functions.Worker.Core;
 using System.Reflection;
 using System.Collections.Generic;

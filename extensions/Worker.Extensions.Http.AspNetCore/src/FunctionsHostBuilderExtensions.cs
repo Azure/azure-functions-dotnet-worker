@@ -94,6 +94,10 @@ namespace Microsoft.Extensions.Hosting
                 {
                     b.UseForwardedHeaders();
                     b.UseRouting();
+                    if (b.ApplicationServices.GetService<IFunctionsHttpRequestDispatcher>() is { } dispatcher)
+                    {
+                        b.Use(next => context => dispatcher.DispatchAsync(context, next));
+                    }
                     b.UseMiddleware<WorkerRequestServicesMiddleware>();
                     // TODO: provide a way for customers to configure their middleware pipeline here                   
                     b.UseEndpoints(endpoints =>

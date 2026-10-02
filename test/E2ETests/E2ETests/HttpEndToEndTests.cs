@@ -47,6 +47,16 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests
             }
         }
 
+        [Fact]
+        public async Task RuntimeSmoke_BuiltInHttp()
+        {
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("HelloFromQuery", "?name=Differential");
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Hello Differential", responseBody);
+        }
+
         [Theory(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/1910")]
         [InlineData("HelloFromJsonBody", "{\"Name\": \"Whitney\"}", "application/json", HttpStatusCode.OK, "Hello Whitney")]
         [InlineData("HelloFromJsonBody", "{\"Name\": \"麵🍜\"}", "application/json", HttpStatusCode.OK, "Hello 麵🍜")]

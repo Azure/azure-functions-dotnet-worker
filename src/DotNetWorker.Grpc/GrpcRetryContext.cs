@@ -17,5 +17,21 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
         public override int RetryCount => _retryContext.RetryCount;
 
         public override int MaxRetryCount => _retryContext.MaxRetryCount;
+
+        public override FunctionRetryException? PreviousException
+        {
+            get
+            {
+                var exception = _retryContext.Exception;
+                return exception is null
+                    ? null
+                    : new FunctionRetryException(
+                        exception.Source,
+                        exception.Type,
+                        exception.Message,
+                        exception.StackTrace,
+                        exception.IsUserException);
+            }
+        }
     }
 }

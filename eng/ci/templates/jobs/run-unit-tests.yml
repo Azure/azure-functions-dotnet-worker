@@ -64,3 +64,6 @@ jobs:
         **/Worker.Extensions.Shared.Tests.csproj
         **/Worker.Extensions.SignalRService.Tests.csproj
         **/Worker.Extensions.Tests.csproj
+
+  - pwsh: test/Testing.Conformance/run.ps1 -TransportOnly
+    displayName: Testing transport conformance

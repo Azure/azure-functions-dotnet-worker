@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
     {
         private const string AppInsightsAuthenticationString = "APPLICATIONINSIGHTS_AUTHENTICATION_STRING";
         private readonly IConfiguration _configuration;
-        
+
         public TelemetryConfigurationSetup(IConfiguration configuration)
         {
             _configuration = configuration;

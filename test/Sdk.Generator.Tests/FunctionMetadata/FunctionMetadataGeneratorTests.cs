@@ -1178,6 +1178,71 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
         }
 
         [Fact]
+        public void ServiceBusOutput_ByteArray_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TypeHelpers.GetTypeDefinition(typeof(SDKTypeBindings_ServiceBusOutput));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(2, functions.Count());
+
+            var byteArrayOutputFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBusOutput.ServiceBusByteArrayOutputFunction));
+            ValidateFunction(byteArrayOutputFunction, nameof(SDKTypeBindings_ServiceBusOutput.ServiceBusByteArrayOutputFunction),
+                GetEntryPoint(nameof(SDKTypeBindings_ServiceBusOutput), nameof(SDKTypeBindings_ServiceBusOutput.ServiceBusByteArrayOutputFunction)),
+                ValidateServiceBusTriggerInput,
+                ValidateByteArrayOutput);
+
+            var stringOutputFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBusOutput.ServiceBusStringOutputFunction));
+            ValidateFunction(stringOutputFunction, nameof(SDKTypeBindings_ServiceBusOutput.ServiceBusStringOutputFunction),
+                GetEntryPoint(nameof(SDKTypeBindings_ServiceBusOutput), nameof(SDKTypeBindings_ServiceBusOutput.ServiceBusStringOutputFunction)),
+                ValidateServiceBusTriggerInput,
+                ValidateStringOutput);
+
+            void ValidateServiceBusTriggerInput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "serviceBusTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "inputQueue" },
+                    { "Cardinality", "One" },
+                    { "Properties", new Dictionary<String, Object>() { { "SupportsDeferredBinding", "True" } } }
+                });
+            }
+
+            void ValidateByteArrayOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "$return" },
+                    { "Type", "serviceBus" },
+                    { "Direction", "Out" },
+                    { "queueOrTopicName", "queue" },
+                    { "entityType", "Queue" },
+                    { "DataType", "Binary" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+
+            void ValidateStringOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "$return" },
+                    { "Type", "serviceBus" },
+                    { "Direction", "Out" },
+                    { "queueOrTopicName", "queue" },
+                    { "entityType", "Queue" },
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
         public void ServiceBus_SDKTypeBindings()
         {
             var generator = new FunctionMetadataGenerator();
@@ -1544,6 +1609,25 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             public static void QueueBinaryDataTrigger(
                 [QueueTrigger("queue")] BinaryData message)
 
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_ServiceBusOutput
+        {
+            [Function(nameof(ServiceBusByteArrayOutputFunction))]
+            [ServiceBusOutput("queue")]
+            public static byte[] ServiceBusByteArrayOutputFunction(
+                [ServiceBusTrigger("inputQueue")] ServiceBusReceivedMessage message)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(ServiceBusStringOutputFunction))]
+            [ServiceBusOutput("queue")]
+            public static string ServiceBusStringOutputFunction(
+                [ServiceBusTrigger("inputQueue")] ServiceBusReceivedMessage message)
             {
                 throw new NotImplementedException();
             }

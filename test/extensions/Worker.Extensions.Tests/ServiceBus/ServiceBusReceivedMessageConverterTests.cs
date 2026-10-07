@@ -17,7 +17,30 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
     public class ServiceBusReceivedMessageConverterTests
     {
         [Fact]
-        public async Task ConvertAsync_ReturnsSuccess()
+        public async Task ConvertAsync_ByteArray_ReturnsSuccess()
+        {
+            var lockToken = Guid.NewGuid();
+            var message = CreateReceivedMessage(lockToken);
+
+            var data = new GrpcModelBindingData(new ModelBindingData()
+            {
+                Version = "1.0",
+                Source = "AzureServiceBusReceivedMessage",
+                Content = ByteString.CopyFrom(ConvertReceivedMessageToBinaryData(message)),
+                ContentType = Constants.BinaryContentType
+            });
+            var context = new TestConverterContext(typeof(byte[]), data);
+            var converter = new ServiceBusReceivedMessageConverter();
+            var result = await converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, result.Status);
+            var output = result.Value as byte[];
+            Assert.NotNull(output);
+            Assert.Equal("body", System.Text.Encoding.UTF8.GetString(output));
+        }
+
+        [Fact]
+        public async Task ConvertAsync_String_ReturnsSuccess()
         {
             var lockToken = Guid.NewGuid();
             var message = CreateReceivedMessage(lockToken);
@@ -30,6 +53,29 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
                 ContentType = Constants.BinaryContentType
             });
             var context = new TestConverterContext(typeof(string), data);
+            var converter = new ServiceBusReceivedMessageConverter();
+            var result = await converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, result.Status);
+            var output = result.Value as string;
+            Assert.NotNull(output);
+            Assert.Equal("body", output);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_ReturnsSuccess()
+        {
+            var lockToken = Guid.NewGuid();
+            var message = CreateReceivedMessage(lockToken);
+
+            var data = new GrpcModelBindingData(new ModelBindingData()
+            {
+                Version = "1.0",
+                Source = "AzureServiceBusReceivedMessage",
+                Content = ByteString.CopyFrom(ConvertReceivedMessageToBinaryData(message)),
+                ContentType = Constants.BinaryContentType
+            });
+            var context = new TestConverterContext(typeof(ServiceBusReceivedMessage), data);
             var converter = new ServiceBusReceivedMessageConverter();
             var result = await converter.ConvertAsync(context);
 

@@ -54,15 +54,22 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             var result = await GetConversionResultFromDeserialization(bytes, context.TargetType);
 
-            // JSON only accepts lowercase true/false. When deserialization fails, fall back to
-            // bool.TryParse, which, like ASP.NET Core model binding, ignores case, so values such as
-            // "True" bind. Registered JSON converters still run first.
+            // JSON only accepts lowercase true/false. When deserialization fails on a value that
+            // bool.TryParse accepts (which, like ASP.NET Core model binding, ignores case), retry with
+            // the lowercase JSON literal so values such as "True" bind. The configured serializer and
+            // any registered converters still decide the result; a value that was already the
+            // lowercase literal keeps its original failure.
             if (result.Status == ConversionStatus.Failed
                 && context.Source is string sourceText
                 && (context.TargetType == typeof(bool) || context.TargetType == typeof(bool?))
                 && bool.TryParse(sourceText, out bool parsedBool))
             {
-                return ConversionResult.Success(parsedBool);
+                string jsonLiteral = parsedBool ? "true" : "false";
+
+                if (!string.Equals(sourceText.Trim(), jsonLiteral, StringComparison.Ordinal))
+                {
+                    return await GetConversionResultFromDeserialization(Encoding.UTF8.GetBytes(jsonLiteral), context.TargetType);
+                }
             }
 
             return result;

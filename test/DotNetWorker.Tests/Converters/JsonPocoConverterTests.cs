@@ -156,6 +156,33 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             Assert.Equal(true, conversionResult.Value);
         }
 
+        [Theory]
+        [InlineData("true")]
+        [InlineData("True")]
+        [InlineData(" FALSE ")]
+        public async Task ConvertBooleanString_CustomJsonConverterRejection_IsPreserved(string source)
+        {
+            var serializerOptions = new JsonSerializerOptions();
+            serializerOptions.Converters.Add(new RejectingBooleanConverter());
+            var options = new WorkerOptions { Serializer = new JsonObjectSerializer(serializerOptions) };
+            var jsonPocoConverter = new JsonPocoConverter(new OptionsWrapper<WorkerOptions>(options));
+            var context = new TestConverterContext(typeof(bool), source);
+
+            var conversionResult = await jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.NotNull(conversionResult.Error);
+        }
+
+        private class RejectingBooleanConverter : System.Text.Json.Serialization.JsonConverter<bool>
+        {
+            public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+                throw new System.Text.Json.JsonException("Booleans are not accepted.");
+
+            public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options) =>
+                writer.WriteBooleanValue(value);
+        }
+
         private class YesNoBooleanConverter : System.Text.Json.Serialization.JsonConverter<bool>
         {
             public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>

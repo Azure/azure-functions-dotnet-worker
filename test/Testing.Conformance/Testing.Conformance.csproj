@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Testing.Conformance</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Testing.Conformance</RootNamespace>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DotNetWorker.Grpc\DotNetWorker.Grpc.csproj" />
+    <ProjectReference Include="..\..\src\DotNetWorker.Testing\DotNetWorker.Testing.csproj" />
+    <ProjectReference Include="..\Resources\Testing\ModernFunctionApp\ModernFunctionApp.csproj" />
+  </ItemGroup>
+
+</Project>

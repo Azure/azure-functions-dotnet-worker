@@ -19,5 +19,14 @@ namespace Microsoft.Azure.Functions.Worker
         /// before the event is considered undeliverable.
         /// </summary>
         public abstract int MaxRetryCount { get; }
+
+        /// <summary>
+        /// Gets diagnostic information about the remote exception that caused the preceding
+        /// invocation to be retried, or <see langword="null"/> when none was supplied.
+        /// </summary>
+        /// <remarks>
+        /// The returned value is remote diagnostic data and is not a locally throwable exception.
+        /// </remarks>
+        public virtual FunctionRetryException? PreviousException => null;
     }
 }

@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <_WorkerTestingGeneratedCompatibilityProps>$(BaseIntermediateOutputPath)$(PackageId).compatibility.props</_WorkerTestingGeneratedCompatibilityProps>
+  </PropertyGroup>
+
+  <Target Name="_WorkerTestingGenerateCompatibilityManifest"
+          BeforeTargets="GenerateNuspec">
+    <WriteLinesToFile
+      File="$(_WorkerTestingGeneratedCompatibilityProps)"
+      Lines="&lt;Project&gt;&lt;PropertyGroup&gt;&lt;WorkerTestingCompatibleWorkerVersion&gt;$(WorkerTestingCompatibleWorkerVersion)&lt;/WorkerTestingCompatibleWorkerVersion&gt;&lt;WorkerTestingCompatibleGrpcVersion&gt;$(WorkerTestingCompatibleGrpcVersion)&lt;/WorkerTestingCompatibleGrpcVersion&gt;&lt;WorkerTestingCompatibleAspNetCoreVersion&gt;$(WorkerTestingCompatibleAspNetCoreVersion)&lt;/WorkerTestingCompatibleAspNetCoreVersion&gt;&lt;WorkerTestingCompatibleServiceBusVersion&gt;$(WorkerTestingCompatibleServiceBusVersion)&lt;/WorkerTestingCompatibleServiceBusVersion&gt;&lt;WorkerTestingCompatibleStorageBlobsVersion&gt;$(WorkerTestingCompatibleStorageBlobsVersion)&lt;/WorkerTestingCompatibleStorageBlobsVersion&gt;&lt;WorkerTestingCompatibleCorePackageVersion&gt;$(WorkerTestingCompatibleCorePackageVersion)&lt;/WorkerTestingCompatibleCorePackageVersion&gt;&lt;WorkerTestingTestHostNet8Version&gt;$(WorkerTestingTestHostNet8Version)&lt;/WorkerTestingTestHostNet8Version&gt;&lt;WorkerTestingTestHostNet9Version&gt;$(WorkerTestingTestHostNet9Version)&lt;/WorkerTestingTestHostNet9Version&gt;&lt;WorkerTestingTestHostNet10Version&gt;$(WorkerTestingTestHostNet10Version)&lt;/WorkerTestingTestHostNet10Version&gt;&lt;/PropertyGroup&gt;&lt;/Project&gt;"
+      Overwrite="true"
+      Encoding="UTF-8" />
+  </Target>
+
+  <Target Name="_WorkerTestingUseExactProjectDependencyVersions"
+          AfterTargets="_GetProjectReferenceVersions">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Update="@(_ProjectReferencesWithVersions)"
+                                      ProjectVersion="[%(_ProjectReferencesWithVersions.ProjectVersion)]" />
+    </ItemGroup>
+  </Target>
+</Project>

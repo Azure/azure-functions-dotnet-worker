@@ -18,6 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
         private const string DefaultRoutePrefix = "api";
 
         private readonly IFunctionMetadataManager _functionMetadataManager;
+        private readonly string? _applicationDirectory;
         private readonly object _lock = new();
 
         private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -31,8 +32,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
         private List<Endpoint>? _endpoints;
 
         public FunctionsEndpointDataSource(IFunctionMetadataManager functionMetadataManager)
+            : this(functionMetadataManager, applicationDirectory: null)
+        {
+        }
+
+        internal FunctionsEndpointDataSource(
+            IFunctionMetadataManager functionMetadataManager,
+            string? applicationDirectory)
         {
             _functionMetadataManager = functionMetadataManager ?? throw new ArgumentNullException(nameof(functionMetadataManager));
+            _applicationDirectory = applicationDirectory;
         }
 
         public override IReadOnlyList<Endpoint> Endpoints
@@ -55,8 +64,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
         {
             List<Endpoint> endpoints = new List<Endpoint>();
 
-            string scriptRoot = Environment.GetEnvironmentVariable(FunctionsApplicationDirectoryKey) ??
-                           throw new InvalidOperationException("Cannot determine script root directory.");
+            string scriptRoot = _applicationDirectory
+                ?? Environment.GetEnvironmentVariable(FunctionsApplicationDirectoryKey)
+                ?? throw new InvalidOperationException("Cannot determine script root directory.");
 
             var metadata = _functionMetadataManager.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
 
@@ -108,6 +118,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
                         DisplayName = functionName
                     };
 
+                    endpointBuilder.Metadata.Add(new FunctionEndpointMetadata(functionName));
                     var methods = functionBinding.Methods ?? [];
                     endpointBuilder.Metadata.Add(new HttpMethodMetadata(methods));
 
@@ -137,5 +148,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
             var hostJson = JsonSerializer.Deserialize<HostJsonModel>(hostJsonString, _jsonSerializerOptions);
             return hostJson?.Extensions?.Http?.RoutePrefix;
         }
+    }
+
+    internal sealed class FunctionEndpointMetadata
+    {
+        internal FunctionEndpointMetadata(string functionName)
+        {
+            FunctionName = functionName;
+        }
+
+        internal string FunctionName { get; }
     }
 }

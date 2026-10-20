@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <WorkerTestingBuildSuffix Condition="'$(BuildNumber)' != ''">-$(BuildNumber)</WorkerTestingBuildSuffix>
+    <WorkerTestingCompatibleWorkerVersion>2.52.0$(WorkerTestingBuildSuffix)</WorkerTestingCompatibleWorkerVersion>
+    <WorkerTestingCompatibleGrpcVersion>2.52.0$(WorkerTestingBuildSuffix)</WorkerTestingCompatibleGrpcVersion>
+    <WorkerTestingCompatibleAspNetCoreVersion>2.1.1$(WorkerTestingBuildSuffix)</WorkerTestingCompatibleAspNetCoreVersion>
+    <WorkerTestingCompatibleServiceBusVersion>5.24.0$(WorkerTestingBuildSuffix)</WorkerTestingCompatibleServiceBusVersion>
+    <WorkerTestingCompatibleStorageBlobsVersion>6.8.1$(WorkerTestingBuildSuffix)</WorkerTestingCompatibleStorageBlobsVersion>
+    <WorkerTestingCompatibleCorePackageVersion>1.0.0-preview.1$(WorkerTestingBuildSuffix)</WorkerTestingCompatibleCorePackageVersion>
+    <WorkerTestingTestHostNet8Version>8.0.29</WorkerTestingTestHostNet8Version>
+    <WorkerTestingTestHostNet9Version>9.0.18</WorkerTestingTestHostNet9Version>
+    <WorkerTestingTestHostNet10Version>10.0.10</WorkerTestingTestHostNet10Version>
+  </PropertyGroup>
+</Project>

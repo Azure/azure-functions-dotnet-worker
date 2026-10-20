@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker;
@@ -35,11 +37,34 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="configure">The action used to configure <see cref="WorkerOptions"/>.</param>
         /// <returns>The same <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
         public static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerCore(this IServiceCollection services, Action<WorkerOptions>? configure = null)
+            => services.AddFunctionsWorkerCore(WorkerApplicationAssemblyContext.ResolveOrEntryAssembly(), configure);
+
+        /// <summary>
+        /// Adds the core set of services for the Azure Functions worker using the specified function application assembly.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/>.</param>
+        /// <param name="applicationAssembly">The function application assembly that owns generated extension startup.</param>
+        /// <param name="configure">The action used to configure <see cref="WorkerOptions"/>.</param>
+        /// <returns>The same <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        internal static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerCore(
+            this IServiceCollection services,
+            Assembly applicationAssembly,
+            Action<WorkerOptions>? configure = null)
         {
             if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
+
+            if (applicationAssembly is null)
+            {
+                throw new ArgumentNullException(nameof(applicationAssembly));
+            }
+
+            WorkerExtensionStartupState startupState = GetOrCreateExtensionStartupState(
+                services,
+                applicationAssembly,
+                out bool shouldRunExtensionStartup);
 
             // Request handling
             services.TryAddSingleton<IFunctionsApplication, FunctionsApplication>();
@@ -111,10 +136,20 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 builder = new FunctionsWorkerApplicationBuilder(services);
                 services.AddSingleton<IFunctionsWorkerApplicationBuilder>(builder);
+            }
 
-                // Execute startup code from worker extensions if present
-                // Only run this once when builder is first added.
-                RunExtensionStartupCode(builder);
+            if (shouldRunExtensionStartup)
+            {
+                try
+                {
+                    RunExtensionStartupCode(builder, applicationAssembly);
+                    startupState.Completed = true;
+                }
+                catch (Exception exception)
+                {
+                    startupState.Failure = ExceptionDispatchInfo.Capture(exception);
+                    throw;
+                }
             }
 
             services.AddFunctionTelemetry();
@@ -160,12 +195,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// which internally calls the "Configure" method on each of the participating
         /// extensions. Here we are calling the uber "Configure" method on the generated class.
         /// </summary>
-        private static void RunExtensionStartupCode(IFunctionsWorkerApplicationBuilder builder)
+        private static void RunExtensionStartupCode(IFunctionsWorkerApplicationBuilder builder, Assembly applicationAssembly)
         {
-            var entryAssembly = Assembly.GetEntryAssembly()!;
-
             // Find the assembly attribute which has information about the startup code executor class
-            var startupCodeExecutorInfoAttr = entryAssembly.GetCustomAttribute<WorkerExtensionStartupCodeExecutorInfoAttribute>();
+            var startupCodeExecutorInfoAttr = applicationAssembly.GetCustomAttribute<WorkerExtensionStartupCodeExecutorInfoAttribute>();
 
             // Our source generator will not create the WorkerExtensionStartupCodeExecutor class
             // and will not add the above assembly attribute when no extension startup hooks are found.
@@ -177,6 +210,57 @@ namespace Microsoft.Extensions.DependencyInjection
             var startupCodeExecutorInstance =
                 Activator.CreateInstance(startupCodeExecutorInfoAttr.StartupCodeExecutorType) as WorkerExtensionStartup;
             startupCodeExecutorInstance!.Configure(builder);
+        }
+
+        private static WorkerExtensionStartupState GetOrCreateExtensionStartupState(
+            IServiceCollection services,
+            Assembly applicationAssembly,
+            out bool shouldRunExtensionStartup)
+        {
+            ServiceDescriptor? descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(WorkerExtensionStartupState));
+            if (descriptor?.ImplementationInstance is WorkerExtensionStartupState existing)
+            {
+                existing.EnsureCompatible(applicationAssembly);
+                existing.ThrowIfFailed();
+
+                if (!existing.Completed)
+                {
+                    throw new InvalidOperationException("Worker extension startup is already running for this service collection.");
+                }
+
+                shouldRunExtensionStartup = false;
+                return existing;
+            }
+
+            var state = new WorkerExtensionStartupState(applicationAssembly);
+            services.AddSingleton(state);
+            shouldRunExtensionStartup = true;
+            return state;
+        }
+
+        private sealed class WorkerExtensionStartupState
+        {
+            internal WorkerExtensionStartupState(Assembly applicationAssembly)
+            {
+                ApplicationAssembly = applicationAssembly;
+            }
+
+            internal Assembly ApplicationAssembly { get; }
+
+            internal bool Completed { get; set; }
+
+            internal ExceptionDispatchInfo? Failure { get; set; }
+
+            internal void EnsureCompatible(Assembly applicationAssembly)
+            {
+                if (ApplicationAssembly != applicationAssembly)
+                {
+                    throw new InvalidOperationException(
+                        $"Worker extension startup is already associated with '{ApplicationAssembly.FullName}' and cannot also use '{applicationAssembly.FullName}'.");
+                }
+            }
+
+            internal void ThrowIfFailed() => Failure?.Throw();
         }
 
         private sealed class WorkerOptionsSetup(IOptions<JsonSerializerOptions> serializerOptions) : IPostConfigureOptions<WorkerOptions>

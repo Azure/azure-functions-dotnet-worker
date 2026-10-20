@@ -10,7 +10,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
-- <entry>
+- Boolean input bindings accept `True`/`False` in any letter case, as ASP.NET Core model binding does, when JSON deserialization of the string fails (#3169)
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 

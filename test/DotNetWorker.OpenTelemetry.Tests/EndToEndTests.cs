@@ -230,7 +230,31 @@ public class EndToEndTests
 
         Assert.Equal("staging", resource.Attributes.FirstOrDefault(a => a.Key == "deployment.environment.name").Value);
     }
+
+    public static IEnumerable<object[]> EnvironmentNameSkippedData =>
+    [
+        // OTEL_RESOURCE_ATTRIBUTES[deployment.environment.name] set in Azure
+        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "WEBSITE_SLOT_NAME", "staging" }, { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment.name=custom-name,other.key=value" } }],
+        // OTEL_RESOURCE_ATTRIBUTES[deployment.environment] set in Azure
+        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "WEBSITE_SLOT_NAME", "staging" }, { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment=custom-name,other.key=value" } }],
+        // OTEL_RESOURCE_ATTRIBUTES[deployment.environment.name] set to empty value in Azure
+        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "WEBSITE_SLOT_NAME", "staging" }, { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment.name=,other.key=value" } }],
+        // OTEL_RESOURCE_ATTRIBUTES[deployment.environment] set to empty value in Azure
+        [new Dictionary<string, string> { { "WEBSITE_SITE_NAME", "appName" }, { "WEBSITE_SLOT_NAME", "staging" }, { "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment=,other.key=value" } }],
+    ];
     
+    [Theory]
+    [MemberData(nameof(EnvironmentNameSkippedData))]
+    public void ResourceDetector_EnvironmentName_SkippedWhenConfigured(Dictionary<string, string> envVars)
+    {
+        using var _ = new TestScopedEnvironmentVariable(envVars);
+        FunctionsResourceDetector detector = new FunctionsResourceDetector();
+        Resource resource = detector.Detect();
+
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "deployment.environment");
+        Assert.DoesNotContain(resource.Attributes, a => a.Key == "deployment.environment.name");
+    }
+
     [Fact]
     public void ResourceDetector_SlotName_NotAddedWhenLocal()
     {

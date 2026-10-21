@@ -20,6 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 
         // Deployment
         internal const string DeploymentEnvironmentName = "deployment.environment.name";
+        internal const string DeploymentEnvironment = "deployment.environment";
 
         // Azure Functions
         internal const string SiteUpdateId = "azure.functions.site.update_id";

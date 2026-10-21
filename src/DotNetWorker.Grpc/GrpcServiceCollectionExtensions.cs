@@ -7,6 +7,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc;
+using Microsoft.Azure.Functions.Worker.Grpc.HostJson;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Logging;
@@ -53,6 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // gRPC Core services
             services.TryAddSingleton<IWorker, GrpcWorker>();
             services.TryAddSingleton<IInvocationHandler, InvocationHandler>();
+            services.TryAddSingleton<HostJsonSnapshotProvider>();
 
 #if NET6_0_OR_GREATER
             // If we are running in the native host process, use the native client

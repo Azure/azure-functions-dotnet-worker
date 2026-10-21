@@ -12,6 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
+using Microsoft.Azure.Functions.Worker.Grpc.HostJson;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -31,6 +32,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataManager _metadataManager;
+        private readonly HostJsonSnapshotProvider _hostJsonSnapshotProvider;
         private IWorkerClient? _workerClient;
 
         public GrpcWorker(IFunctionsApplication application,
@@ -39,8 +41,10 @@ namespace Microsoft.Azure.Functions.Worker
                           IOptions<WorkerOptions> workerOptions,
                           IFunctionMetadataManager metadataManager,
                           IHostApplicationLifetime hostApplicationLifetime,
-                          IInvocationHandler invocationHandler)
+                          IInvocationHandler invocationHandler,
+                          HostJsonSnapshotProvider? hostJsonSnapshotProvider = null)
         {
+            _hostJsonSnapshotProvider = hostJsonSnapshotProvider ?? new HostJsonSnapshotProvider();
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
             _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
             _application = application ?? throw new ArgumentNullException(nameof(application));
@@ -81,7 +85,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.WorkerInitRequest:
-                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions);
+                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions, _hostJsonSnapshotProvider);
                     break;
 
                 case MsgType.WorkerStatusRequest:
@@ -126,7 +130,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
+        internal static WorkerInitResponse         WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions, HostJsonSnapshotProvider? hostJsonSnapshotProvider = null)
         {
             var response = new WorkerInitResponse
             {
@@ -137,6 +141,8 @@ namespace Microsoft.Azure.Functions.Worker
 
             response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
+                    // Only negotiated requests read host.json; the read outcome never changes the init result.
+                    response.HostJson = hostJsonSnapshotProvider?.TryGetConfiguration(request);
             return response;
         }
 

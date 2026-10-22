@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -48,21 +47,19 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 return;
             }
 
-            var incorrectMethodCallExpressions = methodCallExpressions.Where(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == IncorrectRegistrationMethod);
-            var incorrectMethodInvocationPresent = incorrectMethodCallExpressions.Any();
+            var incorrectMethodCallExpression = methodCallExpressions.FirstOrDefault(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == IncorrectRegistrationMethod);
 
-            if (!incorrectMethodInvocationPresent)
+            if (incorrectMethodCallExpression is null)
             {
                 return;
             }
-
-            //Finding exact location of method call
-            Location location = GetSymbolLocation(root, incorrectMethodCallExpressions);
 
             var expectedMethodInvocationPresent = methodCallExpressions.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == ExpectedRegistrationMethod);
 
             if (!expectedMethodInvocationPresent)
             {
+                // Report on the method name of the first incorrect call
+                var location = ((MemberAccessExpressionSyntax)incorrectMethodCallExpression.Expression).Name.GetLocation();
                 var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, location, ExpectedRegistrationMethod);
                 context.ReportDiagnostic(diagnostic);
             }
@@ -78,23 +75,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 "<Main>$" => true,
                 _ => false
             };
-        }
-
-        private static Location GetSymbolLocation(SyntaxNode root, IEnumerable<InvocationExpressionSyntax> methodCallExpressions)
-        {
-            Location location = Location.None;
-
-            if (methodCallExpressions != null)
-            {
-                var lineSpan = methodCallExpressions.FirstOrDefault().GetLocation().SourceSpan;
-                var node = root.DescendantNodes(lineSpan)
-                            .First(n => lineSpan.Contains(n.FullSpan)).DescendantNodes()
-                            .OfType<IdentifierNameSyntax>().FirstOrDefault(c => c.Identifier.Text == IncorrectRegistrationMethod);
-
-                location = node.GetLocation();
-            }
-
-            return location;
         }
     }
 }

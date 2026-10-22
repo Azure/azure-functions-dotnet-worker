@@ -88,14 +88,14 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
                     || !Path.IsPathRooted(appDirectory)
                     || !fileSystem.DirectoryExists(appDirectory))
                 {
-                    return HostJsonSnapshot.AppDirectoryUnavailable;
+                    return HostJsonSnapshot.ReadError;
                 }
 
                 path = Path.Combine(appDirectory, HostJsonFileName);
             }
             catch (Exception)
             {
-                return HostJsonSnapshot.AppDirectoryUnavailable;
+                return HostJsonSnapshot.ReadError;
             }
 
             try
@@ -110,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
             catch (DirectoryNotFoundException)
             {
                 // The app directory existed a moment ago but is gone now.
-                return HostJsonSnapshot.AppDirectoryUnavailable;
+                return HostJsonSnapshot.ReadError;
             }
             catch (Exception)
             {
@@ -164,8 +164,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
         public ByteString Content { get; }
 
         public static HostJsonSnapshot Missing { get; } = new(HostJsonConfiguration.Types.Status.Missing, ByteString.Empty);
-
-        public static HostJsonSnapshot AppDirectoryUnavailable { get; } = new(HostJsonConfiguration.Types.Status.AppDirectoryUnavailable, ByteString.Empty);
 
         public static HostJsonSnapshot ReadError { get; } = new(HostJsonConfiguration.Types.Status.ReadError, ByteString.Empty);
 

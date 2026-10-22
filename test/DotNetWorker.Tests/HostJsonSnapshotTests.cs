@@ -119,19 +119,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("relative/app")]
-        public void InvalidAppRoot_IsAppDirectoryUnavailable(string appRoot)
+        public void InvalidAppRoot_IsReadError(string appRoot)
         {
             var provider = new HostJsonSnapshotProvider(() => appRoot, new PhysicalHostJsonFileSystem());
 
-            Assert.Equal(HostJsonConfiguration.Types.Status.AppDirectoryUnavailable, Get(provider).Status);
+            Assert.Equal(HostJsonConfiguration.Types.Status.ReadError, Get(provider).Status);
         }
 
         [Fact]
-        public void NonexistentAppRoot_IsAppDirectoryUnavailable_NotMissing()
+        public void NonexistentAppRoot_IsReadError_NotMissing()
         {
             var provider = new HostJsonSnapshotProvider(() => Path.Combine(_appDirectory, "nope"), new PhysicalHostJsonFileSystem());
 
-            Assert.Equal(HostJsonConfiguration.Types.Status.AppDirectoryUnavailable, Get(provider).Status);
+            Assert.Equal(HostJsonConfiguration.Types.Status.ReadError, Get(provider).Status);
         }
 
         [Fact]
@@ -249,13 +249,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void FileNotFoundOnOpen_IsMissing_AndDirectoryNotFoundIsAppDirectoryUnavailable()
+        public void FileNotFoundOnOpen_IsMissing_AndDirectoryNotFoundIsReadError()
         {
             var missing = new FakeFileSystem(() => throw new FileNotFoundException());
             var racedAway = new FakeFileSystem(() => throw new DirectoryNotFoundException());
 
             Assert.Equal(HostJsonConfiguration.Types.Status.Missing, HostJsonSnapshotProvider.Read(FakeFileSystem.Root, missing).Status);
-            Assert.Equal(HostJsonConfiguration.Types.Status.AppDirectoryUnavailable, HostJsonSnapshotProvider.Read(FakeFileSystem.Root, racedAway).Status);
+            Assert.Equal(HostJsonConfiguration.Types.Status.ReadError, HostJsonSnapshotProvider.Read(FakeFileSystem.Root, racedAway).Status);
         }
 
         [Fact]
@@ -383,7 +383,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.Null(response.Result.Exception);
-            Assert.Equal(HostJsonConfiguration.Types.Status.AppDirectoryUnavailable, response.HostJson.Status);
+            Assert.Equal(HostJsonConfiguration.Types.Status.ReadError, response.HostJson.Status);
         }
 
         [Fact]

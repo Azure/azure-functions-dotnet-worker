@@ -208,8 +208,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void NonSeekableStream_ExactlyAtLimit_IsAvailable_AndOneMoreIsTooLarge()
         {
-            var exact = HostJsonSnapshotProvider.ReadBounded(new TrickleStream(new byte[Limit], int.MaxValue), Limit);
-            var over = HostJsonSnapshotProvider.ReadBounded(new TrickleStream(new byte[Limit + 1], int.MaxValue), Limit);
+            var exact = HostJsonSnapshotProvider.ReadBounded(new TrickleStream(new byte[Limit], int.MaxValue));
+            var over = HostJsonSnapshotProvider.ReadBounded(new TrickleStream(new byte[Limit + 1], int.MaxValue));
 
             Assert.Equal(HostJsonConfiguration.Types.Status.Available, exact.Status);
             Assert.Equal(HostJsonConfiguration.Types.Status.TooLarge, over.Status);
@@ -220,10 +220,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var stream = new TrickleStream(Array.Empty<byte>(), long.MaxValue, endless: true);
 
-            var result = HostJsonSnapshotProvider.ReadBounded(stream, Limit);
+            var result = HostJsonSnapshotProvider.ReadBounded(stream);
 
             Assert.Equal(HostJsonConfiguration.Types.Status.TooLarge, result.Status);
-            Assert.True(stream.TotalServed <= Limit + 1);
+            Assert.Equal(Limit + 1, stream.TotalServed);
         }
 
         [Theory]

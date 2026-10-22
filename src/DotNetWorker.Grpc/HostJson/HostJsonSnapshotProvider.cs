@@ -10,15 +10,13 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
 {
     /// <summary>
-    /// Provides the process-wide host.json snapshot sent to the host when it requests it during worker initialization.
+    /// Process-wide host.json snapshot sent to the host when it requests it during worker initialization.
     /// </summary>
     /// <remarks>
-    /// The file is read at most once per process, on the first negotiated worker init request, and the outcome
-    /// (including failures) is replayed for every later init request. A cached failure is only retried by restarting
-    /// the worker process. The worker treats the deployed app content as immutable for the lifetime of the process.
-    /// The document is never parsed, decoded, or logged here; the host owns interpretation.
-    /// The ASP.NET Core integration extension reads host.json's route prefix independently and lazily; it does not
-    /// consume this snapshot, so mutating host.json while the process runs is unsupported.
+    /// Read once per process on the first negotiated init and replayed afterwards, including failures (restart to retry).
+    /// App content is treated as immutable for the process lifetime. The document is never parsed, decoded or logged here;
+    /// the host owns interpretation. The ASP.NET Core extension reads the route prefix independently, so changing
+    /// host.json while the process runs is unsupported.
     /// </remarks>
     internal sealed class HostJsonSnapshotProvider
     {
@@ -27,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
         internal const string AppDirectoryVariableName = "FUNCTIONS_APPLICATION_DIRECTORY";
         internal const string HostJsonFileName = "host.json";
 
-        // Includes any byte order mark. The cap applies to raw bytes actually read.
+        // Raw bytes, including any BOM.
         internal const int MaxHostJsonBytes = 64 * 1024;
 
         private readonly Lazy<HostJsonSnapshot> _snapshot;
@@ -55,8 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
         }
 
         /// <summary>
-        /// Returns the host.json envelope only when the host advertised a supported "HostJson" capability.
-        /// Otherwise returns null and performs no file access.
+        /// Returns the envelope only if the host advertised "HostJson" = "1"; otherwise null with no file access.
         /// </summary>
         public HostJsonConfiguration? TryGetConfiguration(WorkerInitRequest request)
         {
@@ -101,37 +98,31 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
             try
             {
                 using Stream stream = fileSystem.OpenRead(path);
-                return ReadBounded(stream, MaxHostJsonBytes);
+                return ReadBounded(stream);
             }
             catch (FileNotFoundException)
             {
                 return HostJsonSnapshot.Missing;
             }
-            catch (DirectoryNotFoundException)
-            {
-                // The app directory existed a moment ago but is gone now.
-                return HostJsonSnapshot.ReadError;
-            }
             catch (Exception)
             {
-                // Intentionally content-free: exception messages can carry file paths.
+                // Content-free on purpose: exception messages can carry file paths.
                 return HostJsonSnapshot.ReadError;
             }
         }
 
         /// <summary>
-        /// Reads at most <paramref name="limit"/> bytes and fails if more data exists. The stream length is not trusted
-        /// because the file can grow while it is being read, and not every stream is seekable.
+        /// Reads at most <see cref="MaxHostJsonBytes"/> bytes (plus one probe byte) without trusting the stream length,
+        /// since the file can grow while read and not every stream is seekable.
         /// </summary>
-        internal static HostJsonSnapshot ReadBounded(Stream stream, int limit)
+        internal static HostJsonSnapshot ReadBounded(Stream stream)
         {
-            // Never buffer beyond the limit plus a single probe byte.
-            byte[] buffer = new byte[Math.Min(limit + 1, 4096)];
+            byte[] buffer = new byte[4096];
             using var content = new MemoryStream();
 
             while (true)
             {
-                int remaining = limit + 1 - (int)content.Length;
+                int remaining = MaxHostJsonBytes + 1 - (int)content.Length;
                 int read = stream.Read(buffer, 0, Math.Min(buffer.Length, remaining));
 
                 if (read <= 0)
@@ -141,7 +132,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
 
                 content.Write(buffer, 0, read);
 
-                if (content.Length > limit)
+                if (content.Length > MaxHostJsonBytes)
                 {
                     return HostJsonSnapshot.TooLarge;
                 }

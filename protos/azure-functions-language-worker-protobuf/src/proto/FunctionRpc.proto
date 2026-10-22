@@ -161,8 +161,8 @@ message HostJsonConfiguration {
     // The file is absent from a known local application root; allows existing defaults.
     Missing = 2;
     // The local application root is unavailable/invalid, or the file could not be read.
-    ReadError = 4;
-    TooLarge = 5;
+    ReadError = 3;
+    TooLarge = 4;
   }
 
   // Unspecified and unrecognized values are not valid delivery outcomes.

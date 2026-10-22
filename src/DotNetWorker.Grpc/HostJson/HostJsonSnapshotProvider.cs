@@ -10,18 +10,16 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
 {
     /// <summary>
-    /// Process-wide host.json snapshot sent to the host when it requests it during worker initialization.
+    /// Process-wide host.json snapshot sent to the host in every worker initialization response.
     /// </summary>
     /// <remarks>
-    /// Read once per process on the first negotiated init and replayed afterwards, including failures (restart to retry).
+    /// Read once per process on the first init and replayed afterwards, including failures (restart to retry).
     /// App content is treated as immutable for the process lifetime. The document is never parsed, decoded or logged here;
     /// the host owns interpretation. The ASP.NET Core extension reads the route prefix independently, so changing
     /// host.json while the process runs is unsupported.
     /// </remarks>
     internal sealed class HostJsonSnapshotProvider
     {
-        internal const string CapabilityName = "HostJson";
-        internal const string SupportedCapabilityValue = "1";
         internal const string AppDirectoryVariableName = "FUNCTIONS_APPLICATION_DIRECTORY";
         internal const string HostJsonFileName = "host.json";
 
@@ -53,16 +51,10 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostJson
         }
 
         /// <summary>
-        /// Returns the envelope only if the host advertised "HostJson" = "1"; otherwise null with no file access.
+        /// Returns a new envelope for the cached snapshot, reading host.json on first use.
         /// </summary>
-        public HostJsonConfiguration? TryGetConfiguration(WorkerInitRequest request)
+        public HostJsonConfiguration GetConfiguration()
         {
-            if (!request.Capabilities.TryGetValue(CapabilityName, out string? value)
-                || !string.Equals(value, SupportedCapabilityValue, StringComparison.Ordinal))
-            {
-                return null;
-            }
-
             HostJsonSnapshot snapshot = _snapshot.Value;
 
             var configuration = new HostJsonConfiguration { Status = snapshot.Status };

@@ -42,9 +42,9 @@ namespace Microsoft.Azure.Functions.Worker
                           IFunctionMetadataManager metadataManager,
                           IHostApplicationLifetime hostApplicationLifetime,
                           IInvocationHandler invocationHandler,
-                          HostJsonSnapshotProvider? hostJsonSnapshotProvider = null)
+                          HostJsonSnapshotProvider hostJsonSnapshotProvider)
         {
-            _hostJsonSnapshotProvider = hostJsonSnapshotProvider ?? new HostJsonSnapshotProvider();
+            _hostJsonSnapshotProvider = hostJsonSnapshotProvider ?? throw new ArgumentNullException(nameof(hostJsonSnapshotProvider));
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
             _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
             _application = application ?? throw new ArgumentNullException(nameof(application));
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse         WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions, HostJsonSnapshotProvider? hostJsonSnapshotProvider = null)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions, HostJsonSnapshotProvider hostJsonSnapshotProvider)
         {
             var response = new WorkerInitResponse
             {
@@ -141,8 +141,9 @@ namespace Microsoft.Azure.Functions.Worker
 
             response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
-                    // Only negotiated requests read host.json; the read outcome never changes the init result.
-                    response.HostJson = hostJsonSnapshotProvider?.TryGetConfiguration(request);
+            // The host.json read outcome never changes the init result.
+            response.HostJson = hostJsonSnapshotProvider.GetConfiguration();
+
             return response;
         }
 

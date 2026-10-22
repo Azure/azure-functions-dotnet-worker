@@ -39,18 +39,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             }
         }
 
-        private static WorkerInitRequest NegotiatedRequest(string value = "1")
-        {
-            var request = new WorkerInitRequest { FunctionAppDirectory = Path.Combine(Path.GetTempPath(), "host-supplied-must-be-ignored") };
-            request.Capabilities["HostJson"] = value;
-            return request;
-        }
-
         private HostJsonSnapshotProvider PhysicalProvider() => new(() => _appDirectory, new PhysicalHostJsonFileSystem());
 
         private void WriteHostJson(byte[] bytes) => File.WriteAllBytes(Path.Combine(_appDirectory, "host.json"), bytes);
 
-        private static HostJsonConfiguration Get(HostJsonSnapshotProvider provider) => provider.TryGetConfiguration(NegotiatedRequest());
+        private static HostJsonConfiguration Get(HostJsonSnapshotProvider provider) => provider.GetConfiguration();
 
         [Fact]
         public void ExactLimit_IsAvailable()
@@ -144,11 +137,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             string workerRoot = Path.Combine(_appDirectory, "worker-root");
             Directory.CreateDirectory(workerRoot);
 
-            var request = NegotiatedRequest();
-            request.FunctionAppDirectory = hostSupplied;
             var provider = new HostJsonSnapshotProvider(() => workerRoot, new PhysicalHostJsonFileSystem());
 
-            Assert.Equal(HostJsonConfiguration.Types.Status.Missing, provider.TryGetConfiguration(request).Status);
+            Assert.Equal(HostJsonConfiguration.Types.Status.Missing, provider.GetConfiguration().Status);
         }
 
         [Fact]
@@ -267,47 +258,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.True(stream.Disposed);
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("0")]
-        [InlineData("2")]
-        [InlineData("true")]
-        [InlineData("1 ")]
-        [InlineData("")]
-        public void AbsentOrUnrecognizedCapability_ReturnsNoEnvelope_AndNeverTouchesFiles(string value)
-        {
-            var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { 1 }, int.MaxValue));
-            var provider = new HostJsonSnapshotProvider(() => FakeFileSystem.Root, fs);
-            var request = new WorkerInitRequest();
-            if (value is not null)
-            {
-                request.Capabilities["HostJson"] = value;
-            }
-
-            Assert.Null(provider.TryGetConfiguration(request));
-            Assert.Equal(0, fs.DirectoryChecks + fs.Opens);
-        }
-
-        [Fact]
-        public void CapabilityName_IsCaseSensitive()
-        {
-            var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { 1 }, int.MaxValue));
-            var provider = new HostJsonSnapshotProvider(() => FakeFileSystem.Root, fs);
-            var request = new WorkerInitRequest();
-            request.Capabilities["hostjson"] = "1";
-
-            Assert.Null(provider.TryGetConfiguration(request));
-            Assert.Equal(0, fs.Opens);
-        }
-
         [Fact]
         public void RepeatedInit_ReplaysSameSnapshot_WithSingleRead()
         {
             var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { (byte)'{', (byte)'}' }, int.MaxValue));
             var provider = new HostJsonSnapshotProvider(() => FakeFileSystem.Root, fs);
 
-            var first = provider.TryGetConfiguration(NegotiatedRequest());
-            var second = provider.TryGetConfiguration(NegotiatedRequest());
+            var first = provider.GetConfiguration();
+            var second = provider.GetConfiguration();
 
             Assert.Equal(1, fs.Opens);
             Assert.Equal(first.Content, second.Content);
@@ -321,8 +279,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var fs = new FakeFileSystem(() => attempt++ == 0 ? throw new IOException() : new TrickleStream(new byte[] { 1 }, int.MaxValue));
             var provider = new HostJsonSnapshotProvider(() => FakeFileSystem.Root, fs);
 
-            var first = provider.TryGetConfiguration(NegotiatedRequest());
-            var second = provider.TryGetConfiguration(NegotiatedRequest());
+            var first = provider.GetConfiguration();
+            var second = provider.GetConfiguration();
 
             Assert.Equal(HostJsonConfiguration.Types.Status.ReadError, first.Status);
             Assert.Equal(HostJsonConfiguration.Types.Status.ReadError, second.Status);
@@ -353,7 +311,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var provider = new HostJsonSnapshotProvider(() => FakeFileSystem.Root, fs);
 
             Task<HostJsonConfiguration>[] tasks = Enumerable.Range(0, 16)
-                .Select(_ => Task.Run(() => provider.TryGetConfiguration(NegotiatedRequest())))
+                .Select(_ => Task.Run(() => provider.GetConfiguration()))
                 .ToArray();
             await Task.Delay(100);
             gate.Set();
@@ -364,11 +322,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void InitHandler_NegotiatedAvailable_ReturnsEnvelope_AndSuccessResult()
+        public void InitHandler_Available_ReturnsEnvelope_AndSuccessResult()
         {
             WriteHostJson(new[] { (byte)'{', (byte)'}' });
 
-            var response = GrpcWorker.WorkerInitRequestHandler(NegotiatedRequest(), new WorkerOptions(), PhysicalProvider());
+            var response = GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions(), PhysicalProvider());
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.Equal(HostJsonConfiguration.Types.Status.Available, response.HostJson.Status);
@@ -378,7 +336,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void InitHandler_ReadFailure_DoesNotFailInitialization()
         {
-            var response = GrpcWorker.WorkerInitRequestHandler(NegotiatedRequest(), new WorkerOptions(),
+            var response = GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions(),
                 new HostJsonSnapshotProvider(() => null, new PhysicalHostJsonFileSystem()));
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
@@ -387,16 +345,27 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void InitHandler_WithoutCapability_HasNoEnvelope_AndUnchangedCapabilities()
+        public void InitHandler_EmptyCapabilities_StillDeliversEnvelope_WithoutAdvertisingCapability()
         {
             WriteHostJson(new[] { (byte)'{', (byte)'}' });
-            var withoutProvider = GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions());
-            var withProvider = GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions(), PhysicalProvider());
 
-            Assert.Null(withoutProvider.HostJson);
-            Assert.Null(withProvider.HostJson);
-            Assert.DoesNotContain("HostJson", withProvider.Capabilities.Keys);
-            Assert.Equal(withoutProvider.Capabilities.OrderBy(k => k.Key), withProvider.Capabilities.OrderBy(k => k.Key));
+            var response = GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions(), PhysicalProvider());
+
+            Assert.Equal(HostJsonConfiguration.Types.Status.Available, response.HostJson.Status);
+            Assert.DoesNotContain("HostJson", response.Capabilities.Keys);
+        }
+
+        [Fact]
+        public void InitHandler_EachResponseGetsItsOwnEnvelope_WithSameContent()
+        {
+            WriteHostJson(new[] { (byte)'{', (byte)'}' });
+            var provider = PhysicalProvider();
+
+            var first = GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions(), provider);
+            var second = GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions(), provider);
+
+            Assert.NotSame(first.HostJson, second.HostJson);
+            Assert.Equal(first.HostJson.Content, second.HostJson.Content);
         }
 
         [Fact]
@@ -405,7 +374,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             const string marker = "SENSITIVE-MARKER-VALUE";
             WriteHostJson(System.Text.Encoding.UTF8.GetBytes("{\"x\":\"" + marker + "\"}"));
 
-            var response = GrpcWorker.WorkerInitRequestHandler(NegotiatedRequest(), new WorkerOptions(), PhysicalProvider());
+            var response = GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions(), PhysicalProvider());
             response.HostJson = null;
 
             Assert.DoesNotContain(marker, response.ToString());
@@ -413,7 +382,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async Task GrpcWorker_ProcessesNegotiatedInitThroughMessagePipeline()
+        public async Task GrpcWorker_ProcessesInitThroughMessagePipeline()
         {
             WriteHostJson(new[] { (byte)'{', (byte)'}' });
             StreamingMessage sent = null;
@@ -435,7 +404,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 PhysicalProvider());
 
             await worker.StartAsync(CancellationToken.None);
-            await ((IMessageProcessor)worker).ProcessMessageAsync(new StreamingMessage { RequestId = "r1", WorkerInitRequest = NegotiatedRequest() });
+            await ((IMessageProcessor)worker).ProcessMessageAsync(new StreamingMessage { RequestId = "r1", WorkerInitRequest = new WorkerInitRequest() });
             await sentSignal.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
             Assert.Equal("r1", sent.RequestId);

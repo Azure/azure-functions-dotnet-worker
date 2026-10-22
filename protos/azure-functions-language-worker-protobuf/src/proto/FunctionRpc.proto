@@ -113,7 +113,6 @@ message WorkerInitRequest {
   string host_version = 1;
 
   // A map of host supported features/capabilities
-  // HostJson = "1" opts in to HostJsonConfiguration delivery; other values do not.
   map<string, string> capabilities = 2;
 
   // inform worker of supported categories and their levels
@@ -142,7 +141,7 @@ message WorkerInitResponse {
   // Worker metadata captured for telemetry purposes
   WorkerMetadata worker_metadata = 4;
 
-  // Present only when the host advertises HostJson = "1" and the worker supports it.
+  // Supporting workers always include their snapshot; no capability request is needed.
   // Absence means unsupported/not delivered, not a missing host.json file.
   HostJsonConfiguration host_json = 6;
 }

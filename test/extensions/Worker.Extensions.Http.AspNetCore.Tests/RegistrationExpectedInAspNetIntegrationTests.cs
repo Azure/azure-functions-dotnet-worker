@@ -405,6 +405,77 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             await test.RunAsync();
         }
 
+        [Fact]
+        public async Task AspNetIntegration_BothRegistrationsAsIndentedStatements_Diagnostics_NotExpected()
+        {
+            string testCode = @"
+                namespace AspNetIntegration
+                {
+                    using Microsoft.Extensions.Hosting;
+
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            var hostBuilder = new HostBuilder();
+                            if (args.Length > 0)
+                            {
+                                hostBuilder.ConfigureFunctionsWebApplication();
+                            }
+                            else
+                            {
+                                hostBuilder.ConfigureFunctionsWorkerDefaults();
+                            }
+
+                            hostBuilder.Build().Run();
+                        }
+                    }
+                }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            // test.ExpectedDiagnostics is an empty collection because ConfigureFunctionsWebApplication() is present
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task AspNetIntegration_IncorrectRegistrationAsIndentedStatement_Diagnostics_Expected()
+        {
+            string testCode = @"
+                namespace AspNetIntegration
+                {
+                    using Microsoft.Extensions.Hosting;
+
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            var hostBuilder = new HostBuilder();
+                            hostBuilder.{|#0:ConfigureFunctionsWorkerDefaults|}();
+                            hostBuilder.Build().Run();
+                        }
+                    }
+                }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
+                            .WithSeverity(DiagnosticSeverity.Error)
+                            .WithLocation(0)
+                            .WithArguments(ExpectedRegistrationMethod));
+
+            await test.RunAsync();
+        }
+
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
             var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithRepoNuGetConfig().WithPackages(ImmutableArray.Create(

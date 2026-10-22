@@ -10,3 +10,7 @@
 - Pass cancellation tokens (RequestAborted / CancellationToken) through to WaitAsync calls so cancelled HTTP
 requests propagate promptly instead of waiting for timeout (#3415)
 - Fix intermittent `InvalidOperationException` due to race condition between `SetResult` call on TCS and HTTP request cancellation/timeout (#3415)
+
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers <version>
+
+- Fix `NullReferenceException` (AD0001) in the AZFW0014 analyzer when a `ConfigureFunctionsWorkerDefaults` call starts an indented statement (#3520)

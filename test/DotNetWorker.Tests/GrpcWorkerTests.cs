@@ -13,7 +13,7 @@ using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
-using Microsoft.Azure.Functions.Worker.Grpc.HostJson;
+using Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -171,12 +171,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(expectedFramework, result);
         }
 
-        private static HostJsonSnapshotProvider NewHostJsonProvider() => new(() => null, new PhysicalHostJsonFileSystem());
+        private static HostConfigurationSnapshotProvider NewHostConfigurationProvider() => new(() => null, new PhysicalHostConfigurationFileSystem());
 
         [Fact]
         public void InitRequest_ReturnsExpectedMetadata()
         {
-            var response = GrpcWorker.WorkerInitRequestHandler(new(), new WorkerOptions(), NewHostJsonProvider());
+            var response = GrpcWorker.WorkerInitRequestHandler(new(), new WorkerOptions(), NewHostConfigurationProvider());
             string grpcWorkerVersion = typeof(GrpcWorker).Assembly.GetName().Version?.ToString();
             var runtimeName = new Regex(@"^(\D*)+(?!\S)").Match(RuntimeInformation.FrameworkDescription).Value;
 
@@ -207,7 +207,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Update boolean property values of workerOption based on test input parameters.
             workerOptions.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOptions, booleanPropertyValue);
 
-            var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOptions, NewHostJsonProvider());
+            var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOptions, NewHostConfigurationProvider());
 
             IDictionary<string, string> capabilitiesDict = response.Capabilities;
             Assert.Same(bool.TrueString, capabilitiesDict["RpcHttpBodyOnly"]);
@@ -241,7 +241,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 }).Build();
 
             var workerOptions = host.Services.GetService<IOptions<WorkerOptions>>().Value;
-            var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOptions, NewHostJsonProvider());
+            var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOptions, NewHostConfigurationProvider());
 
             void AssertKeyAndValue(KeyValuePair<string, string> kvp, string expectedKey, string expectedValue)
             {
@@ -316,7 +316,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         metadataManager.Object,
                                         new ApplicationLifetime(TestLogger<ApplicationLifetime>.Create()),
                                         invocationHandlerMock.Object,
-                                        NewHostJsonProvider());
+                                        NewHostConfigurationProvider());
 
             await worker.StartAsync(CancellationToken.None);
 

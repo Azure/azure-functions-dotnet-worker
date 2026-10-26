@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
             }
 
             _snapshot = new Lazy<HostConfigurationSnapshot>(
-                () => Read(appDirectoryAccessor(), fileSystem),
+                () => Capture(appDirectoryAccessor, fileSystem),
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
@@ -76,16 +76,31 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
             return configuration;
         }
 
+        // An accessor failure is cached as a content-free ReadError instead of faulting the Lazy.
+        private static HostConfigurationSnapshot Capture(Func<string?> appDirectoryAccessor, IHostConfigurationFileSystem fileSystem)
+        {
+            string? appDirectory;
+
+            try
+            {
+                appDirectory = appDirectoryAccessor();
+            }
+            catch (Exception)
+            {
+                return HostConfigurationSnapshot.ReadError;
+            }
+
+            return Read(appDirectory, fileSystem);
+        }
+
         internal static HostConfigurationSnapshot Read(string? appDirectory, IHostConfigurationFileSystem fileSystem)
         {
             string path;
 
             try
             {
-                if (appDirectory is null
-                    || string.IsNullOrWhiteSpace(appDirectory)
-                    || !Path.IsPathRooted(appDirectory)
-                    || !fileSystem.DirectoryExists(appDirectory))
+                // Relative roots resolve with native platform semantics; an unset root is never replaced.
+                if (appDirectory is null || string.IsNullOrWhiteSpace(appDirectory))
                 {
                     return HostConfigurationSnapshot.ReadError;
                 }
@@ -167,15 +182,11 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
 
     internal interface IHostConfigurationFileSystem
     {
-        bool DirectoryExists(string path);
-
         Stream OpenRead(string path);
     }
 
     internal sealed class PhysicalHostConfigurationFileSystem : IHostConfigurationFileSystem
     {
-        public bool DirectoryExists(string path) => Directory.Exists(path);
-
         public Stream OpenRead(string path)
             => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, FileOptions.SequentialScan);
     }

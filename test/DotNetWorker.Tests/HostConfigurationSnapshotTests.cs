@@ -118,12 +118,56 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        [InlineData("relative/app")]
         public void InvalidAppRoot_IsReadError(string appRoot)
         {
-            var provider = new HostConfigurationSnapshotProvider(() => appRoot, new PhysicalHostConfigurationFileSystem());
+            var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { 1 }, int.MaxValue));
+            var provider = new HostConfigurationSnapshotProvider(() => appRoot, fs);
 
             Assert.Equal(HostConfiguration.Types.Status.ReadError, Get(provider).Status);
+            Assert.Equal(0, fs.Opens);
+        }
+
+        [Fact]
+        public void RelativeAppRoot_ReachesOpenRead_WithNativePathCombine()
+        {
+            string relative = Path.Combine("relative", "app");
+            string opened = null;
+            var fs = new FakeFileSystem(p => { opened = p; return new TrickleStream(new byte[] { 1 }, int.MaxValue); });
+
+            var result = HostConfigurationSnapshotProvider.Read(relative, fs);
+
+            Assert.Equal(HostConfiguration.Types.Status.Available, result.Status);
+            Assert.Equal(Path.Combine(relative, "host.json"), opened);
+        }
+
+        [Fact]
+        public void AccessorFailure_IsCachedContentFreeReadError_WithoutFileSystemAccess()
+        {
+            int calls = 0;
+            var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { 1 }, int.MaxValue));
+            var provider = new HostConfigurationSnapshotProvider(() => { calls++; throw new InvalidOperationException("secret-path"); }, fs);
+
+            var first = Get(provider);
+            var second = Get(provider);
+
+            Assert.Equal(HostConfiguration.Types.Status.ReadError, first.Status);
+            Assert.True(first.Content.IsEmpty);
+            Assert.Equal(HostConfiguration.Types.Status.ReadError, second.Status);
+            Assert.Equal(1, calls);
+            Assert.Equal(0, fs.Opens);
+        }
+
+        [Fact]
+        public void AccessorIsNotInvoked_WithoutExactRequest()
+        {
+            int calls = 0;
+            var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { 1 }, int.MaxValue));
+            var provider = new HostConfigurationSnapshotProvider(() => { calls++; return FakeFileSystem.Root; }, fs);
+
+            Assert.Null(provider.TryGetConfiguration(new WorkerInitRequest()));
+            Assert.Null(provider.TryGetConfiguration(Requested("0")));
+            Assert.Equal(0, calls);
+            Assert.Equal(0, fs.Opens);
         }
 
         [Fact]
@@ -384,7 +428,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Null(response.HostConfiguration);
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.Equal(0, fs.Opens);
-            Assert.Equal(0, fs.DirectoryChecks);
         }
 
         [Fact]
@@ -505,26 +548,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             internal static readonly string Root = Path.Combine(Path.GetTempPath(), "fake-app-root");
 
-            private readonly Func<Stream> _open;
+            private readonly Func<string, Stream> _open;
             private int _opens;
-            private int _directoryChecks;
 
-            public FakeFileSystem(Func<Stream> open) => _open = open;
+            public FakeFileSystem(Func<Stream> open) => _open = _ => open();
+
+            public FakeFileSystem(Func<string, Stream> open) => _open = open;
 
             public int Opens => _opens;
-
-            public int DirectoryChecks => _directoryChecks;
-
-            public bool DirectoryExists(string path)
-            {
-                Interlocked.Increment(ref _directoryChecks);
-                return true;
-            }
 
             public Stream OpenRead(string path)
             {
                 Interlocked.Increment(ref _opens);
-                return _open();
+                return _open(path);
             }
         }
 

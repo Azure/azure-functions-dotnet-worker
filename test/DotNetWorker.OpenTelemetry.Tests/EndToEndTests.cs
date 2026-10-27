@@ -18,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
+using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -172,6 +173,11 @@ public class EndToEndTests
         using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
         {
             { "WEBSITE_SITE_NAME", null! },
+            { "WEBSITE_OWNER_NAME", "subscription-id+appName-EastUSwebspace" },
+            { "WEBSITE_RESOURCE_GROUP", "rg" },
+            { "WEBSITE_INSTANCE_ID", "website-instance" },
+            { "WEBSITE_POD_NAME", "pod-instance" },
+            { "CONTAINER_NAME", "container-instance" },
             { "OTEL_SERVICE_NAME", null! },
             { "OTEL_RESOURCE_ATTRIBUTES", null! }
         });
@@ -196,6 +202,117 @@ public class EndToEndTests
             , resource.Attributes.FirstOrDefault(a => a.Key == "cloud.resource_id").Value);
         Assert.Equal($"EastUS", resource.Attributes.FirstOrDefault(a => a.Key == "cloud.region").Value);
         Assert.Equal("appName", resource.Attributes.FirstOrDefault(a => a.Key == "service.name").Value);
+    }
+
+    [Fact]
+    public void ResourceDetector_IdentityAttributes_AddedThroughWorkerDefaults()
+    {
+        using var _ = SetupDefaultEnvironmentVariables();
+        using var host = new HostBuilder()
+            .ConfigureServices(services => services.AddOpenTelemetry().UseFunctionsWorkerDefaults().WithTracing())
+            .Build();
+
+        var resource = host.Services.GetRequiredService<TracerProvider>().GetResource();
+
+        Assert.Equal("AAAAA-AAAAA-AAAAA-AAA", resource.Attributes.FirstOrDefault(a => a.Key == "cloud.account.id").Value);
+        Assert.Equal("rg", resource.Attributes.FirstOrDefault(a => a.Key == "azure.resource_group.name").Value);
+        Assert.Equal("website-instance", resource.Attributes.FirstOrDefault(a => a.Key == "faas.instance").Value);
+    }
+
+    [Theory]
+    [InlineData("subscription-id+appName-EastUSwebspace", "rg", "subscription-id")]
+    [InlineData("subscription-id+flex-hash-webspace", null, "subscription-id")]
+    [InlineData("subscription-id", "rg", "subscription-id")]
+    [InlineData(null, "rg", null)]
+    [InlineData(null, null, null)]
+    [InlineData("", "", null)]
+    public void ResourceDetector_AccountAndResourceGroup_DetectedIndependently(string ownerName, string resourceGroup, string expectedSubscriptionId)
+    {
+        using var defaults = SetupDefaultEnvironmentVariables();
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_OWNER_NAME", ownerName },
+            { "WEBSITE_RESOURCE_GROUP", resourceGroup }
+        });
+
+        var resource = new FunctionsResourceDetector().Detect();
+
+        if (expectedSubscriptionId is null)
+        {
+            Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.account.id");
+        }
+        else
+        {
+            Assert.Equal(expectedSubscriptionId, resource.Attributes.FirstOrDefault(a => a.Key == "cloud.account.id").Value);
+        }
+
+        if (string.IsNullOrEmpty(resourceGroup))
+        {
+            Assert.DoesNotContain(resource.Attributes, a => a.Key == "azure.resource_group.name");
+        }
+        else
+        {
+            Assert.Equal(resourceGroup, resource.Attributes.FirstOrDefault(a => a.Key == "azure.resource_group.name").Value);
+        }
+
+        if (expectedSubscriptionId is null || string.IsNullOrEmpty(resourceGroup))
+        {
+            Assert.DoesNotContain(resource.Attributes, a => a.Key == "cloud.resource_id");
+        }
+        else
+        {
+            Assert.Equal($"/subscriptions/{expectedSubscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/sites/appName",
+                resource.Attributes.FirstOrDefault(a => a.Key == "cloud.resource_id").Value);
+        }
+    }
+
+    [Theory]
+    [InlineData("website-instance", "pod-instance", "container-instance", "website-instance")]
+    [InlineData(null, "pod-instance", "container-instance", "pod-instance")]
+    [InlineData(null, null, "container-instance", "container-instance")]
+    [InlineData("", "pod-instance", "container-instance", "pod-instance")]
+    [InlineData("", "", "container-instance", "container-instance")]
+    [InlineData(null, null, null, null)]
+    [InlineData("", "", "", null)]
+    public void ResourceDetector_InstanceId_UsesFirstNonEmptyValue(string websiteInstanceId, string podName, string containerName, string expectedInstanceId)
+    {
+        using var defaults = SetupDefaultEnvironmentVariables();
+        using var _ = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "WEBSITE_INSTANCE_ID", websiteInstanceId },
+            { "WEBSITE_POD_NAME", podName },
+            { "CONTAINER_NAME", containerName }
+        });
+
+        var resource = new FunctionsResourceDetector().Detect();
+
+        if (expectedInstanceId is null)
+        {
+            Assert.DoesNotContain(resource.Attributes, a => a.Key == "faas.instance");
+        }
+        else
+        {
+            Assert.Equal(expectedInstanceId, resource.Attributes.FirstOrDefault(a => a.Key == "faas.instance").Value);
+        }
+    }
+
+    [Theory]
+    [InlineData("cloud.account.id", "configured-subscription")]
+    [InlineData("azure.resource_group.name", "configured-group")]
+    [InlineData("faas.instance", "configured-instance")]
+    [InlineData("cloud.account.id", "")]
+    [InlineData("azure.resource_group.name", "")]
+    [InlineData("faas.instance", "")]
+    public void ResourceDetector_IdentityAttributes_PreserveExplicitConfiguration(string attributeName, string configuredValue)
+    {
+        using var defaults = SetupDefaultEnvironmentVariables();
+        using var _ = new TestScopedEnvironmentVariable("OTEL_RESOURCE_ATTRIBUTES", $"{attributeName}={configuredValue}");
+
+        var resource = ResourceBuilder.CreateDefault()
+            .AddDetector(new FunctionsResourceDetector())
+            .Build();
+
+        Assert.Equal(configuredValue, resource.Attributes.FirstOrDefault(a => a.Key == attributeName).Value);
     }
 
     [Fact]
@@ -406,6 +523,9 @@ public class EndToEndTests
             { "WEBSITE_RESOURCE_GROUP", "rg" },
             { "WEBSITE_OWNER_NAME", "AAAAA-AAAAA-AAAAA-AAA+appName-EastUSwebspace" },
             { "REGION_NAME", "EastUS" },
+            { "WEBSITE_INSTANCE_ID", "website-instance" },
+            { "WEBSITE_POD_NAME", null! },
+            { "CONTAINER_NAME", null! },
             { "OTEL_SERVICE_NAME", null! },
             { "OTEL_RESOURCE_ATTRIBUTES", null! }
         });

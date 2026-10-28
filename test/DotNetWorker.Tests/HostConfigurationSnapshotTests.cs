@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf;
@@ -76,13 +77,101 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void BomCountsTowardLimit()
+        public void Utf8Bom_IsStripped_AndLimitCountsConvertedBytes()
         {
-            byte[] bytes = new byte[Limit + 1];
-            bytes[0] = 0xEF; bytes[1] = 0xBB; bytes[2] = 0xBF;
-            WriteHostJson(bytes);
+            WriteHostJson(new byte[] { 0xEF, 0xBB, 0xBF }.Concat(Enumerable.Repeat((byte)'a', Limit)).ToArray());
+
+            var result = Get(PhysicalProvider());
+
+            Assert.Equal(HostConfiguration.Types.Status.Available, result.Status);
+            Assert.Equal(Limit, result.Content.Length);
+            Assert.NotEqual(0xEF, result.Content[0]);
+        }
+
+        [Fact]
+        public void Utf8Bom_WithOneByteOverConvertedLimit_IsTooLarge()
+        {
+            WriteHostJson(new byte[] { 0xEF, 0xBB, 0xBF }.Concat(Enumerable.Repeat((byte)'a', Limit + 1)).ToArray());
 
             Assert.Equal(HostConfiguration.Types.Status.TooLarge, Get(PhysicalProvider()).Status);
+        }
+
+        public static IEnumerable<object[]> SourceEncodings() => new[]
+        {
+            new object[] { new UTF8Encoding(true) },
+            new object[] { new UnicodeEncoding(false, true) },
+            new object[] { new UnicodeEncoding(true, true) },
+            new object[] { new UTF32Encoding(false, true) },
+            new object[] { new UTF32Encoding(true, true) },
+        };
+
+        [Theory]
+        [MemberData(nameof(SourceEncodings))]
+        public void BomSources_AreConvertedToBomFreeUtf8(Encoding encoding)
+        {
+            const string text = "{\"a\":\"h\u00e9llo \u20ac \U0001F600\"}";
+            WriteHostJson(encoding.GetPreamble().Concat(encoding.GetBytes(text)).ToArray());
+
+            var result = Get(PhysicalProvider());
+
+            Assert.Equal(HostConfiguration.Types.Status.Available, result.Status);
+            Assert.Equal(new UTF8Encoding(false).GetBytes(text), result.Content.ToByteArray());
+        }
+
+        [Fact]
+        public void Utf16Source_ExpandingToThreeByteUtf8_IsMeasuredAfterConversion()
+        {
+            // 21,845 euro signs are 43,690 UTF-16 bytes but 65,535 UTF-8 bytes; one more reaches 65,538.
+            var encoding = new UnicodeEncoding(false, true);
+            WriteHostJson(encoding.GetPreamble().Concat(encoding.GetBytes(new string('\u20ac', Limit / 3))).ToArray());
+            var fits = Get(PhysicalProvider());
+
+            Assert.Equal(HostConfiguration.Types.Status.Available, fits.Status);
+            Assert.Equal(Limit / 3 * 3, fits.Content.Length);
+
+            var over = HostConfigurationSnapshotProvider.ReadBounded(
+                new MemoryStream(encoding.GetPreamble().Concat(encoding.GetBytes(new string('\u20ac', Limit / 3 + 1))).ToArray()));
+            Assert.Equal(HostConfiguration.Types.Status.TooLarge, over.Status);
+        }
+
+        [Fact]
+        public void Utf32Source_ContractingToOneByteUtf8_ExactLimitIsAvailable()
+        {
+            // 65,536 ASCII characters are 262,144 UTF-32 bytes (4x the cap) but exactly the converted cap.
+            var encoding = new UTF32Encoding(false, true);
+            WriteHostJson(encoding.GetPreamble().Concat(encoding.GetBytes(new string('a', Limit))).ToArray());
+
+            var result = Get(PhysicalProvider());
+
+            Assert.Equal(HostConfiguration.Types.Status.Available, result.Status);
+            Assert.Equal(Limit, result.Content.Length);
+        }
+
+        [Fact]
+        public void NoBomSource_IsTreatedAsUtf8()
+        {
+            byte[] bytes = new UTF8Encoding(false).GetBytes("{\"k\":\"\u00fc\"}");
+            WriteHostJson(bytes);
+
+            Assert.Equal(bytes, Get(PhysicalProvider()).Content.ToByteArray());
+        }
+
+        [Theory]
+        [InlineData(new byte[] { (byte)'{', 0xFF, (byte)'}' })]
+        [InlineData(new byte[] { 0xEF, 0xBB, 0xBF, (byte)'{', 0xC0, 0xAF, (byte)'}' })]
+        [InlineData(new byte[] { (byte)'{', 0xE2, 0x82 })]
+        [InlineData(new byte[] { 0xFF, 0xFE, (byte)'{', 0x00, 0x00, 0xD8 })]
+        [InlineData(new byte[] { 0xFF, 0xFE, (byte)'{' })]
+        [InlineData(new byte[] { 0xFE, 0xFF, 0xDC, 0x00, 0x00, (byte)'a' })]
+        [InlineData(new byte[] { 0xFF, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00 })]
+        public void InvalidSourceEncoding_IsErrorWithoutContent(byte[] bytes)
+        {
+            WriteHostJson(bytes);
+
+            var result = Get(PhysicalProvider());
+
+            Assert.Equal(HostConfiguration.Types.Status.Error, result.Status);
+            Assert.True(result.Content.IsEmpty);
         }
 
         [Fact]
@@ -97,15 +186,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void RawBytes_AreReturnedUnchanged_IncludingBomAndInvalidUtf8()
+        public void ConvertedPayload_IsNotRequiredToBeJson_ButIsStrictUtf8()
         {
-            byte[] bytes = { 0xEF, 0xBB, 0xBF, (byte)'{', 0xFF, 0xFE, 0x00, 0xC0, (byte)'}' };
+            byte[] bytes = Encoding.UTF8.GetBytes("not json");
             WriteHostJson(bytes);
 
-            var result = Get(PhysicalProvider());
-
-            Assert.Equal(HostConfiguration.Types.Status.Available, result.Status);
-            Assert.Equal(bytes, result.Content.ToByteArray());
+            Assert.Equal(bytes, Get(PhysicalProvider()).Content.ToByteArray());
         }
 
         [Fact]
@@ -123,7 +209,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { 1 }, int.MaxValue));
             var provider = new HostConfigurationSnapshotProvider(() => appRoot, fs);
 
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, Get(provider).Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, Get(provider).Status);
             Assert.Equal(0, fs.Opens);
         }
 
@@ -150,9 +236,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var first = Get(provider);
             var second = Get(provider);
 
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, first.Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, first.Status);
             Assert.True(first.Content.IsEmpty);
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, second.Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, second.Status);
             Assert.Equal(1, calls);
             Assert.Equal(0, fs.Opens);
         }
@@ -175,7 +261,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var provider = new HostConfigurationSnapshotProvider(() => Path.Combine(_appDirectory, "nope"), new PhysicalHostConfigurationFileSystem());
 
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, Get(provider).Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, Get(provider).Status);
         }
 
         [Fact]
@@ -198,7 +284,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             Directory.CreateDirectory(Path.Combine(_appDirectory, "host.json"));
 
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, Get(PhysicalProvider()).Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, Get(PhysicalProvider()).Status);
         }
 
         [Fact]
@@ -208,7 +294,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             File.WriteAllText(path, "{}");
             using var locked = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
 
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, Get(PhysicalProvider()).Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, Get(PhysicalProvider()).Status);
         }
 
         [Fact]
@@ -238,7 +324,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void NonSeekableStream_ReturningOneByteAtATime_IsReadFully()
         {
-            byte[] bytes = Enumerable.Range(0, 1000).Select(i => (byte)i).ToArray();
+            byte[] bytes = Enumerable.Range(0, 1000).Select(i => (byte)('a' + i % 26)).ToArray();
             var fs = new FakeFileSystem(() => new TrickleStream(bytes, int.MaxValue));
 
             var result = HostConfigurationSnapshotProvider.Read(FakeFileSystem.Root, fs);
@@ -278,7 +364,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var result = HostConfigurationSnapshotProvider.Read(FakeFileSystem.Root, fs);
 
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, result.Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, result.Status);
             Assert.True(result.Content.IsEmpty);
         }
 
@@ -287,7 +373,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var fs = new FakeFileSystem(() => new FailingStream());
 
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, HostConfigurationSnapshotProvider.Read(FakeFileSystem.Root, fs).Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, HostConfigurationSnapshotProvider.Read(FakeFileSystem.Root, fs).Status);
         }
 
         [Fact]
@@ -297,7 +383,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var racedAway = new FakeFileSystem(() => throw new DirectoryNotFoundException());
 
             Assert.Equal(HostConfiguration.Types.Status.Missing, HostConfigurationSnapshotProvider.Read(FakeFileSystem.Root, missing).Status);
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, HostConfigurationSnapshotProvider.Read(FakeFileSystem.Root, racedAway).Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, HostConfigurationSnapshotProvider.Read(FakeFileSystem.Root, racedAway).Status);
         }
 
         [Fact]
@@ -333,8 +419,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var first = provider.TryGetConfiguration(Requested());
             var second = provider.TryGetConfiguration(Requested());
 
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, first.Status);
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, second.Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, first.Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, second.Status);
             Assert.Equal(1, fs.Opens);
         }
 
@@ -392,7 +478,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.Null(response.Result.Exception);
-            Assert.Equal(HostConfiguration.Types.Status.ReadError, response.HostConfiguration.Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, response.HostConfiguration.Status);
         }
 
         [Fact]

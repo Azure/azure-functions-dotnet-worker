@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -25,6 +25,15 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
             _outputChannelReader = outputChannel.Channel.Reader;
             _outputChannelWriter = outputChannel.Channel.Writer;
         }
+
+        public bool SupportsExtensionPayload => false;
+
+        public CancellationToken ConnectionClosed => CancellationToken.None;
+
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public ValueTask SendPayloadMessageAsync(StreamingMessage message, CancellationToken cancellationToken)
+            => throw new NotSupportedException("The native worker transport does not report gRPC write completion.");
 
         public Task StartAsync(CancellationToken cancellationToken)
         {

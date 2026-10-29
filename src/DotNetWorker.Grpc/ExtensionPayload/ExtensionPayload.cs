@@ -237,9 +237,21 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
     /// Builds a bounded ZIP from worker-local inputs, filtering bootstrap assets and skipping nested links.
     /// The caller owns the rewound, delete-on-close stream; preparation failures close it here.
     /// </summary>
-    internal static async Task<FileStream> CreateArchiveAsync(CancellationToken cancellationToken)
+    internal static Task<FileStream> CreateArchiveAsync(CancellationToken cancellationToken)
+        => CreateArchiveAsync(cancellationToken, static path => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
+            MaximumChunkBytes, FileOptions.Asynchronous | FileOptions.SequentialScan));
+
+    /// <summary>
+    /// Uses supplied extension input streams while retaining archive validation, resource limits, and stream cleanup ownership.
+    /// </summary>
+    internal static async Task<FileStream> CreateArchiveAsync(CancellationToken cancellationToken, Func<string, Stream> openExtensionFile)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (openExtensionFile is null)
+        {
+            throw new ArgumentNullException(nameof(openExtensionFile));
+        }
+
         string root = GetValidatedApplicationDirectory();
         string manifest = Path.Combine(root, "extensions.json");
         string extensions = Path.Combine(root, ".azurefunctions");
@@ -301,7 +313,7 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
                             }
 
                             contents += await CopyFileAsync(path, AddEntry(archive, entryName, ref count), buffer,
-                                MaximumContentBytes - contents, cancellationToken).ConfigureAwait(false);
+                                MaximumContentBytes - contents, cancellationToken, openExtensionFile).ConfigureAwait(false);
                         }
                     }
                 }
@@ -526,15 +538,16 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
     /// Copies a file in bounded chunks, checking its initial length and actual reads against the remaining content budget.
     /// Returns the archived byte count and preserves both copy and cleanup failures.
     /// </summary>
-    private static async Task<long> CopyFileAsync(string path, ZipArchiveEntry entry, byte[] buffer, long remaining, CancellationToken cancellationToken)
+    private static async Task<long> CopyFileAsync(string path, ZipArchiveEntry entry, byte[] buffer, long remaining,
+        CancellationToken cancellationToken, Func<string, Stream> openExtensionFile)
     {
-        FileStream? input = null;
+        Stream? input = null;
         Stream? destination = null;
         Exception? failure = null;
         long copied = 0;
         try
         {
-            input = new(path, FileMode.Open, FileAccess.Read, FileShare.Read, MaximumChunkBytes, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            input = openExtensionFile(path);
             EnsureContentBytesFit(input.Length, remaining);
 
             destination = entry.Open();
@@ -676,18 +689,6 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
         return failure;
     }
 
-    [LoggerMessage(1, LogLevel.Error, "Extension payload request {RequestId} failed.")]
-    private static partial void LogFailure(ILogger logger, string requestId, Exception exception);
-
-    [LoggerMessage(2, LogLevel.Warning, "Extension payload request {RequestId} was rejected: {Reason}")]
-    private static partial void LogRejected(ILogger logger, string requestId, string reason);
-
-    [LoggerMessage(3, LogLevel.Debug, "Extension payload transfer {RequestId} stopped during worker or connection shutdown.")]
-    private static partial void LogCancelled(ILogger logger, string requestId);
-
-    [LoggerMessage(4, LogLevel.Debug, "Extension payload request {RequestId} is already active; its original response will complete the operation.")]
-    private static partial void LogAlreadyActive(ILogger logger, string requestId);
-
     /// <summary>
     /// Owns one transfer's linked shutdown cancellation and shared completion task.
     /// </summary>
@@ -725,6 +726,17 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
             EnsureArchiveBytesFit(file.Position, count);
             return file.WriteAsync(buffer, offset, count, cancellationToken);
         }
-
     }
+
+    [LoggerMessage(1, LogLevel.Error, "Extension payload request {RequestId} failed.")]
+    private static partial void LogFailure(ILogger logger, string requestId, Exception exception);
+
+    [LoggerMessage(2, LogLevel.Warning, "Extension payload request {RequestId} was rejected: {Reason}")]
+    private static partial void LogRejected(ILogger logger, string requestId, string reason);
+
+    [LoggerMessage(3, LogLevel.Debug, "Extension payload transfer {RequestId} stopped during worker or connection shutdown.")]
+    private static partial void LogCancelled(ILogger logger, string requestId);
+
+    [LoggerMessage(4, LogLevel.Debug, "Extension payload request {RequestId} is already active; its original response will complete the operation.")]
+    private static partial void LogAlreadyActive(ILogger logger, string requestId);
 }

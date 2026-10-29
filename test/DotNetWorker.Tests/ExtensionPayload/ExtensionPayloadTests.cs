@@ -245,6 +245,87 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OverlappingRequestsJoinDuplicatesRejectCompetitorsAndReleaseOwnership(bool failTerminalWrite)
+    {
+        WriteData(200 * 1024);
+        ExtensionPayload producer = CreateProducer();
+        using RecordingClient client = new();
+        TaskCompletionSource<bool> firstChunk = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.OnPayload = async (message, _) =>
+        {
+            if (!string.Equals(message.RequestId, "active", StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (message.ExtensionPayloadResponse.ContentCase is ExtensionPayloadResponse.ContentOneofCase.Chunk)
+            {
+                firstChunk.TrySetResult(true);
+                await release.Task;
+            }
+            else if (failTerminalWrite)
+            {
+                throw new IOException("Simulated terminal write failure.");
+            }
+        };
+        Task transfer = producer.SendAsync("active", client, CancellationToken.None);
+        try
+        {
+            await firstChunk.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            string archive = Assert.Single(Directory.EnumerateFiles(_temporaryRoot));
+            Task duplicate = producer.SendAsync("active", client, CancellationToken.None);
+            Assert.Same(transfer, duplicate);
+            Assert.False(duplicate.IsCompleted);
+            Assert.Single(client.Messages);
+
+            await producer.SendAsync("competing", client, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(15));
+            Assert.Equal(2, client.Messages.Count);
+            StreamingMessage rejected = Assert.Single(client.Messages.Where(message => string.Equals(message.RequestId, "competing", StringComparison.Ordinal)));
+            Assert.Equal(ExtensionPayloadResponse.ContentOneofCase.Result, rejected.ExtensionPayloadResponse.ContentCase);
+            Assert.Equal(StatusResult.Types.Status.Failure, rejected.ExtensionPayloadResponse.Result.Status);
+            Assert.Equal(0UL, rejected.ExtensionPayloadResponse.Offset);
+            Assert.Equal(archive, Assert.Single(Directory.EnumerateFiles(_temporaryRoot)));
+            Assert.False(transfer.IsCompleted);
+        }
+        finally
+        {
+            release.TrySetResult(true);
+            if (failTerminalWrite)
+            {
+                await Assert.ThrowsAsync<IOException>(() => transfer).WaitAsync(TimeSpan.FromSeconds(15));
+            }
+            else
+            {
+                await transfer.WaitAsync(TimeSpan.FromSeconds(15));
+            }
+        }
+
+        StreamingMessage[] activeResponses = client.Messages.Where(message => string.Equals(message.RequestId, "active", StringComparison.Ordinal)).ToArray();
+        ulong offset = 0;
+        foreach (StreamingMessage response in activeResponses.Take(activeResponses.Length - 1))
+        {
+            Assert.Equal(ExtensionPayloadResponse.ContentOneofCase.Chunk, response.ExtensionPayloadResponse.ContentCase);
+            Assert.Equal(offset, response.ExtensionPayloadResponse.Offset);
+            offset += (uint)response.ExtensionPayloadResponse.Chunk.Length;
+        }
+
+        StreamingMessage terminal = Assert.Single(activeResponses.Where(message => message.ExtensionPayloadResponse.ContentCase is ExtensionPayloadResponse.ContentOneofCase.Result));
+        Assert.Same(activeResponses[^1], terminal);
+        Assert.Equal(offset, terminal.ExtensionPayloadResponse.Offset);
+        AssertNoTemporaryArchives();
+
+        await producer.SendAsync("fresh", client, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(15));
+        StreamingMessage[] freshResponses = client.Messages.Where(message => string.Equals(message.RequestId, "fresh", StringComparison.Ordinal)).ToArray();
+        Assert.Contains(freshResponses, message => message.ExtensionPayloadResponse.ContentCase is ExtensionPayloadResponse.ContentOneofCase.Chunk);
+        StreamingMessage completed = Assert.Single(freshResponses.Where(message => message.ExtensionPayloadResponse.ContentCase is ExtensionPayloadResponse.ContentOneofCase.Result));
+        Assert.Equal(StatusResult.Types.Status.Success, completed.ExtensionPayloadResponse.Result.Status);
+        AssertNoTemporaryArchives();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ConnectionLossOrWorkerShutdownWaitsForInFlightWriteBeforeDeletingZip(bool connectionLost)

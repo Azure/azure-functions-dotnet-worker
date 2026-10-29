@@ -148,24 +148,52 @@ public sealed partial class ExtensionPayloadTests
     [Fact]
     public async Task ConnectionLossCancelsPreparationAndDeletesZip()
     {
-        WriteData(8 * 1024 * 1024);
+        byte[] content = [1, 2, 3];
+        string payloadPath = Path.Combine(_root, ".azurefunctions", "payload.bin");
+        File.WriteAllBytes(payloadPath, content);
         using RecordingClient client = new();
-        Task transfer = CreateProducer().SendAsync("connection-lost", client, CancellationToken.None);
+        TaskCompletionSource<CancellationToken> readStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        using PreparationReadStream input = new(content, readStarted, release.Task);
+        Task<FileStream> preparation = ExtensionPayload.CreateArchiveAsync(client.ConnectionClosed, path =>
+        {
+            Assert.Equal(payloadPath, path);
+            return input;
+        });
         try
         {
-            using CancellationTokenSource wait = new(TimeSpan.FromSeconds(15));
-            while (!Directory.EnumerateFiles(_temporaryRoot).Any())
-            {
-                await Task.Delay(5, wait.Token);
-            }
+            CancellationToken token = await readStarted.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            string archive = Assert.Single(Directory.EnumerateFiles(_temporaryRoot));
+            Assert.False(preparation.IsCompleted);
+            Assert.False(token.IsCancellationRequested);
+            await client.StopAsync(CancellationToken.None);
+            Assert.True(token.IsCancellationRequested);
+            Assert.False(preparation.IsCompleted);
+            Assert.True(File.Exists(archive));
         }
         finally
         {
             await client.StopAsync(CancellationToken.None);
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => transfer).WaitAsync(TimeSpan.FromSeconds(15));
+            release.TrySetResult(true);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            {
+                using FileStream archive = await preparation.WaitAsync(TimeSpan.FromSeconds(15));
+            });
         }
 
+        Assert.Empty(client.Messages);
         AssertNoTemporaryArchives();
+    }
+
+    private sealed class PreparationReadStream(byte[] content, TaskCompletionSource<CancellationToken> readStarted, Task release)
+        : MemoryStream(content, writable: false)
+    {
+        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            readStarted.TrySetResult(cancellationToken);
+            await release.ConfigureAwait(false);
+            return await base.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
 

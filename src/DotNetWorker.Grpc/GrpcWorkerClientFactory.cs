@@ -36,9 +36,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
         public IWorkerClient CreateClient(IMessageProcessor messageProcessor)
             => new GrpcWorkerClient(_outputChannel, _startupOptions, messageProcessor, _logger);
 
-        [LoggerMessage(1, LogLevel.Error, "The worker gRPC connection failed.")]
-        private static partial void LogConnectionFailure(ILogger logger, Exception exception);
-
         internal sealed class GrpcWorkerClient : IWorkerClient
         {
             private readonly FunctionRpcClient _grpcClient;
@@ -212,5 +209,8 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 return new FunctionRpcClient(grpcChannel);
             }
         }
+
+        [LoggerMessage(1, LogLevel.Error, "The worker gRPC connection failed.")]
+        private static partial void LogConnectionFailure(ILogger logger, Exception exception);
     }
 }

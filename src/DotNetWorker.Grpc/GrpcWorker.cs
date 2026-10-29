@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
@@ -17,8 +18,10 @@ using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
+using RpcException = Grpc.Core.RpcException;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -31,6 +34,8 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataManager _metadataManager;
+        private readonly ExtensionPayload _extensionPayload;
+        private readonly ILogger<GrpcWorker> _logger;
         private IWorkerClient? _workerClient;
 
         public GrpcWorker(IFunctionsApplication application,
@@ -39,7 +44,9 @@ namespace Microsoft.Azure.Functions.Worker
                           IOptions<WorkerOptions> workerOptions,
                           IFunctionMetadataManager metadataManager,
                           IHostApplicationLifetime hostApplicationLifetime,
-                          IInvocationHandler invocationHandler)
+                          IInvocationHandler invocationHandler,
+                          ExtensionPayload extensionPayload,
+                          ILogger<GrpcWorker> logger)
         {
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
             _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
@@ -47,6 +54,8 @@ namespace Microsoft.Azure.Functions.Worker
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
             _workerOptions = workerOptions.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _metadataManager = metadataManager ?? throw new ArgumentNullException(nameof(metadataManager));
+            _extensionPayload = extensionPayload ?? throw new ArgumentNullException(nameof(extensionPayload));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _invocationHandler = invocationHandler;
         }
@@ -57,7 +66,28 @@ namespace Microsoft.Azure.Functions.Worker
             return _workerClient.StartAsync(token);
         }
 
-        public Task StopAsync(CancellationToken token) => Task.CompletedTask;
+        public async Task StopAsync(CancellationToken token)
+        {
+            Task shutdown = Task.WhenAll(_extensionPayload.CancelAsync(), _workerClient?.StopAsync(token) ?? Task.CompletedTask);
+            try
+            {
+                await shutdown.ConfigureAwait(false);
+            }
+            catch (Exception) when (_workerClient?.ConnectionClosed.IsCancellationRequested == true
+                && (shutdown.IsCanceled || shutdown.Exception?.InnerExceptions.All(static exception => exception is OperationCanceledException
+                    || exception is RpcException rpc && rpc.StatusCode == StatusCode.Cancelled) == true))
+            {
+            }
+            catch
+            {
+                if (shutdown.Exception is { InnerExceptions.Count: > 1 } aggregate)
+                {
+                    throw aggregate;
+                }
+
+                throw;
+            }
+        }
 
         Task IMessageProcessor.ProcessMessageAsync(StreamingMessage message)
         {
@@ -81,7 +111,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.WorkerInitRequest:
-                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions);
+                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions, _workerClient!.SupportsExtensionPayload);
                     break;
 
                 case MsgType.WorkerStatusRequest:
@@ -92,6 +122,10 @@ namespace Microsoft.Azure.Functions.Worker
                     responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
                     break;
 
+                case MsgType.GetExtensionPayloadRequest:
+                    await ProcessExtensionPayloadAsync(request.RequestId);
+                    return;
+
                 case MsgType.WorkerTerminate:
                     WorkerTerminateRequestHandler(request.WorkerTerminate);
                     break;
@@ -101,7 +135,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.FunctionEnvironmentReloadRequest:
-                    responseMessage.FunctionEnvironmentReloadResponse = EnvironmentReloadRequestHandler(_workerOptions);
+                    responseMessage.FunctionEnvironmentReloadResponse = EnvironmentReloadRequestHandler(_workerOptions, _workerClient!.SupportsExtensionPayload);
                     break;
 
                 case MsgType.InvocationCancel:
@@ -116,6 +150,24 @@ namespace Microsoft.Azure.Functions.Worker
             await _workerClient!.SendMessageAsync(responseMessage);
         }
 
+        private async Task ProcessExtensionPayloadAsync(string requestId)
+        {
+            try
+            {
+                await _extensionPayload.SendAsync(requestId, _workerClient!, _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (_workerClient!.ConnectionClosed.IsCancellationRequested || _hostApplicationLifetime.ApplicationStopping.IsCancellationRequested)
+            {
+            }
+            catch (RpcException exception) when (_workerClient!.ConnectionClosed.IsCancellationRequested && exception.StatusCode == StatusCode.Cancelled)
+            {
+            }
+            catch (Exception exception)
+            {
+                LogPayloadTransportFailure(_logger, requestId, exception);
+            }
+        }
+
         internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
             return _invocationHandler.InvokeAsync(request);
@@ -126,7 +178,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions, bool supportsExtensionPayload = true)
         {
             var response = new WorkerInitResponse
             {
@@ -135,7 +187,7 @@ namespace Microsoft.Azure.Functions.Worker
                 WorkerMetadata = GetWorkerMetadata()
             };
 
-            response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
+            response.Capabilities.Add(GetWorkerCapabilities(workerOptions, supportsExtensionPayload));
 
             return response;
         }
@@ -150,7 +202,8 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionMetadataList = await _metadataManager.GetFunctionMetadataAsync(functionAppDirectory);
+                string metadataDirectory = WorkerApplicationDirectory.GetConfigured() ?? functionAppDirectory;
+                var functionMetadataList = await _metadataManager.GetFunctionMetadataAsync(metadataDirectory);
 
                 foreach (var func in functionMetadataList)
                 {
@@ -231,12 +284,12 @@ namespace Microsoft.Azure.Functions.Worker
             if (retry.Strategy is RetryStrategy.FixedDelay)
             {
                 rpcRetryOptions.RetryStrategy = RpcRetryOptions.Types.RetryStrategy.FixedDelay;
-                rpcRetryOptions.DelayInterval = Duration.FromTimeSpan((TimeSpan) retry.DelayInterval!);
+                rpcRetryOptions.DelayInterval = Duration.FromTimeSpan((TimeSpan)retry.DelayInterval!);
             }
             else if (retry.Strategy is RetryStrategy.ExponentialBackoff)
             {
                 rpcRetryOptions.RetryStrategy = RpcRetryOptions.Types.RetryStrategy.ExponentialBackoff;
-                rpcRetryOptions.MaximumInterval = Duration.FromTimeSpan((TimeSpan) retry.MaximumInterval!);
+                rpcRetryOptions.MaximumInterval = Duration.FromTimeSpan((TimeSpan)retry.MaximumInterval!);
                 rpcRetryOptions.MinimumInterval = Duration.FromTimeSpan((TimeSpan)retry.MinimumInterval!);
             }
             else
@@ -280,14 +333,14 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static FunctionEnvironmentReloadResponse EnvironmentReloadRequestHandler(WorkerOptions workerOptions)
+        internal static FunctionEnvironmentReloadResponse EnvironmentReloadRequestHandler(WorkerOptions workerOptions, bool supportsExtensionPayload = true)
         {
             var envReloadResponse = new FunctionEnvironmentReloadResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
                 WorkerMetadata = GetWorkerMetadata()
             };
-            envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions));
+            envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions, supportsExtensionPayload));
 
             return envReloadResponse;
         }
@@ -304,7 +357,7 @@ namespace Microsoft.Azure.Functions.Worker
         internal static WorkerMetadata GetWorkerMetadata(string? frameworkDescription = null)
         {
             frameworkDescription ??= RuntimeInformation.FrameworkDescription;
-            
+
             var match = FrameworkDescriptionRegex().Match(frameworkDescription);
             frameworkDescription = match.Success ? match.Value : frameworkDescription;
 
@@ -320,7 +373,7 @@ namespace Microsoft.Azure.Functions.Worker
             return workerMetadata;
         }
 
-        private static IDictionary<string, string> GetWorkerCapabilities(WorkerOptions workerOptions)
+        private static IDictionary<string, string> GetWorkerCapabilities(WorkerOptions workerOptions, bool supportsExtensionPayload)
         {
             var capabilities = new Dictionary<string, string>();
 
@@ -338,7 +391,20 @@ namespace Microsoft.Azure.Functions.Worker
             capabilities[WorkerCapabilities.TypedDataCollection] = bool.TrueString;
             capabilities[WorkerCapabilities.WorkerStatus] = bool.TrueString;
 
+            if (supportsExtensionPayload)
+            {
+                capabilities[WorkerCapabilities.ExtensionPayload] = "1";
+            }
+            else
+            {
+                capabilities.Remove(WorkerCapabilities.ExtensionPayload);
+            }
+
             return capabilities;
         }
+
+        [LoggerMessage(1, LogLevel.Error, "Extension payload request {RequestId} could not send its terminal response.")]
+        private static partial void LogPayloadTransportFailure(ILogger logger, string requestId, Exception exception);
+
     }
 }

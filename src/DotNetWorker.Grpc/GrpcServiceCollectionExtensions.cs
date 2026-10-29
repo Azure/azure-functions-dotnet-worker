@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -52,6 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // gRPC Core services
             services.TryAddSingleton<IWorker, GrpcWorker>();
+            services.TryAddSingleton<ExtensionPayload>();
             services.TryAddSingleton<IInvocationHandler, InvocationHandler>();
 
 #if NET6_0_OR_GREATER

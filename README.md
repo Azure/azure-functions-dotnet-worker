@@ -26,6 +26,24 @@ You can find samples on how to use different features of the .NET Worker under `
 
 Please see our [Guide for running C# Azure Functions in an isolated worker process](https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide) for information on how to develop, debug and deploy using the Isolated Worker model.
 
+## Extension payload transfer
+
+The normal gRPC worker advertises `ExtensionPayload="1"` based only on transport support. Initialization and environment reload do not inspect payload paths, open files, enumerate directories, or create an archive. The capability is not a promise that deployment files are available or an instruction to send; a worker sends no payload without an explicit Host request.
+
+Only when requested, the worker validates that `FUNCTIONS_APPLICATION_DIRECTORY` identifies a fully qualified worker-local directory containing readable `extensions.json` and an accessible `.azurefunctions` directory. Missing, malformed, or inaccessible payload inputs fail that request with a correlated terminal failure and local diagnostics, not worker initialization.
+
+The Host requests a payload while acquiring its first accepted extension source, then reuses that source for later or concurrent worker links instead of requesting or comparing additional payloads. Later workers may still advertise support; the Host decides whether acquisition is needed.
+
+`GetExtensionPayloadRequest` on the existing EventStream creates a temporary ZIP containing the root manifest and recursive `.azurefunctions` assets. The producer removes the SDK-owned Host metadata-loader startup from the archived `extensions.json` and excludes only its known root `Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll` and `.pdb` files. Deployment originals and ordinary co-located build/publish output are not changed, and no SDK opt-out is required. Other manifest fields, entries, hints, real extension assets, and shared dependencies are preserved; an already-filtered manifest is copied unchanged.
+
+Discovered nested links are skipped without traversal, and linked root inputs are rejected. The limits are 256 MiB compressed, 1 GiB of archived file contents, 1 MiB each for manifest input and filtered output, 10,000 filesystem entries including implicit directories, and 32 path segments. Malformed or oversized manifests fail the request and remove its temporary ZIP. The archive has no comment or ZIP64 end records.
+
+Responses share the request's outer `request_id`. Chunks contain at most 64 KiB, fit the configured protobuf-envelope limit, and have cumulative byte offsets. A live transfer ends with one success or failure result. Cancellation belongs to connection loss or worker shutdown; there is no payload-cancellation message or recoverable per-request cancellation on the same link. Shutdown cancels preparation or sending and drains in-flight writes before releasing the temporary ZIP. No terminal response is required on a closed or shutting-down connection. Payload writes await the actual serialized gRPC write, not admission to the logging queue.
+
+Native-host workers do not advertise this capability: their current ABI reports queue admission rather than transport completion. They reject an unexpected request without preparing a ZIP. No new RPC service or HTTP download is introduced.
+
+Worker indexing uses the same validated worker-local application directory when configured, including the `functions.metadata` fallback provider. When the variable is absent, the legacy metadata request directory is preserved. The Host and WorkerProxy do not gain access to these files.
+
 ## Running E2E Tests
 
 ### Requirements

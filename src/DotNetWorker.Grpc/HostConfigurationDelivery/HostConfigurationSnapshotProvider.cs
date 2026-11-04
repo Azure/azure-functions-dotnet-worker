@@ -5,8 +5,10 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Text;
+using System.Text.Json;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
 {
@@ -16,9 +18,10 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
     /// </summary>
     /// <remarks>
     /// Captured once on the first requested init and replayed afterwards, including failures (restart to retry).
-    /// App content is treated as immutable for the process lifetime. The file is converted to strict BOM-free UTF-8 but never
-    /// parsed or logged here;
-    /// the host owns interpretation. The ASP.NET Core extension reads the route prefix independently, so changing
+    /// App content is treated as immutable for the process lifetime. The file is converted to strict BOM-free UTF-8 and
+    /// normalized to strict JSON (comments and trailing commas removed); the host owns interpretation. A failure is
+    /// logged once with a fixed reason code only, never with paths, exception messages or file content.
+    /// The ASP.NET Core extension reads the route prefix independently, so changing
     /// host.json while the process runs is unsupported.
     /// </remarks>
     internal sealed class HostConfigurationSnapshotProvider
@@ -33,12 +36,15 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
 
         private readonly Lazy<HostConfigurationSnapshot> _snapshot;
 
-        public HostConfigurationSnapshotProvider()
-            : this(() => Environment.GetEnvironmentVariable(AppDirectoryVariableName), new PhysicalHostConfigurationFileSystem())
+        public HostConfigurationSnapshotProvider(ILogger<HostConfigurationSnapshotProvider> logger)
+            : this(() => Environment.GetEnvironmentVariable(AppDirectoryVariableName), new PhysicalHostConfigurationFileSystem(), logger)
         {
         }
 
-        internal HostConfigurationSnapshotProvider(Func<string?> appDirectoryAccessor, IHostConfigurationFileSystem fileSystem)
+        internal HostConfigurationSnapshotProvider(
+            Func<string?> appDirectoryAccessor,
+            IHostConfigurationFileSystem fileSystem,
+            ILogger? logger = null)
         {
             if (appDirectoryAccessor is null)
             {
@@ -51,13 +57,13 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
             }
 
             _snapshot = new Lazy<HostConfigurationSnapshot>(
-                () => Capture(appDirectoryAccessor, fileSystem),
+                () => LogFailure(Capture(appDirectoryAccessor, fileSystem), logger),
                 LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
         /// <summary>
         /// Returns a new envelope only when the host requested it with HostConfiguration = "1";
-        /// otherwise returns null without reading host.json or initializing the snapshot.
+        /// otherwise returns null and neither reads host.json nor initializes the snapshot.
         /// </summary>
         public HostConfiguration? TryGetConfiguration(WorkerInitRequest request)
         {
@@ -89,10 +95,23 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
             }
             catch (Exception)
             {
-                return HostConfigurationSnapshot.Error;
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.AppDirectoryUnavailable);
             }
 
             return Read(appDirectory, fileSystem);
+        }
+
+        // Fixed reason codes only: paths, exception messages and file content never reach the logs.
+        private static HostConfigurationSnapshot LogFailure(HostConfigurationSnapshot snapshot, ILogger? logger)
+        {
+            if (logger is not null && snapshot.Reason != HostConfigurationFailureReason.None)
+            {
+                logger.LogWarning(
+                    "Host configuration could not be delivered to the host. Reason: {Reason}. The failure is retained until the worker process restarts.",
+                    snapshot.Reason.ToString());
+            }
+
+            return snapshot;
         }
 
         internal static HostConfigurationSnapshot Read(string? appDirectory, IHostConfigurationFileSystem fileSystem)
@@ -104,30 +123,66 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
                 // Relative roots resolve with native platform semantics; an unset root is never replaced.
                 if (appDirectory is null || string.IsNullOrWhiteSpace(appDirectory))
                 {
-                    return HostConfigurationSnapshot.Error;
+                    return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.AppDirectoryNotSet);
                 }
 
                 path = Path.Combine(appDirectory, HostJsonFileName);
             }
             catch (Exception)
             {
-                return HostConfigurationSnapshot.Error;
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.AppDirectoryInvalid);
             }
+
+            Stream stream;
 
             try
             {
-                using Stream stream = fileSystem.OpenRead(path);
-                return ReadBounded(stream);
+                stream = fileSystem.OpenRead(path);
             }
             catch (FileNotFoundException)
             {
                 return HostConfigurationSnapshot.Missing;
             }
+            catch (DirectoryNotFoundException)
+            {
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.AppDirectoryNotFound);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.AccessDenied);
+            }
             catch (Exception)
             {
-                // Content-free on purpose: exception messages can carry file paths.
-                return HostConfigurationSnapshot.Error;
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.OpenFailed);
             }
+
+            try
+            {
+                using (stream)
+                {
+                    return ReadBounded(stream);
+                }
+            }
+            catch (DecoderFallbackException)
+            {
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.InvalidEncoding);
+            }
+            catch (InvalidEncodingException)
+            {
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.InvalidEncoding);
+            }
+            catch (JsonException)
+            {
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.InvalidJson);
+            }
+            catch (Exception)
+            {
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.ReadFailed);
+            }
+        }
+
+        private sealed class InvalidEncodingException : Exception
+        {
         }
 
         /// <summary>
@@ -135,38 +190,37 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
         /// without trusting the stream length (the file can grow while read and not every stream is seekable).
         /// Memory is bounded by the converted payload cap: reading stops once the output exceeds
         /// <see cref="MaxHostConfigurationBytes"/>. Invalid encoding throws, which the caller maps to an Error status.
-        /// The JSON itself is not parsed.
+        /// Non-empty content is then normalized to strict JSON (comments and trailing commas removed).
         /// </summary>
+        /// <remarks>
+        /// <see cref="StreamReader"/> detects the BOM; the BOM-less default is a throwing UTF-8 decoder. Decoders that
+        /// <see cref="StreamReader"/> selects from a BOM replace invalid input with U+FFFD, so U+FFFD in text from a
+        /// BOM-detected source is rejected as invalid encoding.
+        /// </remarks>
         internal static HostConfigurationSnapshot ReadBounded(Stream stream)
         {
-            byte[] buffer = new byte[4096];
-
-            int head = 0;
-            while (head < 4)
-            {
-                int n = stream.Read(buffer, head, 4 - head);
-                if (n <= 0)
-                {
-                    break;
-                }
-
-                head += n;
-            }
-
-            Encoding sourceEncoding = DetectEncoding(buffer, head, out int bomLength);
-            Decoder decoder = sourceEncoding.GetDecoder();
+            using var reader = new StreamReader(new HeadFilledStream(stream), StrictUtf8, detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true);
             Encoder encoder = StrictUtf8.GetEncoder();
-            char[] chars = new char[sourceEncoding.GetMaxCharCount(buffer.Length)];
+            char[] chars = new char[4096];
             byte[] encoded = new byte[StrictUtf8.GetMaxByteCount(chars.Length + 1)];
             using var content = new MemoryStream();
 
-            int offset = bomLength;
-            int count = head - bomLength;
-
             while (true)
             {
-                int charCount = decoder.GetChars(buffer, offset, count, chars, 0, flush: false);
-                int byteCount = encoder.GetBytes(chars, 0, charCount, encoded, 0, flush: false);
+                int charCount = reader.Read(chars, 0, chars.Length);
+                bool last = charCount <= 0;
+                if (last)
+                {
+                    charCount = 0;
+                }
+
+                // The detected encoding is only known after the first read.
+                if (!ReferenceEquals(reader.CurrentEncoding, StrictUtf8) && Array.IndexOf(chars, '\uFFFD', 0, charCount) >= 0)
+                {
+                    throw new InvalidEncodingException();
+                }
+
+                int byteCount = encoder.GetBytes(chars, 0, charCount, encoded, 0, flush: last);
                 content.Write(encoded, 0, byteCount);
 
                 if (content.Length > MaxHostConfigurationBytes)
@@ -174,84 +228,187 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
                     return HostConfigurationSnapshot.TooLarge;
                 }
 
-                offset = 0;
-                count = stream.Read(buffer, 0, buffer.Length);
-                if (count <= 0)
+                if (last)
                 {
                     break;
                 }
             }
 
-            // Flushing throws on a truncated trailing sequence (strict decoders).
-            int tailChars = decoder.GetChars(buffer, 0, 0, chars, 0, flush: true);
-            int tailBytes = encoder.GetBytes(chars, 0, tailChars, encoded, 0, flush: true);
-            content.Write(encoded, 0, tailBytes);
+            // An empty source stays empty; the host owns rejecting it.
+            if (content.Length == 0)
+            {
+                return HostConfigurationSnapshot.Available(ByteString.Empty);
+            }
 
-            if (content.Length > MaxHostConfigurationBytes)
+            return Normalize(content.GetBuffer(), (int)content.Length);
+        }
+
+        /// <summary>
+        /// The source may use comments and trailing commas, which strict parsers reject. Re-emit it as strict compact JSON
+        /// so delivery does not narrow the accepted syntax. String and number tokens are copied byte-for-byte (no
+        /// re-escaping). Syntax errors throw (mapped to Error by the caller); the content is never logged.
+        /// The cap applies again to the normalized payload.
+        /// </summary>
+        private static HostConfigurationSnapshot Normalize(byte[] utf8, int length)
+        {
+            var reader = new Utf8JsonReader(
+                new ReadOnlySpan<byte>(utf8, 0, length),
+                new JsonReaderOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+
+            using var output = new MemoryStream(length);
+            bool needComma = false;
+
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.StartObject:
+                    case JsonTokenType.StartArray:
+                        WriteSeparator(output, ref needComma);
+                        output.WriteByte(reader.TokenType == JsonTokenType.StartObject ? (byte)'{' : (byte)'[');
+                        break;
+                    case JsonTokenType.EndObject:
+                    case JsonTokenType.EndArray:
+                        output.WriteByte(reader.TokenType == JsonTokenType.EndObject ? (byte)'}' : (byte)']');
+                        needComma = true;
+                        break;
+                    case JsonTokenType.PropertyName:
+                        WriteSeparator(output, ref needComma);
+                        WriteQuoted(output, reader.ValueSpan);
+                        output.WriteByte((byte)':');
+                        break;
+                    case JsonTokenType.String:
+                        WriteSeparator(output, ref needComma);
+                        WriteQuoted(output, reader.ValueSpan);
+                        needComma = true;
+                        break;
+                    default:
+                        WriteSeparator(output, ref needComma);
+                        WriteSpan(output, reader.ValueSpan);
+                        needComma = true;
+                        break;
+                }
+            }
+
+            if (output.Length > MaxHostConfigurationBytes)
             {
                 return HostConfigurationSnapshot.TooLarge;
             }
 
-            return HostConfigurationSnapshot.Available(ByteString.CopyFrom(content.GetBuffer(), 0, (int)content.Length));
+            return HostConfigurationSnapshot.Available(ByteString.CopyFrom(output.GetBuffer(), 0, (int)output.Length));
+        }
+
+        private static void WriteSeparator(MemoryStream output, ref bool needComma)
+        {
+            if (needComma)
+            {
+                output.WriteByte((byte)',');
+            }
+
+            needComma = false;
+        }
+
+        private static void WriteQuoted(MemoryStream output, ReadOnlySpan<byte> value)
+        {
+            output.WriteByte((byte)'"');
+            WriteSpan(output, value);
+            output.WriteByte((byte)'"');
+        }
+
+        private static void WriteSpan(MemoryStream output, ReadOnlySpan<byte> value)
+        {
+            byte[] bytes = value.ToArray();
+            output.Write(bytes, 0, bytes.Length);
+        }
+
+        // StreamReader only detects a BOM when its first read returns at least 2 bytes (4 for UTF-32). A stream may
+        // legally return fewer, so the head is gathered here and served as a single first read.
+        private sealed class HeadFilledStream : Stream
+        {
+            private readonly Stream _inner;
+            private readonly byte[] _head = new byte[4];
+            private int _headLength;
+            private int _headOffset;
+
+            public HeadFilledStream(Stream inner)
+            {
+                _inner = inner;
+                while (_headLength < _head.Length)
+                {
+                    int n = inner.Read(_head, _headLength, _head.Length - _headLength);
+                    if (n <= 0)
+                    {
+                        break;
+                    }
+
+                    _headLength += n;
+                }
+            }
+
+            public override bool CanRead => true;
+            public override bool CanSeek => false;
+            public override bool CanWrite => false;
+            public override long Length => throw new NotSupportedException();
+            public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+            public override void Flush() { }
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+            public override void SetLength(long value) => throw new NotSupportedException();
+            public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                if (_headOffset < _headLength)
+                {
+                    int n = Math.Min(count, _headLength - _headOffset);
+                    Buffer.BlockCopy(_head, _headOffset, buffer, offset, n);
+                    _headOffset += n;
+                    return n;
+                }
+
+                return _inner.Read(buffer, offset, count);
+            }
         }
 
         private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-        private static Encoding DetectEncoding(byte[] b, int count, out int bomLength)
-        {
-            // UTF-32LE must be tested before UTF-16LE: both start with FF FE.
-            if (count >= 4 && b[0] == 0xFF && b[1] == 0xFE && b[2] == 0 && b[3] == 0)
-            {
-                bomLength = 4;
-                return new UTF32Encoding(bigEndian: false, byteOrderMark: false, throwOnInvalidCharacters: true);
-            }
+    }
 
-            if (count >= 4 && b[0] == 0 && b[1] == 0 && b[2] == 0xFE && b[3] == 0xFF)
-            {
-                bomLength = 4;
-                return new UTF32Encoding(bigEndian: true, byteOrderMark: false, throwOnInvalidCharacters: true);
-            }
-
-            if (count >= 3 && b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF)
-            {
-                bomLength = 3;
-                return StrictUtf8;
-            }
-
-            if (count >= 2 && b[0] == 0xFF && b[1] == 0xFE)
-            {
-                bomLength = 2;
-                return new UnicodeEncoding(bigEndian: false, byteOrderMark: false, throwOnInvalidBytes: true);
-            }
-
-            if (count >= 2 && b[0] == 0xFE && b[1] == 0xFF)
-            {
-                bomLength = 2;
-                return new UnicodeEncoding(bigEndian: true, byteOrderMark: false, throwOnInvalidBytes: true);
-            }
-
-            bomLength = 0;
-            return StrictUtf8;
-        }
+    // Content-free diagnostic reasons logged when a failure is cached; never carry paths or content.
+    internal enum HostConfigurationFailureReason
+    {
+        None = 0,
+        AppDirectoryUnavailable,
+        AppDirectoryNotSet,
+        AppDirectoryInvalid,
+        AppDirectoryNotFound,
+        AccessDenied,
+        OpenFailed,
+        ReadFailed,
+        InvalidEncoding,
+        InvalidJson,
+        Oversized,
     }
 
     internal sealed class HostConfigurationSnapshot
     {
-        private HostConfigurationSnapshot(HostConfiguration.Types.Status status, ByteString content)
+        private HostConfigurationSnapshot(HostConfiguration.Types.Status status, ByteString content, HostConfigurationFailureReason reason = HostConfigurationFailureReason.None)
         {
             Status = status;
             Content = content;
+            Reason = reason;
         }
 
         public HostConfiguration.Types.Status Status { get; }
 
         public ByteString Content { get; }
 
+        public HostConfigurationFailureReason Reason { get; }
+
         public static HostConfigurationSnapshot Missing { get; } = new(HostConfiguration.Types.Status.Missing, ByteString.Empty);
 
-        public static HostConfigurationSnapshot Error { get; } = new(HostConfiguration.Types.Status.Error, ByteString.Empty);
+        public static HostConfigurationSnapshot TooLarge { get; } = new(HostConfiguration.Types.Status.TooLarge, ByteString.Empty, HostConfigurationFailureReason.Oversized);
 
-        public static HostConfigurationSnapshot TooLarge { get; } = new(HostConfiguration.Types.Status.TooLarge, ByteString.Empty);
+        public static HostConfigurationSnapshot Failure(HostConfigurationFailureReason reason) => new(HostConfiguration.Types.Status.Error, ByteString.Empty, reason);
 
         public static HostConfigurationSnapshot Available(ByteString content) => new(HostConfiguration.Types.Status.Available, content);
     }

@@ -141,7 +141,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
-            // Only requested deliveries read host.json; the outcome never changes the init result.
+            // host.json is read only when the host requests delivery; a failed read is reported in the response and never fails initialization.
             response.HostConfiguration = hostConfigurationSnapshotProvider.TryGetConfiguration(request);
 
             return response;

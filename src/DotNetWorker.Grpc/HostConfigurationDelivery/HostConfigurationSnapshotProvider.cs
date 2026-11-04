@@ -190,7 +190,8 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
         /// without trusting the stream length (the file can grow while read and not every stream is seekable).
         /// Memory is bounded by the converted payload cap: reading stops once the output exceeds
         /// <see cref="MaxHostConfigurationBytes"/>. Invalid encoding throws, which the caller maps to an Error status.
-        /// Non-empty content is then normalized to strict JSON (comments and trailing commas removed).
+        /// Non-empty content is then normalized to a strict JSON object (comments and trailing commas removed);
+        /// empty content and non-object roots are errors because the host rejects them.
         /// </summary>
         /// <remarks>
         /// <see cref="StreamReader"/> detects the BOM; the BOM-less default is a throwing UTF-8 decoder. Decoders that
@@ -234,10 +235,10 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
                 }
             }
 
-            // An empty source stays empty; the host owns rejecting it.
+            // Empty or BOM-only content is not a JSON object; the host rejects it, so report it as an error.
             if (content.Length == 0)
             {
-                return HostConfigurationSnapshot.Available(ByteString.Empty);
+                return HostConfigurationSnapshot.Failure(HostConfigurationFailureReason.InvalidJson);
             }
 
             return Normalize(content.GetBuffer(), (int)content.Length);
@@ -257,9 +258,17 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery
 
             using var output = new MemoryStream(length);
             bool needComma = false;
+            bool first = true;
 
             while (reader.Read())
             {
+                // The host requires a JSON object root.
+                if (first && reader.TokenType != JsonTokenType.StartObject)
+                {
+                    throw new JsonException();
+                }
+
+                first = false;
                 switch (reader.TokenType)
                 {
                     case JsonTokenType.StartObject:

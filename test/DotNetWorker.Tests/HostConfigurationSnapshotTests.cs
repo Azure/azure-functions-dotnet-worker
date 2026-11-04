@@ -180,13 +180,42 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void EmptyFile_IsAvailableEmpty_NotMissing()
+        public void EmptyFile_IsInvalidJsonError_NotMissing()
         {
             WriteHostJson(Array.Empty<byte>());
 
             var result = Get(PhysicalProvider());
 
-            Assert.Equal(HostConfiguration.Types.Status.Available, result.Status);
+            Assert.Equal(HostConfiguration.Types.Status.Error, result.Status);
+            Assert.True(result.Content.IsEmpty);
+        }
+
+        [Fact]
+        public void BomOnlyFile_IsInvalidJsonError()
+        {
+            WriteHostJson(new byte[] { 0xEF, 0xBB, 0xBF });
+
+            var result = Get(PhysicalProvider());
+
+            Assert.Equal(HostConfiguration.Types.Status.Error, result.Status);
+            Assert.True(result.Content.IsEmpty);
+        }
+
+        [Theory]
+        [InlineData("[]")]
+        [InlineData("[7]")]
+        [InlineData("\"s\"")]
+        [InlineData("1")]
+        [InlineData("null")]
+        [InlineData("true")]
+        [InlineData("// c\n[1]")]
+        public void NonObjectRoot_IsInvalidJsonError(string json)
+        {
+            WriteHostJson(Encoding.UTF8.GetBytes(json));
+
+            var result = Get(PhysicalProvider());
+
+            Assert.Equal(HostConfiguration.Types.Status.Error, result.Status);
             Assert.True(result.Content.IsEmpty);
         }
 
@@ -367,7 +396,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             string relative = Path.Combine("relative", "app");
             string opened = null;
-            var fs = new FakeFileSystem(p => { opened = p;             return new TrickleStream(new byte[] { (byte)'1' }, int.MaxValue); });
+            var fs = new FakeFileSystem(p => { opened = p;             return new TrickleStream(new byte[] { (byte)'{', (byte)'}' }, int.MaxValue); });
 
             var result = HostConfigurationSnapshotProvider.Read(relative, fs);
 
@@ -579,13 +608,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void FileChangesAfterFirstInit_AreNotObserved()
         {
-            WriteHostJson(new[] { (byte)'1' });
+            WriteHostJson(new[] { (byte)'{', (byte)'}' });
             var provider = PhysicalProvider();
             Get(provider);
 
-            WriteHostJson(new[] { (byte)'2', (byte)'2' });
+            WriteHostJson(Encoding.UTF8.GetBytes("{\"a\":1}"));
 
-            Assert.Equal(new[] { (byte)'1' }, Get(provider).Content.ToByteArray());
+            Assert.Equal(new[] { (byte)'{', (byte)'}' }, Get(provider).Content.ToByteArray());
         }
 
         [Fact]
@@ -595,7 +624,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var fs = new FakeFileSystem(() =>
             {
                 gate.Wait();
-                return new TrickleStream(new byte[] { (byte)'[', (byte)'7', (byte)']' }, int.MaxValue);
+                return new TrickleStream(new byte[] { (byte)'{', (byte)'}' }, int.MaxValue);
             });
             var provider = new HostConfigurationSnapshotProvider(() => FakeFileSystem.Root, fs);
 
@@ -607,7 +636,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var results = await Task.WhenAll(tasks);
 
             Assert.Equal(1, fs.Opens);
-            Assert.All(results, r => Assert.Equal(new byte[] { (byte)'[', (byte)'7', (byte)']' }, r.Content.ToByteArray()));
+            Assert.All(results, r => Assert.Equal(new byte[] { (byte)'{', (byte)'}' }, r.Content.ToByteArray()));
         }
 
         [Fact]
@@ -683,7 +712,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void EarlierUnrequestedInit_DoesNotCaptureSnapshot_BeforeLaterRequestedInit()
         {
-            var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { (byte)'1' }, int.MaxValue));
+            var fs = new FakeFileSystem(() => new TrickleStream(new byte[] { (byte)'{', (byte)'}' }, int.MaxValue));
             var provider = new HostConfigurationSnapshotProvider(() => FakeFileSystem.Root, fs);
 
             Assert.Null(GrpcWorker.WorkerInitRequestHandler(new WorkerInitRequest(), new WorkerOptions(), provider).HostConfiguration);

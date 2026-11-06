@@ -104,6 +104,8 @@ To migrate, make the following project file changes:
 
 During restore, the SDK generates a helper project named `azure_functions.g.csproj` in your `obj/` directory. This project is used to resolve the function extension assemblies required by the Azure Functions host. It is restored automatically and its outputs are included in your build and publish output.
 
+The generated project's target framework follows the selected .NET SDK, not your application's `TargetFramework`. It uses the highest target framework supported by that SDK, capped at `net10.0` to match the Azure Functions host. Changing the SDK selected by `global.json` can therefore change the host-side extension payload included in your build and publish output without changing your application's target framework.
+
 You should **not** build, edit, or reference this project directly. If a traversal or `dirs.proj` file accidentally includes it, see [AZFW0109](https://github.com/Azure/azure-functions-dotnet-worker/blob/main/docs/sdk-rules/AZFW0109.md) for guidance.
 
 ## SDK Rules

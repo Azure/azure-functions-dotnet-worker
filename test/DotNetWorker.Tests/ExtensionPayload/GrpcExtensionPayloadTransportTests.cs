@@ -21,6 +21,23 @@ public sealed class GrpcExtensionPayloadTransportTests
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
     [Fact]
+    public void PayloadMessagesUseWireTags37And38()
+    {
+        Assert.Equal(37, StreamingMessage.GetExtensionPayloadRequestFieldNumber);
+        Assert.Equal(38, StreamingMessage.ExtensionPayloadResponseFieldNumber);
+
+        byte[] requestBytes = [0xaa, 0x02, 0x00];
+        byte[] responseBytes = [0xb2, 0x02, 0x03, 0x12, 0x01, 0x2a];
+        StreamingMessage request = new() { GetExtensionPayloadRequest = new() };
+        StreamingMessage response = new() { ExtensionPayloadResponse = new() { Chunk = ByteString.CopyFrom(new byte[] { 0x2a }) } };
+
+        Assert.Equal(requestBytes, request.ToByteArray());
+        Assert.Equal(responseBytes, response.ToByteArray());
+        Assert.Equal(request, StreamingMessage.Parser.ParseFrom(requestBytes));
+        Assert.Equal(response, StreamingMessage.Parser.ParseFrom(responseBytes));
+    }
+
+    [Fact]
     public async Task PayloadSendAwaitsRealTransportWriteNotQueueAdmission()
     {
         await using ClientContext context = new();

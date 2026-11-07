@@ -72,6 +72,28 @@ public sealed class GrpcExtensionPayloadTransportTests
     }
 
     [Fact]
+    public async Task CancelledPayloadWaitDoesNotReleaseAnActiveWriter()
+    {
+        await using ClientContext context = new();
+        await context.StartAsync();
+        Assert.True(context.Outgoing.Channel.Writer.TryWrite(new() { RpcLog = new() { Message = "held log" } }));
+        WriteRecord first = await context.Transport.First.Task.WaitAsync(Timeout);
+        using CancellationTokenSource cancellation = new();
+        Task cancelled = context.Client.SendPayloadMessageAsync(CreatePayload(), cancellation.Token).AsTask();
+        cancellation.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled).WaitAsync(Timeout);
+
+        Task payload = context.Client.SendPayloadMessageAsync(CreatePayload(), CancellationToken.None).AsTask();
+        Assert.False(context.Transport.Second.Task.IsCompleted);
+        Assert.False(context.Client.ConnectionClosed.IsCancellationRequested);
+        first.Completion.SetResult(true);
+        WriteRecord second = await context.Transport.Second.Task.WaitAsync(Timeout);
+        second.Completion.SetResult(true);
+        await payload.WaitAsync(Timeout);
+        Assert.False(context.Transport.ConcurrentWriteDetected);
+    }
+
+    [Fact]
     public async Task ConnectionShutdownCancelsPayloadWaitingBehindAnInFlightLog()
     {
         await using ClientContext context = new();

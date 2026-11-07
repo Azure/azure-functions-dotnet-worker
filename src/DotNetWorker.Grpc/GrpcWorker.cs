@@ -63,6 +63,15 @@ namespace Microsoft.Azure.Functions.Worker
         public Task StartAsync(CancellationToken token)
         {
             _workerClient = _workerClientFactory.CreateClient(this);
+            if (_workerClient.SupportsExtensionPayload)
+            {
+                _workerOptions.Capabilities[WorkerCapabilities.ExtensionPayload] = "1";
+            }
+            else
+            {
+                _workerOptions.Capabilities.Remove(WorkerCapabilities.ExtensionPayload);
+            }
+
             return _workerClient.StartAsync(token);
         }
 
@@ -111,7 +120,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.WorkerInitRequest:
-                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions, _workerClient!.SupportsExtensionPayload);
+                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions);
                     break;
 
                 case MsgType.WorkerStatusRequest:
@@ -135,7 +144,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.FunctionEnvironmentReloadRequest:
-                    responseMessage.FunctionEnvironmentReloadResponse = EnvironmentReloadRequestHandler(_workerOptions, _workerClient!.SupportsExtensionPayload);
+                    responseMessage.FunctionEnvironmentReloadResponse = EnvironmentReloadRequestHandler(_workerOptions);
                     break;
 
                 case MsgType.InvocationCancel:
@@ -178,7 +187,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions, bool supportsExtensionPayload = true)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
         {
             var response = new WorkerInitResponse
             {
@@ -187,7 +196,7 @@ namespace Microsoft.Azure.Functions.Worker
                 WorkerMetadata = GetWorkerMetadata()
             };
 
-            response.Capabilities.Add(GetWorkerCapabilities(workerOptions, supportsExtensionPayload));
+            response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             return response;
         }
@@ -333,14 +342,14 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static FunctionEnvironmentReloadResponse EnvironmentReloadRequestHandler(WorkerOptions workerOptions, bool supportsExtensionPayload = true)
+        internal static FunctionEnvironmentReloadResponse EnvironmentReloadRequestHandler(WorkerOptions workerOptions)
         {
             var envReloadResponse = new FunctionEnvironmentReloadResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
                 WorkerMetadata = GetWorkerMetadata()
             };
-            envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions, supportsExtensionPayload));
+            envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             return envReloadResponse;
         }
@@ -373,7 +382,7 @@ namespace Microsoft.Azure.Functions.Worker
             return workerMetadata;
         }
 
-        private static IDictionary<string, string> GetWorkerCapabilities(WorkerOptions workerOptions, bool supportsExtensionPayload)
+        private static IDictionary<string, string> GetWorkerCapabilities(WorkerOptions workerOptions)
         {
             var capabilities = new Dictionary<string, string>();
 
@@ -391,20 +400,10 @@ namespace Microsoft.Azure.Functions.Worker
             capabilities[WorkerCapabilities.TypedDataCollection] = bool.TrueString;
             capabilities[WorkerCapabilities.WorkerStatus] = bool.TrueString;
 
-            if (supportsExtensionPayload)
-            {
-                capabilities[WorkerCapabilities.ExtensionPayload] = "1";
-            }
-            else
-            {
-                capabilities.Remove(WorkerCapabilities.ExtensionPayload);
-            }
-
             return capabilities;
         }
 
         [LoggerMessage(1, LogLevel.Error, "Extension payload request {RequestId} could not send its terminal response.")]
         private static partial void LogPayloadTransportFailure(ILogger logger, string requestId, Exception exception);
-
     }
 }

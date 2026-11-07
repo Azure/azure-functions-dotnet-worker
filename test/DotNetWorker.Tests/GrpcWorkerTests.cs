@@ -201,6 +201,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             string expectedCapabilityValue = null)
         {
             var workerOptions = new WorkerOptions();
+            workerOptions.Capabilities[WorkerCapabilities.ExtensionPayload] = "1";
 
             // Update boolean property values of workerOption based on test input parameters.
             workerOptions.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOptions, booleanPropertyValue);
@@ -250,7 +251,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             Assert.Collection(response.Capabilities.OrderBy(p => p.Key),
                 c => AssertKeyAndValue(c, "EnableUserCodeException", bool.TrueString),
-                c => AssertKeyAndValue(c, "ExtensionPayload", "1"),
                 c => AssertKeyAndValue(c, "HandlesInvocationCancelMessage", bool.TrueString),
                 c => AssertKeyAndValue(c, "IncludeEmptyEntriesInMessagePayload", bool.TrueString),
                 c => AssertKeyAndValue(c, "RawHttpBodyBytes", bool.TrueString),

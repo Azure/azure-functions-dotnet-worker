@@ -98,7 +98,12 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 }
             }
 
-            public bool SupportsExtensionPayload => true;
+            public bool SupportsExtensionPayload =>
+#if NET7_0_OR_GREATER
+                true;
+#else
+                false;
+#endif
 
             public CancellationToken ConnectionClosed => _connectionClosed.Token;
 
@@ -138,10 +143,17 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                     throw new InvalidOperationException("The extension payload message exceeds the configured gRPC message limit.");
                 }
 
-                using IDisposable guard = await _writeLock.LockAsync(cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-                _connectionClosed.Token.ThrowIfCancellationRequested();
-                await stream.WriteAsync(message).ConfigureAwait(false);
+                await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    _connectionClosed.Token.ThrowIfCancellationRequested();
+                    await stream.WriteAsync(message).ConfigureAwait(false);
+                }
+                finally
+                {
+                    _writeLock.Release();
+                }
             }
 
             private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
@@ -149,8 +161,15 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 _requestStream = requestStream;
                 await foreach (StreamingMessage rpcWriteMsg in _outputReader.ReadAllAsync(_connectionClosed.Token).ConfigureAwait(false))
                 {
-                    using IDisposable guard = await _writeLock.LockAsync(_connectionClosed.Token).ConfigureAwait(false);
-                    await requestStream.WriteAsync(rpcWriteMsg).ConfigureAwait(false);
+                    await _writeLock.WaitAsync(_connectionClosed.Token).ConfigureAwait(false);
+                    try
+                    {
+                        await requestStream.WriteAsync(rpcWriteMsg).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _writeLock.Release();
+                    }
                 }
             }
 

@@ -129,6 +129,41 @@ public sealed partial class ExtensionPayloadTests
     }
 
     [Fact]
+    public async Task ArchiveUsesPrivateDirectoryAndCleansUpAfterDisposal()
+    {
+        FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None);
+        string directory = Path.GetDirectoryName(stream.Name)!;
+        try
+        {
+            Assert.Equal(Path.GetFullPath(_temporaryRoot), Path.GetDirectoryName(directory));
+            if (!OperatingSystem.IsWindows())
+            {
+                Assert.Equal(UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute, File.GetUnixFileMode(directory));
+            }
+
+            Assert.True(Directory.Exists(directory));
+        }
+        finally
+        {
+            stream.Dispose();
+        }
+
+        Assert.False(Directory.Exists(directory));
+        AssertNoTemporaryArchives();
+    }
+
+    [Fact]
+    public async Task ArchiveCleansUpPrivateDirectoryAfterAsyncDisposal()
+    {
+        using FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None);
+        string directory = Path.GetDirectoryName(stream.Name)!;
+        await stream.DisposeAsync();
+        stream.Dispose();
+        Assert.False(Directory.Exists(directory));
+        AssertNoTemporaryArchives();
+    }
+
+    [Fact]
     public async Task TemporaryArchiveInsidePayloadIsNotArchived()
     {
         string extensions = Path.Combine(_root, ".azurefunctions");
@@ -141,7 +176,7 @@ public sealed partial class ExtensionPayloadTests
             Assert.Equal(2, archive.Entries.Count);
         }
 
-        Assert.Empty(Directory.EnumerateFiles(extensions));
+        Assert.Empty(Directory.EnumerateFileSystemEntries(extensions));
         AssertNoTemporaryArchives();
     }
 
@@ -163,7 +198,7 @@ public sealed partial class ExtensionPayloadTests
         try
         {
             CancellationToken token = await readStarted.Task.WaitAsync(TimeSpan.FromSeconds(15));
-            string archive = Assert.Single(Directory.EnumerateFiles(_temporaryRoot));
+            string archive = Assert.Single(Directory.EnumerateFiles(_temporaryRoot, "*.zip", SearchOption.AllDirectories));
             Assert.False(preparation.IsCompleted);
             Assert.False(token.IsCancellationRequested);
             await client.StopAsync(CancellationToken.None);

@@ -28,7 +28,7 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
     internal const int MaximumEntries = 10000;
     internal const int MaximumPathDepth = 32;
     internal const string ApplicationDirectoryVariable = WorkerApplicationDirectory.EnvironmentVariable;
-    internal const string TemporaryFilePrefix = "functions-extension-payload-";
+    internal const string TemporaryDirectoryPrefix = "functions-extension-payload-";
 
     private const string MetadataLoaderAssemblyName = "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader";
     private const string MetadataLoaderStartupTypeName = MetadataLoaderAssemblyName + ".Startup";
@@ -235,7 +235,7 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
 
     /// <summary>
     /// Builds a bounded ZIP from worker-local inputs, filtering bootstrap assets and skipping nested links.
-    /// The caller owns the rewound, delete-on-close stream; preparation failures close it here.
+    /// The caller owns the rewound stream and its private temporary directory; preparation failures clean them up here.
     /// </summary>
     internal static Task<FileStream> CreateArchiveAsync(CancellationToken cancellationToken)
         => CreateArchiveAsync(cancellationToken, static path => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
@@ -256,9 +256,8 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
         string manifest = Path.Combine(root, "extensions.json");
         string extensions = Path.Combine(root, ".azurefunctions");
 
-        FileStream output = new(Path.Combine(Path.GetTempPath(), TemporaryFilePrefix + Guid.NewGuid().ToString("N") + ".zip"),
-            FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, MaximumChunkBytes,
-            FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.DeleteOnClose);
+        FileStream output = CreateTemporaryArchive();
+        string temporaryDirectory = Path.GetDirectoryName(output.Name)!;
         try
         {
             ZipArchive archive = new(new ArchiveStream(output), ZipArchiveMode.Create, leaveOpen: true);
@@ -288,7 +287,8 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
                     foreach (string path in Directory.EnumerateFileSystemEntries(directory))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        if (string.Equals(path, output.Name, Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                        if (string.Equals(path, temporaryDirectory,
+                            Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
                         {
                             continue;
                         }
@@ -338,6 +338,27 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
             ExceptionDispatchInfo.Capture(Dispose(output, exception)!).Throw();
             throw;
         }
+    }
+
+    /// <summary>
+    /// Creates a ZIP in a private temporary directory whose lifetime is owned by the returned stream.
+    /// </summary>
+    private static FileStream CreateTemporaryArchive()
+    {
+#if NET7_0_OR_GREATER
+        DirectoryInfo directory = Directory.CreateTempSubdirectory(TemporaryDirectoryPrefix);
+        try
+        {
+            return new TemporaryArchiveStream(directory);
+        }
+        catch (Exception exception)
+        {
+            ExceptionDispatchInfo.Capture(DeleteDirectory(directory, exception)!).Throw();
+            throw;
+        }
+#else
+        throw new NotSupportedException("Extension payload transfer requires .NET 7 or later.");
+#endif
     }
 
     /// <summary>
@@ -687,6 +708,58 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
         }
 
         return failure;
+    }
+
+    /// <summary>
+    /// Deletes an owned temporary directory while preserving any earlier failure.
+    /// </summary>
+    private static Exception? DeleteDirectory(DirectoryInfo? directory, Exception? failure)
+    {
+        try
+        {
+            directory?.Delete();
+        }
+        catch (Exception exception)
+        {
+            return failure is null ? exception : new AggregateException(failure, exception);
+        }
+
+        return failure;
+    }
+
+    /// <summary>
+    /// Deletes the ZIP on close and removes its private directory after the underlying file has been disposed.
+    /// </summary>
+    private sealed class TemporaryArchiveStream(DirectoryInfo directory)
+        : FileStream(Path.Combine(directory.FullName, "extensions.zip"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None,
+            MaximumChunkBytes, FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.DeleteOnClose)
+    {
+        private DirectoryInfo? _directory = directory;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposing)
+            {
+                base.Dispose(false);
+                return;
+            }
+
+            Exception? failure = null;
+            try
+            {
+                base.Dispose(true);
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+
+            failure = DeleteDirectory(Interlocked.Exchange(ref _directory, null), failure);
+            if (failure is not null)
+            {
+                ExceptionDispatchInfo.Capture(failure).Throw();
+            }
+        }
     }
 
     /// <summary>

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <PackageId>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Testing</PackageId>
+    <Description>ASP.NET Core TestServer integration for Azure Functions .NET isolated worker testing.</Description>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Testing</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Testing</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <MajorProductVersion>1</MajorProductVersion>
+    <MinorProductVersion>0</MinorProductVersion>
+    <PatchProductVersion>0</PatchProductVersion>
+    <VersionSuffix>-preview.1</VersionSuffix>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Common.props" />
+  <Import Project="..\..\..\build\WorkerTestingCompatibility.props" />
+  <Import Project="..\..\..\build\WorkerTestingPack.targets" />
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="[$(WorkerTestingTestHostNet8Version)]" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="[$(WorkerTestingTestHostNet9Version)]" Condition="'$(TargetFramework)' == 'net9.0'" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="[$(WorkerTestingTestHostNet10Version)]" Condition="'$(TargetFramework)' == 'net10.0'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Http.AspNetCore\src\Worker.Extensions.Http.AspNetCore.csproj"
+                      Version="[$(WorkerTestingCompatibleAspNetCoreVersion)]" />
+    <ProjectReference Include="..\..\..\src\DotNetWorker.Testing\DotNetWorker.Testing.csproj"
+                      Version="[$(WorkerTestingCompatibleCorePackageVersion)]" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="$(_WorkerTestingGeneratedCompatibilityProps)"
+          Pack="true"
+          PackagePath="buildTransitive\Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Testing.props" />
+  </ItemGroup>
+
+</Project>

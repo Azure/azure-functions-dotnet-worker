@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
@@ -237,6 +238,41 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
+        public void GrpcRetryContext_ProjectsPreviousException()
+        {
+            var retry = new Grpc.Messages.RetryContext
+            {
+                RetryCount = 2,
+                MaxRetryCount = 5,
+                Exception = new RpcException
+                {
+                    Source = "remote-source",
+                    Type = "Remote.Exception",
+                    Message = "remote-message",
+                    StackTrace = "remote-stack",
+                    IsUserException = true
+                }
+            };
+
+            var context = new GrpcRetryContext(retry);
+
+            FunctionRetryException exception = Assert.IsType<FunctionRetryException>(context.PreviousException);
+            Assert.Equal("remote-source", exception.Source);
+            Assert.Equal("Remote.Exception", exception.Type);
+            Assert.Equal("remote-message", exception.Message);
+            Assert.Equal("remote-stack", exception.StackTrace);
+            Assert.True(exception.IsUserException);
+        }
+
+        [Fact]
+        public void RetryContext_DefaultPreviousExceptionIsNull()
+        {
+            RetryContext context = new CustomRetryContext();
+
+            Assert.Null(context.PreviousException);
+        }
+
+        [Fact]
         public async Task Invoke_CreateContextThrows_ReturnsFailure()
         {
             _mockApplication
@@ -355,6 +391,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 Serializer = new JsonObjectSerializer()
             });
+        }
+
+        private sealed class CustomRetryContext : RetryContext
+        {
+            public override int RetryCount => 0;
+
+            public override int MaxRetryCount => 3;
         }
     }
 }

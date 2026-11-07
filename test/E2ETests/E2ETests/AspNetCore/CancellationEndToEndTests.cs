@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests;
@@ -57,6 +58,17 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
             // TODO: 2/3 of the test invocations will fail until the host with the ForwarderProxy fix is released - uncomment this line when the fix is released
             Assert.NotNull(invocationResult); // just here to 'use' invocationResult to avoid a warning.
             // Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains($"'Functions.{functionName}' ({invocationResult}", StringComparison.OrdinalIgnoreCase));
+        }
+
+        [Fact]
+        public async Task RuntimeSmoke_AspNetCoreHttp()
+        {
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("HttpWithCancellationTokenNotUsed");
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Processing completed successfully.", responseBody);
+            Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains("Work completed.", StringComparison.OrdinalIgnoreCase));
         }
 
         public class TestFixture : FunctionAppFixture

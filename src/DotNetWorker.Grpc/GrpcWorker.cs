@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -32,6 +33,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataManager _metadataManager;
         private IWorkerClient? _workerClient;
+        private string? _functionAppDirectory;
 
         public GrpcWorker(IFunctionsApplication application,
                           IWorkerClientFactory workerClientFactory,
@@ -69,6 +71,15 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async Task ProcessRequestCoreAsync(StreamingMessage request)
         {
+            if (request.ContentCase == MsgType.WorkerInitRequest
+                && !string.IsNullOrWhiteSpace(request.WorkerInitRequest.FunctionAppDirectory))
+            {
+                _functionAppDirectory = request.WorkerInitRequest.FunctionAppDirectory;
+            }
+
+            using IDisposable? directoryScope = _functionAppDirectory is null
+                ? null
+                : WorkerApplicationDirectoryContext.Push(_functionAppDirectory);
             StreamingMessage responseMessage = new StreamingMessage
             {
                 RequestId = request.RequestId

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -7,32 +7,29 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
-#if NET6_0_OR_GREATER
-using Grpc.Net.Client;
-#else
-using GrpcCore = Grpc.Core;
-#endif
-
 namespace Microsoft.Azure.Functions.Worker.Grpc
 {
-    internal class GrpcWorkerClientFactory : IWorkerClientFactory
+    internal partial class GrpcWorkerClientFactory : IWorkerClientFactory
     {
         private readonly GrpcHostChannel _outputChannel;
         private readonly GrpcWorkerStartupOptions _startupOptions;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public GrpcWorkerClientFactory(GrpcHostChannel outputChannel, IOptions<GrpcWorkerStartupOptions> startupOptions)
+        public GrpcWorkerClientFactory(GrpcHostChannel outputChannel, IOptions<GrpcWorkerStartupOptions> startupOptions, ILoggerFactory loggerFactory)
         {
             _outputChannel = outputChannel ?? throw new ArgumentNullException(nameof(outputChannel));
             _startupOptions = startupOptions.Value ?? throw new ArgumentNullException(nameof(startupOptions), "gRPC Services are not correctly registered.");
+            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         public IWorkerClient CreateClient(IMessageProcessor messageProcessor)
-            => new GrpcWorkerClient(_outputChannel, _startupOptions, messageProcessor);
+            => new GrpcWorkerClient(_outputChannel, _startupOptions, messageProcessor, _loggerFactory);
 
-        private class GrpcWorkerClient : IWorkerClient
+        internal partial class GrpcWorkerClient : IWorkerClient
         {
             private readonly FunctionRpcClient _grpcClient;
             private readonly GrpcWorkerStartupOptions _startupOptions;
@@ -40,17 +37,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             private readonly ChannelWriter<StreamingMessage> _outputWriter;
             private readonly IMessageProcessor? _processor;
             private bool _running;
-
-            public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor)
-            {
-                _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
-                _processor = processor ?? throw new ArgumentNullException(nameof(processor));
-
-                _outputReader = outputChannel.Channel.Reader;
-                _outputWriter = outputChannel.Channel.Writer;
-
-                _grpcClient = CreateClient();
-            }
 
             public async Task StartAsync(CancellationToken token)
             {
@@ -60,9 +46,11 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 }
 
                 _running = true;
+                await StartCoreAsync(token).ConfigureAwait(false);
+            }
 
-                var eventStream = _grpcClient.EventStream(cancellationToken: token);
-
+            private async Task StartStreamAsync(AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage> eventStream)
+            {
                 await SendStartStreamMessageAsync(eventStream.RequestStream).ConfigureAwait(false);
 
                 _ = StartWriterAsync(eventStream.RequestStream);
@@ -100,29 +88,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 {
                     await _processor!.ProcessMessageAsync(responseStream.Current).ConfigureAwait(false);
                 }
-            }
-
-            private FunctionRpcClient CreateClient()
-            {
-#if NET6_0_OR_GREATER
-                GrpcChannel grpcChannel = GrpcChannel.ForAddress(_startupOptions.HostEndpoint!.AbsoluteUri, new GrpcChannelOptions()
-                {
-                    MaxReceiveMessageSize = _startupOptions.GrpcMaxMessageLength,
-                    MaxSendMessageSize = _startupOptions.GrpcMaxMessageLength,
-                    Credentials = ChannelCredentials.Insecure
-                });
-#else
-
-                var options = new ChannelOption[]
-                {
-                    new ChannelOption(GrpcCore.ChannelOptions.MaxReceiveMessageLength, _startupOptions.GrpcMaxMessageLength),
-                    new ChannelOption(GrpcCore.ChannelOptions.MaxSendMessageLength, _startupOptions.GrpcMaxMessageLength)
-                };
-
-                GrpcCore.Channel grpcChannel = new GrpcCore.Channel(_startupOptions.HostEndpoint!.Host, _startupOptions.HostEndpoint.Port, ChannelCredentials.Insecure, options);
-
-#endif
-                return new FunctionRpcClient(grpcChannel);
             }
         }
     }

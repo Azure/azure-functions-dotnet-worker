@@ -1,5 +1,9 @@
 ## What's Changed
 
+### Unreleased
+
+- Add `MaxItemsPerInvocationSetting` to the Cosmos DB trigger attribute.
+
 <!-- Please add your release notes in the following format:
 - My change description (#PR/#issue)
 -->

@@ -114,6 +114,11 @@ namespace Microsoft.Azure.Functions.Worker
         public int MaxItemsPerInvocation { get; set; }
 
         /// <summary>
+        /// Optional. The name of an app setting containing the maximum number of items per invocation.
+        /// </summary>
+        public string? MaxItemsPerInvocationSetting { get; set; }
+
+        /// <summary>
         /// Optional.
         /// Gets or sets whether change feed in the Azure Cosmos DB service should start from beginning (true) or from current (false). By default it's start from current (false).
         /// </summary>

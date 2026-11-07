@@ -46,6 +46,53 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
         }
 
         [Fact]
+        public void CosmosTriggerPreservesBatchSettingNameInMetadata()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var functions = generator.GenerateFunctionMetadata(TypeHelpers.GetTypeDefinition(typeof(CosmosBatchSetting)));
+            var binding = (IDictionary<string, object?>)functions.Single().Bindings.Single();
+
+            Assert.Equal("BatchLimit", binding["MaxItemsPerInvocationSetting"]);
+        }
+
+        private class CosmosBatchSetting
+        {
+            [Function("CosmosBatchSetting")]
+            public void Run([CosmosDBTrigger("database", "items", MaxItemsPerInvocationSetting = "BatchLimit")] string[] documents)
+            {
+            }
+        }
+
+        [Fact]
+        public void CosmosTriggerPreservesExplicitAndOmittedBatchValues()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var functions = generator.GenerateFunctionMetadata(TypeHelpers.GetTypeDefinition(typeof(CosmosBatchValues)));
+            var bindings = functions.ToDictionary(f => f.Name!, f => (IDictionary<string, object?>)f.Bindings.Single());
+
+            Assert.False(bindings["BatchOmitted"].ContainsKey("MaxItemsPerInvocation"));
+            Assert.Equal(0, bindings["BatchZero"]["MaxItemsPerInvocation"]);
+            Assert.Equal(-1, bindings["BatchNegative"]["MaxItemsPerInvocation"]);
+            Assert.Equal(12, bindings["BatchPositive"]["MaxItemsPerInvocation"]);
+            Assert.All(bindings.Values, b => Assert.False(b.ContainsKey("MaxItemsPerInvocationSetting")));
+        }
+
+        private class CosmosBatchValues
+        {
+            [Function("BatchOmitted")]
+            public void Omitted([CosmosDBTrigger("database", "items")] string[] documents) { }
+
+            [Function("BatchZero")]
+            public void Zero([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = 0)] string[] documents) { }
+
+            [Function("BatchNegative")]
+            public void Negative([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = -1)] string[] documents) { }
+
+            [Function("BatchPositive")]
+            public void Positive([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = 12)] string[] documents) { }
+        }
+
+        [Fact]
         public void BasicHttpFunction()
         {
             var generator = new FunctionMetadataGenerator();

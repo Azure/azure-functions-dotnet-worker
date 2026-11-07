@@ -12,7 +12,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests;
@@ -101,7 +100,7 @@ public class GrpcWorkerClientContinuationTests
             clientType,
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
             binder: null,
-            args: new object[] { outputChannel, startupOptions, new NoOpMessageProcessor(), NullLoggerFactory.Instance },
+            args: new object[] { outputChannel, startupOptions, new NoOpMessageProcessor() },
             culture: null);
 
         Assert.NotNull(client);

@@ -2,18 +2,24 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
@@ -23,6 +29,97 @@ namespace Microsoft.Azure.Functions.Worker.Tests;
 
 public class GrpcWorkerClientStartupTests
 {
+    [Fact]
+    public async Task ProductionClientDeliversStartStreamAfterListenerStarts()
+    {
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        // Select a loopback port, then leave it unbound while the worker starts.
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+
+        // Prepare an HTTP/2 endpoint without starting its listener.
+        var builder = WebApplication.CreateBuilder();
+        builder.Logging.ClearProviders();
+        builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, port, endpoint => endpoint.Protocols = HttpProtocols.Http2));
+        await using var server = builder.Build();
+        var received = new TaskCompletionSource<StreamingMessage[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var processed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        server.MapPost("/AzureFunctionsRpcMessages.FunctionRpc/EventStream", async context =>
+        {
+            context.Response.ContentType = "application/grpc";
+            // Each uncompressed gRPC frame has a one-byte flag and a four-byte big-endian payload length.
+            // Read StartStream and the queued message directly from the real request stream.
+            var messages = new StreamingMessage[2];
+            for (int i = 0; i < messages.Length; i++)
+            {
+                byte[] header = new byte[5];
+                await context.Request.Body.ReadExactlyAsync(header, context.RequestAborted);
+                Assert.Equal(0, header[0]);
+                byte[] payload = new byte[BinaryPrimitives.ReadInt32BigEndian(header.AsSpan(1))];
+                await context.Request.Body.ReadExactlyAsync(payload, context.RequestAborted);
+                messages[i] = StreamingMessage.Parser.ParseFrom(payload);
+            }
+
+            received.TrySetResult(messages);
+            // Send a framed response to exercise the worker's reader, keeping the duplex stream open until shutdown.
+            byte[] response = new StreamingMessage { RequestId = "response" }.ToByteArray();
+            byte[] frame = new byte[5 + response.Length];
+            BinaryPrimitives.WriteInt32BigEndian(frame.AsSpan(1), response.Length);
+            response.CopyTo(frame, 5);
+            await context.Response.Body.WriteAsync(frame, context.RequestAborted);
+            await context.Response.Body.FlushAsync(context.RequestAborted);
+            await Task.Delay(Timeout.Infinite, context.RequestAborted);
+        });
+
+        // Use the production factory rather than injecting a separately configured channel or mocked RPC client.
+        var output = new GrpcHostChannel(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>());
+        var processor = new Mock<IMessageProcessor>();
+        processor.Setup(p => p.ProcessMessageAsync(It.IsAny<StreamingMessage>())).Returns((StreamingMessage message) =>
+        {
+            Assert.Equal("response", message.RequestId);
+            processed.TrySetResult(true);
+            return Task.CompletedTask;
+        });
+        var factory = new GrpcWorkerClientFactory(output, Options.Create(new GrpcWorkerStartupOptions
+        {
+            HostEndpoint = new Uri($"http://127.0.0.1:{port}"),
+            WorkerId = "production-worker",
+            GrpcMaxMessageLength = 1024 * 1024
+        }));
+        var client = factory.CreateClient(processor.Object);
+        // Check the actual transport configuration without adding a product API solely for test inspection.
+        using var channel = (GrpcChannel)client.GetType().GetField("_grpcChannel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(client);
+        Assert.Equal(TimeSpan.FromMilliseconds(10), GetChannelOption(channel, "InitialReconnectBackoff"));
+        Assert.Equal(TimeSpan.FromSeconds(10), GetChannelOption(channel, "MaxReconnectBackoff"));
+        Assert.IsType<NullLoggerFactory>(GetChannelOption(channel, "LoggerFactory"));
+        output.Channel.Writer.TryWrite(new StreamingMessage { RequestId = "queued" });
+        output.Channel.Writer.Complete();
+
+        Task startup = client.StartAsync(cancellation.Token);
+        // Keep the port closed long enough for startup to encounter an unavailable listener.
+        await Task.Delay(TimeSpan.FromMilliseconds(250), cancellation.Token);
+        Assert.False(startup.IsCompleted);
+        Assert.False(received.Task.IsCompleted);
+        // Start the listener and verify retries hand off to the real stream in both directions.
+        await server.StartAsync(cancellation.Token);
+        await startup.WaitAsync(cancellation.Token);
+        StreamingMessage[] actual = await received.Task.WaitAsync(cancellation.Token);
+        Assert.Equal("production-worker", actual[0].StartStream.WorkerId);
+        Assert.Equal("queued", actual[1].RequestId);
+        await processed.Task.WaitAsync(cancellation.Token);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.StartAsync(cancellation.Token));
+
+        // End the stream and dispose its transport before stopping the server.
+        cancellation.Cancel();
+        channel.Dispose();
+        await server.StopAsync();
+    }
+
+    private static object GetChannelOption(GrpcChannel channel, string name)
+        => typeof(GrpcChannel).GetProperty(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(channel);
+
     [Fact]
     public async Task UngatedStartStreamFailsWhenListenerIsAbsent()
     {
@@ -36,30 +133,29 @@ public class GrpcWorkerClientStartupTests
     }
 
     [Fact]
-    public async Task BuiltInReconnectWaitsForDelayedListenerAndSendsStartStreamFirstOnlyOnce()
+    public async Task WaitForReadyIsEnabledAndStartStreamIsSentFirstOnlyOnce()
     {
-        using var diagnostics = new ConnectionDiagnostics();
-        using var fixture = new ClientFixture(diagnostics);
+        using var fixture = new ClientFixture();
+        fixture.PendingWrite = new(TaskCreationOptions.RunContinuationsAsynchronously);
         using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         var queuedMessage = new StreamingMessage { RequestId = "queued" };
         fixture.Output.Channel.Writer.TryWrite(queuedMessage);
         fixture.Output.Channel.Writer.Complete();
 
         Task startup = fixture.Client.StartAsync(cancellation.Token);
-        await diagnostics.FirstFailure.Task.WaitAsync(cancellation.Token);
         Assert.False(startup.IsCompleted);
-        Assert.Equal(0, fixture.StreamCalls);
+        Assert.Equal(1, fixture.StreamCalls);
+        Assert.True(fixture.StreamOptions.IsWaitForReady);
+        Assert.Equal(cancellation.Token, fixture.StreamOptions.CancellationToken);
         Assert.Empty(fixture.Messages);
 
-        fixture.Listener.Start();
-        using TcpClient connection = await fixture.Listener.AcceptTcpClientAsync(cancellation.Token);
+        fixture.PendingWrite.SetResult(true);
         await startup.WaitAsync(cancellation.Token);
 
         Assert.Equal(1, fixture.StreamCalls);
         Assert.Equal(2, fixture.Messages.Count);
         Assert.Equal("test-worker", fixture.Messages[0].StartStream.WorkerId);
         Assert.Same(queuedMessage, fixture.Messages[1]);
-        Assert.True(diagnostics.Attempts.Count >= 2, "The real gRPC transport must retry the socket connection.");
 
         // A completed response stream must not restart startup or replay StartStream.
         await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Client.StartAsync(cancellation.Token));
@@ -67,30 +163,29 @@ public class GrpcWorkerClientStartupTests
     }
 
     [Fact]
-    public async Task CancelingConnectionWaitDisposesChannelAndNeverOpensStream()
+    public async Task CancelingPendingStartStreamDisposesStreamAndChannel()
     {
-        using var diagnostics = new ConnectionDiagnostics();
-        using var fixture = new ClientFixture(diagnostics);
+        using var fixture = new ClientFixture();
+        fixture.PendingWrite = new(TaskCreationOptions.RunContinuationsAsynchronously);
         using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         Task startup = fixture.Client.StartAsync(cancellation.Token);
-        await diagnostics.FirstFailure.Task.WaitAsync(cancellation.Token);
+        Assert.False(startup.IsCompleted);
         cancellation.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => startup);
         await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Channel.ConnectAsync());
-        Assert.Equal(0, fixture.StreamCalls);
+        Assert.Equal(1, fixture.StreamCalls);
+        Assert.True(fixture.StreamDisposed);
         Assert.Empty(fixture.Messages);
     }
 
     [Fact]
     public async Task AlreadyCanceledStartupDoesNotConnectOrOpenStream()
     {
-        using var diagnostics = new ConnectionDiagnostics();
-        using var fixture = new ClientFixture(diagnostics);
+        using var fixture = new ClientFixture();
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => fixture.Client.StartAsync(cancellation.Token));
-        Assert.Empty(diagnostics.Attempts);
         Assert.Equal(0, fixture.StreamCalls);
         await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Channel.ConnectAsync());
     }
@@ -99,7 +194,6 @@ public class GrpcWorkerClientStartupTests
     public async Task StartStreamFailureIsNotRetriedAndDisposesStreamAndChannel()
     {
         using var fixture = new ClientFixture();
-        fixture.Listener.Start();
         var failure = new RpcException(new Status(StatusCode.Unavailable, "Stream failed after TCP readiness."));
         fixture.WriteFailure = failure;
         using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(15));
@@ -120,33 +214,38 @@ public class GrpcWorkerClientStartupTests
         public int StreamCalls { get; private set; }
         public bool StreamDisposed { get; private set; }
         public Exception WriteFailure { get; set; }
-        private readonly ILoggerFactory _loggerFactory;
+        public TaskCompletionSource<bool> PendingWrite { get; set; }
+        public CallOptions StreamOptions { get; private set; }
 
-        public ClientFixture(ILoggerProvider provider = null)
+        public ClientFixture()
         {
             Listener = new TcpListener(IPAddress.Loopback, 0);
             Listener.Start();
             int port = ((IPEndPoint)Listener.LocalEndpoint).Port;
             Listener.Stop();
             Listener = new TcpListener(IPAddress.Loopback, port);
-            _loggerFactory = provider is null ? NullLoggerFactory.Instance : LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Trace).AddProvider(provider));
-            Channel = GrpcChannel.ForAddress($"http://127.0.0.1:{port}", new GrpcChannelOptions { LoggerFactory = _loggerFactory });
+            Channel = GrpcChannel.ForAddress($"http://127.0.0.1:{port}");
             var writer = new Mock<IClientStreamWriter<StreamingMessage>>();
-            writer.Setup(stream => stream.WriteAsync(It.IsAny<StreamingMessage>())).Returns((StreamingMessage message) =>
+            writer.Setup(stream => stream.WriteAsync(It.IsAny<StreamingMessage>())).Returns(async (StreamingMessage message) =>
             {
+                if (PendingWrite is not null)
+                {
+                    await PendingWrite.Task.WaitAsync(StreamOptions.CancellationToken);
+                }
+
                 if (WriteFailure is not null)
                 {
-                    return Task.FromException(WriteFailure);
+                    throw WriteFailure;
                 }
 
                 Messages.Add(message);
-                return Task.CompletedTask;
             });
             var reader = new Mock<IAsyncStreamReader<StreamingMessage>>();
             reader.Setup(stream => stream.MoveNext(It.IsAny<CancellationToken>())).ReturnsAsync(false);
             var rpc = new Mock<FunctionRpcClient>();
-            rpc.Setup(client => client.EventStream(null, null, It.IsAny<CancellationToken>())).Returns(() =>
+            rpc.Setup(client => client.EventStream(It.IsAny<CallOptions>())).Returns((CallOptions options) =>
             {
+                StreamOptions = options;
                 StreamCalls++;
                 return new AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage>(writer.Object, reader.Object, Task.FromResult(new Metadata()),
                     () => Status.DefaultSuccess, () => new Metadata(), () => StreamDisposed = true);
@@ -159,31 +258,6 @@ public class GrpcWorkerClientStartupTests
             Output.Channel.Writer.TryComplete();
             Channel.Dispose();
             Listener.Stop();
-            _loggerFactory.Dispose();
-        }
-    }
-
-    private sealed class ConnectionDiagnostics : ILoggerProvider, ILogger
-    {
-        public ConcurrentQueue<byte> Attempts { get; } = new();
-        public TaskCompletionSource<bool> FirstFailure { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public ILogger CreateLogger(string categoryName) => this;
-        public bool IsEnabled(LogLevel logLevel) => true;
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
-        public void Dispose() { }
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-            if (eventId.Name == "ConnectingSocket")
-            {
-                Attempts.Enqueue(0);
-            }
-            else if (eventId.Name == "ErrorConnectingSocket")
-            {
-                Assert.NotNull(exception);
-                FirstFailure.TrySetResult(true);
-            }
         }
     }
 }

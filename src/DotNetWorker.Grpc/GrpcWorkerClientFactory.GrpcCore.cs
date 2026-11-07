@@ -6,7 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using GrpcCore = Grpc.Core;
 
@@ -16,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
     {
         internal partial class GrpcWorkerClient
         {
-            public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor, ILoggerFactory loggerFactory)
+            public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor)
             {
                 _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
                 _processor = processor ?? throw new ArgumentNullException(nameof(processor));

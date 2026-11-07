@@ -7,7 +7,6 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
@@ -17,17 +16,15 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
     {
         private readonly GrpcHostChannel _outputChannel;
         private readonly GrpcWorkerStartupOptions _startupOptions;
-        private readonly ILoggerFactory _loggerFactory;
 
-        public GrpcWorkerClientFactory(GrpcHostChannel outputChannel, IOptions<GrpcWorkerStartupOptions> startupOptions, ILoggerFactory loggerFactory)
+        public GrpcWorkerClientFactory(GrpcHostChannel outputChannel, IOptions<GrpcWorkerStartupOptions> startupOptions)
         {
             _outputChannel = outputChannel ?? throw new ArgumentNullException(nameof(outputChannel));
             _startupOptions = startupOptions.Value ?? throw new ArgumentNullException(nameof(startupOptions), "gRPC Services are not correctly registered.");
-            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         public IWorkerClient CreateClient(IMessageProcessor messageProcessor)
-            => new GrpcWorkerClient(_outputChannel, _startupOptions, messageProcessor, _loggerFactory);
+            => new GrpcWorkerClient(_outputChannel, _startupOptions, messageProcessor);
 
         internal partial class GrpcWorkerClient : IWorkerClient
         {

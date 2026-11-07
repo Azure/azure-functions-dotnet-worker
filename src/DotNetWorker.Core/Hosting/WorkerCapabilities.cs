@@ -6,6 +6,7 @@ namespace Microsoft.Azure.Functions.Worker
     internal static class WorkerCapabilities
     {
         internal const string EnableUserCodeException = "EnableUserCodeException";
+        internal const string ExtensionPayload = "ExtensionPayload";
         internal const string HandlesInvocationCancelMessage = "HandlesInvocationCancelMessage";
         internal const string HandlesWorkerTerminateMessage = "HandlesWorkerTerminateMessage";
         internal const string HandlesWorkerWarmupMessage = "HandlesWorkerWarmupMessage";

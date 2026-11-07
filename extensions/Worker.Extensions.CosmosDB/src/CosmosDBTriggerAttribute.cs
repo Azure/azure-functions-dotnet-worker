@@ -115,7 +115,11 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Optional. The name of an app setting containing the maximum number of items per invocation.
+        /// Cannot be combined with a positive <see cref="MaxItemsPerInvocation"/>.
         /// </summary>
+        /// <remarks>
+        /// Requires a host extension version that supports this property; older host extensions ignore it.
+        /// </remarks>
         public string? MaxItemsPerInvocationSetting { get; set; }
 
         /// <summary>

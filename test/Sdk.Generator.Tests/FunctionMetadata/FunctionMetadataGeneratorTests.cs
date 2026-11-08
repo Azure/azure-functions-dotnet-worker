@@ -49,47 +49,49 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
         public void CosmosTriggerPreservesBatchSettingNameInMetadata()
         {
             var generator = new FunctionMetadataGenerator();
-            var functions = generator.GenerateFunctionMetadata(TypeHelpers.GetTypeDefinition(typeof(CosmosBatchSetting)));
-            var binding = (IDictionary<string, object?>)functions.Single().Bindings.Single();
+            var typeDef = TypeHelpers.GetTypeDefinition(typeof(CosmosBatchSetting));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var functionName = nameof(CosmosBatchSetting.NamedBatchLimit);
 
-            Assert.Equal("BatchLimit", binding["MaxItemsPerInvocationSetting"]);
-        }
+            ValidateFunction(functions.Single(), functionName, GetEntryPoint(nameof(CosmosBatchSetting), functionName),
+                ValidateTrigger);
 
-        private class CosmosBatchSetting
-        {
-            [Function("CosmosBatchSetting")]
-            public void Run([CosmosDBTrigger("database", "items", MaxItemsPerInvocationSetting = "BatchLimit")] string[] documents)
+            void ValidateTrigger(ExpandoObject binding)
             {
+                var properties = (IDictionary<string, object?>)binding;
+                Assert.Equal("BatchLimit", properties["MaxItemsPerInvocationSetting"]);
             }
         }
 
-        [Fact]
-        public void CosmosTriggerPreservesExplicitAndOmittedBatchValues()
+        [Theory]
+        [InlineData(nameof(CosmosBatchValues.BatchOmitted), null)]
+        [InlineData(nameof(CosmosBatchValues.BatchZero), 0)]
+        [InlineData(nameof(CosmosBatchValues.BatchNegative), -1)]
+        [InlineData(nameof(CosmosBatchValues.BatchPositive), 12)]
+        public void CosmosTriggerPreservesExplicitAndOmittedBatchValues(string functionName, int? expectedBatchLimit)
         {
             var generator = new FunctionMetadataGenerator();
-            var functions = generator.GenerateFunctionMetadata(TypeHelpers.GetTypeDefinition(typeof(CosmosBatchValues)));
-            var bindings = functions.ToDictionary(f => f.Name!, f => (IDictionary<string, object?>)f.Bindings.Single());
+            var typeDef = TypeHelpers.GetTypeDefinition(typeof(CosmosBatchValues));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var function = functions.Single(f => f.Name == functionName);
 
-            Assert.False(bindings["BatchOmitted"].ContainsKey("MaxItemsPerInvocation"));
-            Assert.Equal(0, bindings["BatchZero"]["MaxItemsPerInvocation"]);
-            Assert.Equal(-1, bindings["BatchNegative"]["MaxItemsPerInvocation"]);
-            Assert.Equal(12, bindings["BatchPositive"]["MaxItemsPerInvocation"]);
-            Assert.All(bindings.Values, b => Assert.False(b.ContainsKey("MaxItemsPerInvocationSetting")));
-        }
+            ValidateFunction(function, functionName, GetEntryPoint(nameof(CosmosBatchValues), functionName),
+                ValidateTrigger);
 
-        private class CosmosBatchValues
-        {
-            [Function("BatchOmitted")]
-            public void Omitted([CosmosDBTrigger("database", "items")] string[] documents) { }
+            void ValidateTrigger(ExpandoObject binding)
+            {
+                var properties = (IDictionary<string, object?>)binding;
+                Assert.False(properties.ContainsKey("MaxItemsPerInvocationSetting"));
 
-            [Function("BatchZero")]
-            public void Zero([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = 0)] string[] documents) { }
-
-            [Function("BatchNegative")]
-            public void Negative([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = -1)] string[] documents) { }
-
-            [Function("BatchPositive")]
-            public void Positive([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = 12)] string[] documents) { }
+                if (expectedBatchLimit.HasValue)
+                {
+                    Assert.Equal(expectedBatchLimit.Value, properties["MaxItemsPerInvocation"]);
+                }
+                else
+                {
+                    Assert.False(properties.ContainsKey("MaxItemsPerInvocation"));
+                }
+            }
         }
 
         [Fact]
@@ -1608,6 +1610,43 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             [Function(nameof(ServiceBusBatchTriggerFunction))]
             public static void ServiceBusBatchTriggerFunction(
                 [ServiceBusTrigger("queue", IsBatched = true)] ServiceBusReceivedMessage[] messages)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class CosmosBatchSetting
+        {
+            [Function(nameof(NamedBatchLimit))]
+            public void NamedBatchLimit(
+                [CosmosDBTrigger("database", "items", MaxItemsPerInvocationSetting = "BatchLimit")] string[] documents)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class CosmosBatchValues
+        {
+            [Function(nameof(BatchOmitted))]
+            public void BatchOmitted([CosmosDBTrigger("database", "items")] string[] documents)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(BatchZero))]
+            public void BatchZero([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = 0)] string[] documents)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(BatchNegative))]
+            public void BatchNegative([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = -1)] string[] documents)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(BatchPositive))]
+            public void BatchPositive([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = 12)] string[] documents)
             {
                 throw new NotImplementedException();
             }

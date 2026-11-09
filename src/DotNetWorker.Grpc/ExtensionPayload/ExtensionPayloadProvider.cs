@@ -24,7 +24,6 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
     internal const int MaximumManifestBytes = 1024 * 1024;
     internal const int MaximumEntries = 10000;
     internal const int MaximumPathDepth = 32;
-    internal const string ApplicationDirectoryVariable = WorkerApplicationDirectory.EnvironmentVariable;
     internal const string TemporaryDirectoryPrefix = "functions-extension-payload-";
 
     private const string MetadataLoaderAssemblyName = "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader";
@@ -452,7 +451,7 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
     /// </summary>
     private static string GetValidatedApplicationDirectory()
     {
-        string root = WorkerApplicationDirectory.GetRequired();
+        string root = AppContext.BaseDirectory;
         if ((ValidateEntry(root) & FileAttributes.Directory) == 0)
         {
             throw new InvalidDataException("The worker-local application root must be a directory.");
@@ -481,7 +480,14 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
     /// </summary>
     private static string GetEntryName(string root, string path)
     {
-        string name = path.Substring(root.Length).Replace(Path.DirectorySeparatorChar, '/');
+        int start = root.Length;
+        if (start < path.Length
+            && (path[start] == Path.DirectorySeparatorChar || path[start] == Path.AltDirectorySeparatorChar))
+        {
+            start++;
+        }
+
+        string name = path.Substring(start).Replace(Path.DirectorySeparatorChar, '/');
         if (name.IndexOf('\\') >= 0 || name.IndexOf(':') >= 0)
         {
             throw new InvalidDataException("An extension payload entry has a non-portable path.");

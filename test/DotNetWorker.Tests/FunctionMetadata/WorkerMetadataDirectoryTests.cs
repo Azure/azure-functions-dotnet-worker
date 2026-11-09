@@ -34,27 +34,25 @@ public sealed class WorkerMetadataDirectoryTests : IDisposable
     public void Dispose() => Directory.Delete(_root, recursive: true);
 
     [Theory]
-    [InlineData(true, "WorkerOnly")]
-    [InlineData(false, "HostOnly")]
-    public async Task FileProviderUsesConfiguredWorkerRootOrPreservesLegacyDirectory(bool configured, string expected)
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task FileProviderUsesBaseDirectoryInsteadOfHostOrEnvironment(bool legacyConfigured)
     {
-        using TestScopedEnvironmentVariable application = new(WorkerApplicationDirectory.EnvironmentVariable,
-            configured ? Path.Combine(_root, "worker") : null);
+        using TestScopedAppContextBaseDirectory application = new(Path.Combine(_root, "worker") + Path.DirectorySeparatorChar);
+        using TestScopedEnvironmentVariable legacy = new("FUNCTIONS_APPLICATION_DIRECTORY", legacyConfigured ? Path.Combine(_root, "host") : null);
         FunctionMetadataResponse response = await RequestAsync();
         Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
         Assert.False(response.UseDefaultMetadataIndexing);
-        Assert.Equal(expected, Assert.Single(response.FunctionMetadataResults).Name);
+        Assert.Equal("WorkerOnly", Assert.Single(response.FunctionMetadataResults).Name);
         Assert.False(File.Exists(Path.Combine(_root, "worker", "extensions.json")));
     }
 
-    [Theory]
-    [InlineData("relative")]
-    [InlineData("C:relative")]
-    [InlineData("\\rooted")]
-    [InlineData(" ")]
-    public async Task MalformedRootDoesNotFallBackToHostFiles(string root)
+    [Fact]
+    public async Task MissingWorkerMetadataDoesNotFallBackToHostFiles()
     {
-        using TestScopedEnvironmentVariable application = new(WorkerApplicationDirectory.EnvironmentVariable, root);
+        using TestScopedAppContextBaseDirectory application = new(Path.Combine(_root, "worker") + Path.DirectorySeparatorChar);
+        using TestScopedEnvironmentVariable legacy = new("FUNCTIONS_APPLICATION_DIRECTORY", null);
+        File.Delete(Path.Combine(_root, "worker", "functions.metadata"));
         FunctionMetadataResponse response = await RequestAsync();
         Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
         Assert.Empty(response.FunctionMetadataResults);

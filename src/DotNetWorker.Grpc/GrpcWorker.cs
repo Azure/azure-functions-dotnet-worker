@@ -128,7 +128,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.FunctionsMetadataRequest:
-                    responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
+                    responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync();
                     break;
 
                 case MsgType.GetExtensionPayloadRequest:
@@ -201,7 +201,7 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        private async Task<FunctionMetadataResponse> GetFunctionMetadataAsync(string functionAppDirectory)
+        private async Task<FunctionMetadataResponse> GetFunctionMetadataAsync()
         {
             var response = new FunctionMetadataResponse
             {
@@ -211,8 +211,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                string metadataDirectory = WorkerApplicationDirectory.GetConfigured() ?? functionAppDirectory;
-                var functionMetadataList = await _metadataManager.GetFunctionMetadataAsync(metadataDirectory);
+                var functionMetadataList = await _metadataManager.GetFunctionMetadataAsync(AppContext.BaseDirectory);
 
                 foreach (var func in functionMetadataList)
                 {

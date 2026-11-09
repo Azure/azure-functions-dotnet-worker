@@ -27,6 +27,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     private const string Manifest = "{\"extensions\":[{\"name\":\"Binding\",\"typeName\":\"Binding.Startup, binding\",\"hintPath\":\"./.azurefunctions/nested/binding.dll\"}]}";
     private readonly string _root;
     private readonly string _temporaryRoot;
+    private readonly TestScopedAppContextBaseDirectory _baseDirectory;
     private readonly TestScopedEnvironmentVariable[] _environment;
     private readonly ExtensionPayloadProvider _provider = new();
 
@@ -37,9 +38,9 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         Directory.CreateDirectory(_temporaryRoot);
         Directory.CreateDirectory(Path.Combine(_root, ".azurefunctions"));
         File.WriteAllText(Path.Combine(_root, "extensions.json"), Manifest);
+        _baseDirectory = new(_root + Path.DirectorySeparatorChar);
         _environment =
         [
-            new(ExtensionPayloadProvider.ApplicationDirectoryVariable, _root),
             new("TMP", _temporaryRoot),
             new("TEMP", _temporaryRoot),
             new("TMPDIR", _temporaryRoot),
@@ -48,6 +49,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
 
     public void Dispose()
     {
+        _baseDirectory.Dispose();
         for (int index = _environment.Length - 1; index >= 0; index--)
         {
             _environment[index].Dispose();
@@ -83,11 +85,35 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task PayloadUsesBaseDirectoryRegardlessOfEnvironment(bool trailingSeparator, bool legacyConfigured)
+    {
+        string legacyDirectory = Path.Combine(_root, "legacy-application");
+        Directory.CreateDirectory(Path.Combine(legacyDirectory, ".azurefunctions"));
+        File.WriteAllText(Path.Combine(legacyDirectory, "extensions.json"), "{\"extensions\":[]}");
+        using TestScopedEnvironmentVariable legacy = new("FUNCTIONS_APPLICATION_DIRECTORY", legacyConfigured ? legacyDirectory : null);
+        using TestScopedAppContextBaseDirectory application = new(trailingSeparator ? _root + Path.DirectorySeparatorChar : _root);
+        using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
+        using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
+        {
+            Assert.NotNull(archive.GetEntry(".azurefunctions/"));
+            Assert.All(archive.Entries, entry => Assert.False(entry.FullName.StartsWith("/", StringComparison.Ordinal)));
+            using StreamReader reader = new(archive.GetEntry("extensions.json")!.Open());
+            Assert.Equal(Manifest, await reader.ReadToEndAsync());
+        }
+
+        AssertNoTemporaryArchives();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task CapabilityIsSetOnceFromResolvedClient(bool supported)
     {
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, "relative");
+        using TestScopedAppContextBaseDirectory directory = new(Path.Combine(_root, "does-not-exist"));
         WorkerOptions options = new();
         options.Capabilities[WorkerCapabilities.ExtensionPayload] = "application override";
         using RecordingWorkerClient client = new() { SupportsExtensionPayload = supported };
@@ -117,13 +143,10 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     }
 
     [Theory]
-    [InlineData("environment")]
     [InlineData("manifest")]
     [InlineData("payload")]
     public async Task MissingInputsAreValidatedOnlyWhenPayloadIsRequested(string missing)
     {
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable,
-            string.Equals(missing, "environment", StringComparison.Ordinal) ? null : _root);
         if (string.Equals(missing, "manifest", StringComparison.Ordinal))
         {
             File.Delete(Path.Combine(_root, "extensions.json"));
@@ -137,14 +160,10 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         await AssertPayloadRequestFailsAsync();
     }
 
-    [Theory]
-    [InlineData("relative")]
-    [InlineData("C:relative")]
-    [InlineData("\\rooted")]
-    [InlineData(" ")]
-    public async Task MalformedRootIsValidatedOnlyWhenPayloadIsRequested(string root)
+    [Fact]
+    public async Task MissingApplicationDirectoryIsValidatedOnlyWhenPayloadIsRequested()
     {
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, root);
+        using TestScopedAppContextBaseDirectory directory = new(Path.Combine(_root, "does-not-exist"));
         await AssertPayloadSupportIsAdvertisedAsync();
         await AssertPayloadRequestFailsAsync();
     }
@@ -154,7 +173,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     {
         string path = Path.Combine(_root, "not-a-directory");
         File.WriteAllText(path, "file");
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, path);
+        using TestScopedAppContextBaseDirectory directory = new(path);
         await AssertPayloadSupportIsAdvertisedAsync();
         await AssertPayloadRequestFailsAsync();
     }
@@ -208,7 +227,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     [InlineData(true)]
     public async Task InitializationAndReloadAdvertiseSupportWithoutStartingATransfer(bool reload)
     {
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, "relative");
+        using TestScopedAppContextBaseDirectory directory = new(Path.Combine(_root, "does-not-exist"));
         using RecordingWorkerClient client = new();
         TaskCompletionSource<StreamingMessage> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
         client.OnMessage = message => initialized.TrySetResult(message);
@@ -389,7 +408,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     [Fact]
     public async Task NativeTransportRejectsWithoutPreparingAnArchive()
     {
-        using TestScopedEnvironmentVariable malformed = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, "relative");
+        using TestScopedAppContextBaseDirectory missing = new(Path.Combine(_root, "does-not-exist"));
         GrpcHostChannel channel = new(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>());
         NativeWorkerClient native = new(Mock.Of<IMessageProcessor>(), channel);
         Assert.False(native.SupportsExtensionPayload);

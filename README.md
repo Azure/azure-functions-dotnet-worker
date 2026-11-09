@@ -30,7 +30,7 @@ Please see our [Guide for running C# Azure Functions in an isolated worker proce
 
 The normal gRPC worker advertises `ExtensionPayload="1"` on .NET 7 and later. The capability is set once in `WorkerOptions.Capabilities` after resolving the client, based only on transport support. Initialization and environment reload do not inspect payload paths, open files, enumerate directories, or create an archive. The capability is not a promise that deployment files are available or an instruction to send; a worker sends no payload without an explicit Host request.
 
-Only when requested, the worker validates that `FUNCTIONS_APPLICATION_DIRECTORY` identifies a fully qualified worker-local directory containing readable `extensions.json` and an accessible `.azurefunctions` directory. Missing, malformed, or inaccessible payload inputs fail that request with a correlated terminal failure and local diagnostics, not worker initialization.
+Only when requested, the worker looks up `AppContext.BaseDirectory` and validates that it contains readable `extensions.json` and an accessible `.azurefunctions` directory. Missing, malformed, or inaccessible payload inputs fail that request with a correlated terminal failure and local diagnostics, not worker initialization.
 
 The Host requests a payload while acquiring its first accepted extension source, then reuses that source for later or concurrent worker links instead of requesting or comparing additional payloads. Later workers may still advertise support; the Host decides whether acquisition is needed.
 
@@ -46,7 +46,7 @@ The gRPC client is one-shot. Startup failure, startup cancellation, either messa
 
 Native-host workers do not advertise this capability: their current ABI reports queue admission rather than transport completion. The .NET 6 and .NET Standard 2.0 assets also do not advertise payload support because private temporary directory creation requires .NET 7+. These workers retain ordinary transport behavior and reject unexpected payload requests without preparing a ZIP. No new RPC service or HTTP download is introduced.
 
-Worker indexing uses the same validated worker-local application directory when configured, including the `functions.metadata` fallback provider. When the variable is absent, the legacy metadata request directory is preserved. The Host and WorkerProxy do not gain access to these files.
+Worker indexing passes `AppContext.BaseDirectory` to its metadata provider, including the `functions.metadata` fallback provider, rather than using the Host-supplied directory. The Host and WorkerProxy do not gain access to these files.
 
 ## Running E2E Tests
 

@@ -46,12 +46,18 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             private readonly ILogger<GrpcWorkerClientFactory> _logger;
             private readonly SemaphoreSlim _writeLock = new(1, 1);
             private readonly CancellationTokenSource _connectionClosed = new();
-            private CancellationTokenRegistration _startupRegistration;
+#if NET9_0_OR_GREATER
+            private readonly Lock _lifecycleLock = new();
+#else
+            private readonly object _lifecycleLock = new();
+#endif
+            private readonly TaskCompletionSource<bool> _startupCompleted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            private readonly TaskCompletionSource<bool> _terminationCompleted = new(TaskCreationOptions.RunContinuationsAsynchronously);
             private AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage>? _eventStream;
             private IClientStreamWriter<StreamingMessage>? _requestStream;
-            private Task? _writerTask;
-            private Task? _readerTask;
-            private bool _running;
+            private Task _completion = Task.CompletedTask;
+            private bool _started;
+            private bool _terminated;
 
             public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor, ILogger<GrpcWorkerClientFactory> logger)
                 : this(outputChannel, startupOptions, processor, logger, CreateClient(startupOptions ?? throw new ArgumentNullException(nameof(startupOptions))))
@@ -73,28 +79,74 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
             public async Task StartAsync(CancellationToken token)
             {
-                if (_running)
-                {
-                    throw new InvalidOperationException($"The client is already running. Multiple calls to {nameof(StartAsync)} are not supported.");
-                }
+                BeginStartup();
 
-                _running = true;
-
-                _startupRegistration = token.Register(static state => ((CancellationTokenSource)state!).Cancel(), _connectionClosed);
+                CancellationTokenRegistration startupRegistration = default;
+                Task writerTask = Task.CompletedTask;
+                Task readerTask = Task.CompletedTask;
+                Task startupCleanupTask = Task.CompletedTask;
                 try
                 {
-                    _eventStream = _grpcClient.EventStream(cancellationToken: _connectionClosed.Token);
-                    await SendStartStreamMessageAsync(_eventStream.RequestStream).ConfigureAwait(false);
-                    _requestStream = _eventStream.RequestStream;
-                    _writerTask = ObserveConnectionAsync(StartWriterAsync(_eventStream.RequestStream));
-                    _readerTask = ObserveConnectionAsync(StartReaderAsync(_eventStream.ResponseStream));
+                    startupRegistration = token.Register(static state => ((GrpcWorkerClient)state!).TerminateConnection(), this);
+                    _connectionClosed.Token.ThrowIfCancellationRequested();
+                    var eventStream = _grpcClient.EventStream(cancellationToken: _connectionClosed.Token);
+                    if (!TryPublishCall(eventStream))
+                    {
+                        // Startup still owns a call that was created after termination began.
+                        try
+                        {
+                            eventStream.Dispose();
+                        }
+                        catch (Exception exception)
+                        {
+                            startupCleanupTask = Task.FromException(exception);
+                            throw;
+                        }
+
+                        throw new OperationCanceledException(_connectionClosed.Token);
+                    }
+
+                    await SendStartStreamMessageAsync(eventStream.RequestStream).ConfigureAwait(false);
+                    _requestStream = eventStream.RequestStream;
+                    writerTask = ObserveLoopAndTerminateConnectionAsync(StartWriterAsync(eventStream.RequestStream));
+                    readerTask = ObserveLoopAndTerminateConnectionAsync(StartReaderAsync(eventStream.ResponseStream));
                 }
                 catch
                 {
-                    _connectionClosed.Cancel();
-                    _eventStream?.Dispose();
-                    _startupRegistration.Dispose();
+                    TerminateConnection();
                     throw;
+                }
+                finally
+                {
+                    _completion = DrainConnectionAsync(writerTask, readerTask, startupCleanupTask, startupRegistration);
+                    _startupCompleted.TrySetResult(true);
+                }
+            }
+
+            private void BeginStartup()
+            {
+                lock (_lifecycleLock)
+                {
+                    if (_started || _terminated)
+                    {
+                        throw new InvalidOperationException($"The client cannot be started again. Multiple calls to {nameof(StartAsync)} are not supported.");
+                    }
+
+                    _started = true;
+                }
+            }
+
+            private bool TryPublishCall(AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage> eventStream)
+            {
+                lock (_lifecycleLock)
+                {
+                    if (_terminated)
+                    {
+                        return false;
+                    }
+
+                    _eventStream = eventStream;
+                    return true;
                 }
             }
 
@@ -109,10 +161,87 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
             public async Task StopAsync(CancellationToken cancellationToken)
             {
-                _connectionClosed.Cancel();
-                _eventStream?.Dispose();
-                await Task.WhenAll(_writerTask ?? Task.CompletedTask, _readerTask ?? Task.CompletedTask).ConfigureAwait(false);
-                _startupRegistration.Dispose();
+                TerminateConnection();
+                await _startupCompleted.Task.ConfigureAwait(false);
+                await _completion.ConfigureAwait(false);
+                await _terminationCompleted.Task.ConfigureAwait(false);
+            }
+
+            private void TerminateConnection()
+            {
+                AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage>? eventStream;
+                bool started;
+                lock (_lifecycleLock)
+                {
+                    if (_terminated)
+                    {
+                        return;
+                    }
+
+                    _terminated = true;
+                    started = _started;
+                    eventStream = _eventStream;
+                    _eventStream = null;
+                }
+
+                _outputWriter.TryComplete();
+                Exception? failure = null;
+                try
+                {
+                    _connectionClosed.Cancel();
+                }
+                catch (Exception exception)
+                {
+                    failure = exception;
+                }
+
+                try
+                {
+                    eventStream?.Dispose();
+                }
+                catch (Exception exception)
+                {
+                    failure = failure is null ? exception : new AggregateException(failure, exception);
+                }
+
+                if (failure is null)
+                {
+                    _terminationCompleted.TrySetResult(true);
+                }
+                else
+                {
+                    _terminationCompleted.TrySetException(failure);
+                    LogConnectionFailure(_logger, failure);
+                }
+
+                if (!started)
+                {
+                    _startupCompleted.TrySetResult(true);
+                }
+            }
+
+            private async Task DrainConnectionAsync(Task writerTask, Task readerTask, Task startupCleanupTask,
+                CancellationTokenRegistration startupRegistration)
+            {
+                Task drain = Task.WhenAll(writerTask, readerTask, startupCleanupTask, _terminationCompleted.Task);
+                try
+                {
+                    // Finish cancellation callbacks before releasing the registration that may have invoked them.
+                    await drain.ConfigureAwait(false);
+                }
+                catch
+                {
+                    if (drain.Exception is { InnerExceptions.Count: > 1 } aggregate)
+                    {
+                        throw aggregate;
+                    }
+
+                    throw;
+                }
+                finally
+                {
+                    startupRegistration.Dispose();
+                }
             }
 
             private async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
@@ -158,7 +287,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
             private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
             {
-                _requestStream = requestStream;
                 await foreach (StreamingMessage rpcWriteMsg in _outputReader.ReadAllAsync(_connectionClosed.Token).ConfigureAwait(false))
                 {
                     await _writeLock.WaitAsync(_connectionClosed.Token).ConfigureAwait(false);
@@ -181,7 +309,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 }
             }
 
-            private async Task ObserveConnectionAsync(Task loop)
+            private async Task ObserveLoopAndTerminateConnectionAsync(Task loop)
             {
                 try
                 {
@@ -199,9 +327,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 }
                 finally
                 {
-                    _connectionClosed.Cancel();
-                    _outputWriter.TryComplete();
-                    _eventStream?.Dispose();
+                    TerminateConnection();
                 }
             }
 

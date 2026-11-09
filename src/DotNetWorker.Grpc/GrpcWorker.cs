@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataManager _metadataManager;
-        private readonly ExtensionPayload _extensionPayload;
+        private readonly IExtensionPayloadHandler _extensionPayloadHandler;
         private readonly ILogger<GrpcWorker> _logger;
         private IWorkerClient? _workerClient;
 
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker
                           IFunctionMetadataManager metadataManager,
                           IHostApplicationLifetime hostApplicationLifetime,
                           IInvocationHandler invocationHandler,
-                          ExtensionPayload extensionPayload,
+                          IExtensionPayloadHandler extensionPayloadHandler,
                           ILogger<GrpcWorker> logger)
         {
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
             _workerOptions = workerOptions.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _metadataManager = metadataManager ?? throw new ArgumentNullException(nameof(metadataManager));
-            _extensionPayload = extensionPayload ?? throw new ArgumentNullException(nameof(extensionPayload));
+            _extensionPayloadHandler = extensionPayloadHandler ?? throw new ArgumentNullException(nameof(extensionPayloadHandler));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _invocationHandler = invocationHandler;
@@ -77,7 +77,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async Task StopAsync(CancellationToken token)
         {
-            Task shutdown = Task.WhenAll(_extensionPayload.CancelAsync(), _workerClient?.StopAsync(token) ?? Task.CompletedTask);
+            Task shutdown = Task.WhenAll(_extensionPayloadHandler.CancelAsync(), _workerClient?.StopAsync(token) ?? Task.CompletedTask);
             try
             {
                 await shutdown.ConfigureAwait(false);
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             try
             {
-                await _extensionPayload.SendAsync(requestId, _workerClient!, _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
+                await _extensionPayloadHandler.SendAsync(requestId, _workerClient!, _hostApplicationLifetime.ApplicationStopping).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (_workerClient!.ConnectionClosed.IsCancellationRequested || _hostApplicationLifetime.ApplicationStopping.IsCancellationRequested)
             {

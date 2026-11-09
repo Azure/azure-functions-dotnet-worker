@@ -25,11 +25,11 @@ public sealed partial class ExtensionPayloadTests
             int count = 0;
             for (int index = 0; index < 10000; index++)
             {
-                ExtensionPayload.AddEntry(archive, index.ToString("D5", CultureInfo.InvariantCulture), ref count);
+                ExtensionPayloadProvider.AddEntry(archive, index.ToString("D5", CultureInfo.InvariantCulture), ref count);
             }
 
             Assert.Equal(10000, count);
-            Assert.Throws<InvalidDataException>(() => ExtensionPayload.AddEntry(archive, "one-too-many", ref count));
+            Assert.Throws<InvalidDataException>(() => ExtensionPayloadProvider.AddEntry(archive, "one-too-many", ref count));
         }
 
         bytes.Position = 0;
@@ -40,23 +40,23 @@ public sealed partial class ExtensionPayloadTests
     [Fact]
     public void ContentAndZipBudgetsAcceptBoundariesAndRejectOneByteOver()
     {
-        Assert.Equal(1073741824L, ExtensionPayload.MaximumContentBytes);
-        Assert.Equal(268435456L, ExtensionPayload.MaximumArchiveBytes);
-        long remaining = ExtensionPayload.MaximumContentBytes - new FileInfo(Path.Combine(_root, "extensions.json")).Length;
-        ExtensionPayload.EnsureContentBytesFit(remaining, remaining);
-        ExtensionPayload.EnsureContentBytesFit(0, 0);
-        Assert.Throws<InvalidDataException>(() => ExtensionPayload.EnsureContentBytesFit(remaining + 1, remaining));
-        ExtensionPayload.EnsureArchiveBytesFit(ExtensionPayload.MaximumArchiveBytes - 1, 1);
-        ExtensionPayload.EnsureArchiveBytesFit(ExtensionPayload.MaximumArchiveBytes, 0);
-        Assert.Throws<InvalidDataException>(() => ExtensionPayload.EnsureArchiveBytesFit(ExtensionPayload.MaximumArchiveBytes, 1));
+        Assert.Equal(1073741824L, ExtensionPayloadProvider.MaximumContentBytes);
+        Assert.Equal(268435456L, ExtensionPayloadLimits.MaximumArchiveBytes);
+        long remaining = ExtensionPayloadProvider.MaximumContentBytes - new FileInfo(Path.Combine(_root, "extensions.json")).Length;
+        ExtensionPayloadProvider.EnsureContentBytesFit(remaining, remaining);
+        ExtensionPayloadProvider.EnsureContentBytesFit(0, 0);
+        Assert.Throws<InvalidDataException>(() => ExtensionPayloadProvider.EnsureContentBytesFit(remaining + 1, remaining));
+        ExtensionPayloadProvider.EnsureArchiveBytesFit(ExtensionPayloadLimits.MaximumArchiveBytes - 1, 1);
+        ExtensionPayloadProvider.EnsureArchiveBytesFit(ExtensionPayloadLimits.MaximumArchiveBytes, 0);
+        Assert.Throws<InvalidDataException>(() => ExtensionPayloadProvider.EnsureArchiveBytesFit(ExtensionPayloadLimits.MaximumArchiveBytes, 1));
     }
 
     [Fact]
     public async Task ManifestLimitAccepts1MiBAndRejectsOneByteOver()
     {
-        Assert.Equal(1048576, ExtensionPayload.MaximumManifestBytes);
-        File.WriteAllText(Path.Combine(_root, "extensions.json"), Manifest.PadRight(ExtensionPayload.MaximumManifestBytes));
-        using (FileStream archive = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None))
+        Assert.Equal(1048576, ExtensionPayloadProvider.MaximumManifestBytes);
+        File.WriteAllText(Path.Combine(_root, "extensions.json"), Manifest.PadRight(ExtensionPayloadProvider.MaximumManifestBytes));
+        using (Stream archive = await _provider.OpenReadAsync(CancellationToken.None))
         {
             Assert.True(archive.Length > 0);
         }
@@ -64,7 +64,7 @@ public sealed partial class ExtensionPayloadTests
         File.AppendAllText(Path.Combine(_root, "extensions.json"), " ");
         await Assert.ThrowsAsync<InvalidDataException>(async () =>
         {
-            using FileStream archive = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None);
+            using Stream archive = await _provider.OpenReadAsync(CancellationToken.None);
         });
         AssertNoTemporaryArchives();
     }
@@ -75,8 +75,8 @@ public sealed partial class ExtensionPayloadTests
         using MemoryStream bytes = new();
         using ZipArchive archive = new(bytes, ZipArchiveMode.Create);
         int count = 0;
-        ExtensionPayload.AddEntry(archive, string.Join('/', Enumerable.Repeat("a", 32)), ref count);
-        Assert.Throws<InvalidDataException>(() => ExtensionPayload.AddEntry(archive, string.Join('/', Enumerable.Repeat("a", 33)), ref count));
+        ExtensionPayloadProvider.AddEntry(archive, string.Join('/', Enumerable.Repeat("a", 32)), ref count);
+        Assert.Throws<InvalidDataException>(() => ExtensionPayloadProvider.AddEntry(archive, string.Join('/', Enumerable.Repeat("a", 33)), ref count));
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed partial class ExtensionPayloadTests
         using FileStream held = File.Open(Path.Combine(_root, ".azurefunctions", "locked.bin"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
         Exception failure = await Record.ExceptionAsync(async () =>
         {
-            using FileStream archive = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None);
+            using Stream archive = await _provider.OpenReadAsync(CancellationToken.None);
         });
         Assert.NotNull(failure);
         AssertNoTemporaryArchives();
@@ -103,7 +103,7 @@ public sealed partial class ExtensionPayloadTests
         Directory.CreateSymbolicLink(Path.Combine(extensions, "linked"), excluded);
         Directory.CreateSymbolicLink(Path.Combine(extensions, "cycle"), extensions);
         File.CreateSymbolicLink(Path.Combine(extensions, "linked-file"), secret);
-        using (FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None))
+        using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
         using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
         {
             Assert.Equal(3, archive.Entries.Count);
@@ -123,7 +123,7 @@ public sealed partial class ExtensionPayloadTests
         Directory.CreateSymbolicLink(extensions, excluded);
         await Assert.ThrowsAsync<InvalidDataException>(async () =>
         {
-            using FileStream archive = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None);
+            using Stream archive = await _provider.OpenReadAsync(CancellationToken.None);
         });
         AssertNoTemporaryArchives();
     }
@@ -131,8 +131,8 @@ public sealed partial class ExtensionPayloadTests
     [Fact]
     public async Task ArchiveUsesPrivateDirectoryAndCleansUpAfterDisposal()
     {
-        FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None);
-        string directory = Path.GetDirectoryName(stream.Name)!;
+        Stream stream = await _provider.OpenReadAsync(CancellationToken.None);
+        string directory = Assert.Single(Directory.EnumerateDirectories(_temporaryRoot));
         try
         {
             Assert.Equal(Path.GetFullPath(_temporaryRoot), Path.GetDirectoryName(directory));
@@ -155,12 +155,13 @@ public sealed partial class ExtensionPayloadTests
     [Fact]
     public async Task ArchiveCleansUpPrivateDirectoryAfterAsyncDisposal()
     {
-        using FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None);
-        string directory = Path.GetDirectoryName(stream.Name)!;
+        await using Stream stream = await _provider.OpenReadAsync(CancellationToken.None);
+        string directory = Assert.Single(Directory.EnumerateDirectories(_temporaryRoot));
         await stream.DisposeAsync();
-        stream.Dispose();
         Assert.False(Directory.Exists(directory));
         AssertNoTemporaryArchives();
+        await stream.DisposeAsync();
+        stream.Dispose();
     }
 
     [Fact]
@@ -170,7 +171,7 @@ public sealed partial class ExtensionPayloadTests
         using TestScopedEnvironmentVariable tmp = new("TMP", extensions);
         using TestScopedEnvironmentVariable temp = new("TEMP", extensions);
         using TestScopedEnvironmentVariable tmpdir = new("TMPDIR", extensions);
-        using (FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None))
+        using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
         using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
         {
             Assert.Equal(2, archive.Entries.Count);
@@ -181,16 +182,16 @@ public sealed partial class ExtensionPayloadTests
     }
 
     [Fact]
-    public async Task ConnectionLossCancelsPreparationAndDeletesZip()
+    public async Task CancellationDuringPreparationDeletesZip()
     {
         byte[] content = [1, 2, 3];
         string payloadPath = Path.Combine(_root, ".azurefunctions", "payload.bin");
         File.WriteAllBytes(payloadPath, content);
-        using RecordingClient client = new();
+        using CancellationTokenSource cancellation = new();
         TaskCompletionSource<CancellationToken> readStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
         TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
         using PreparationReadStream input = new(content, readStarted, release.Task);
-        Task<FileStream> preparation = ExtensionPayload.CreateArchiveAsync(client.ConnectionClosed, path =>
+        Task<Stream> preparation = _provider.OpenReadAsync(cancellation.Token, path =>
         {
             Assert.Equal(payloadPath, path);
             return input;
@@ -201,22 +202,21 @@ public sealed partial class ExtensionPayloadTests
             string archive = Assert.Single(Directory.EnumerateFiles(_temporaryRoot, "*.zip", SearchOption.AllDirectories));
             Assert.False(preparation.IsCompleted);
             Assert.False(token.IsCancellationRequested);
-            await client.StopAsync(CancellationToken.None);
+            cancellation.Cancel();
             Assert.True(token.IsCancellationRequested);
             Assert.False(preparation.IsCompleted);
             Assert.True(File.Exists(archive));
         }
         finally
         {
-            await client.StopAsync(CancellationToken.None);
+            cancellation.Cancel();
             release.TrySetResult(true);
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
-                using FileStream archive = await preparation.WaitAsync(TimeSpan.FromSeconds(15));
+                using Stream archive = await preparation.WaitAsync(TimeSpan.FromSeconds(15));
             });
         }
 
-        Assert.Empty(client.Messages);
         AssertNoTemporaryArchives();
     }
 

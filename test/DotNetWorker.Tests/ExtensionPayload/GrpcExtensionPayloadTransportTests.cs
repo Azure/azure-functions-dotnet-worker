@@ -12,11 +12,12 @@ using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Xunit;
+using RpcException = Grpc.Core.RpcException;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
 namespace Microsoft.Azure.Functions.Worker.Tests;
 
-public sealed class GrpcExtensionPayloadTransportTests
+public sealed partial class GrpcExtensionPayloadTransportTests
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
 
@@ -124,6 +125,22 @@ public sealed class GrpcExtensionPayloadTransportTests
         await Assert.ThrowsAsync<IOException>(() => payload);
     }
 
+    [Fact]
+    public async Task RpcDisposalAbortsInFlightPayloadWithoutManualWriteCompletion()
+    {
+        await using ClientContext context = new(abortWritesOnDispose: true);
+        await context.StartAsync();
+        Task payload = context.Client.SendPayloadMessageAsync(CreatePayload(), CancellationToken.None).AsTask();
+        WriteRecord write = await context.Transport.First.Task.WaitAsync(Timeout);
+        Task stopping = context.Client.StopAsync(CancellationToken.None);
+        RpcException failure = await Assert.ThrowsAsync<RpcException>(() => payload).WaitAsync(Timeout);
+        Assert.Equal(StatusCode.Cancelled, failure.StatusCode);
+        await stopping.WaitAsync(Timeout);
+        Assert.True(write.Completion.Task.IsFaulted);
+        Assert.Equal(1, context.RpcClient.DisposeCount);
+        Assert.False(context.Transport.ConcurrentWriteDetected);
+    }
+
     private static StreamingMessage CreatePayload() => new()
     {
         RequestId = "payload",
@@ -132,21 +149,29 @@ public sealed class GrpcExtensionPayloadTransportTests
 
     private sealed class ClientContext : IAsyncDisposable
     {
-        public GrpcHostChannel Outgoing { get; } = new(Channel.CreateUnbounded<StreamingMessage>());
+        public GrpcHostChannel Outgoing { get; }
         public ControlledWriter Transport { get; } = new();
         public ControlledReader Incoming { get; } = new();
         public TestLogger<GrpcWorkerClientFactory> Logger { get; } = TestLogger<GrpcWorkerClientFactory>.Create();
+        public TestRpcClient RpcClient { get; }
         public IWorkerClient Client { get; }
 
-        public ClientContext()
+        public ClientContext(IMessageProcessor processor = null, bool allowSynchronousContinuations = true, bool abortWritesOnDispose = false)
         {
+            Outgoing = new(Channel.CreateUnbounded<StreamingMessage>(new UnboundedChannelOptions
+            {
+                SingleReader = true,
+                SingleWriter = false,
+                AllowSynchronousContinuations = allowSynchronousContinuations
+            }));
             GrpcWorkerStartupOptions options = new()
             {
                 HostEndpoint = new Uri("http://localhost:5000"),
                 WorkerId = "test-worker",
                 GrpcMaxMessageLength = 4 * 1024 * 1024
             };
-            Client = new GrpcWorkerClientFactory.GrpcWorkerClient(Outgoing, options, new NoOpProcessor(), Logger, new TestRpcClient(Transport, Incoming));
+            RpcClient = new(Transport, Incoming) { AbortWritesOnDispose = abortWritesOnDispose };
+            Client = new GrpcWorkerClientFactory.GrpcWorkerClient(Outgoing, options, processor ?? new NoOpProcessor(), Logger, RpcClient);
         }
 
         public async Task StartAsync()
@@ -164,9 +189,30 @@ public sealed class GrpcExtensionPayloadTransportTests
 
     private sealed class TestRpcClient(ControlledWriter writer, ControlledReader reader) : FunctionRpcClient
     {
+        private int _disposeCount;
+        public int DisposeCount => Volatile.Read(ref _disposeCount);
+        public Action OnCreate { get; set; }
+        public Action OnDispose { get; set; }
+        public bool AbortWritesOnDispose { get; init; }
+        public TaskCompletionSource<bool> Disposed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
         public override AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage> EventStream(
             Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
-            => new(writer, reader, Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => reader.Complete());
+        {
+            OnCreate?.Invoke();
+            return new(writer, reader, Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () =>
+            {
+                Interlocked.Increment(ref _disposeCount);
+                reader.Complete();
+                if (AbortWritesOnDispose)
+                {
+                    writer.AbortPending();
+                }
+
+                Disposed.TrySetResult(true);
+                OnDispose?.Invoke();
+            });
+        }
     }
 
     private sealed class NoOpProcessor : IMessageProcessor
@@ -178,6 +224,7 @@ public sealed class GrpcExtensionPayloadTransportTests
     {
         private readonly Channel<StreamingMessage> _incoming = Channel.CreateUnbounded<StreamingMessage>();
         public StreamingMessage Current { get; private set; }
+        public void Add(StreamingMessage message) => Assert.True(_incoming.Writer.TryWrite(message));
         public void Complete(Exception exception = null) => _incoming.Writer.TryComplete(exception);
 
         public async Task<bool> MoveNext(CancellationToken cancellationToken)
@@ -205,7 +252,10 @@ public sealed class GrpcExtensionPayloadTransportTests
         private int _writeCount;
         private int _concurrentWrite;
         private int _complete;
+        private Exception _abortFailure;
         public StreamingMessage StartStream { get; private set; }
+        public Task StartWriteCompletion { get; set; } = Task.CompletedTask;
+        public TaskCompletionSource<bool> StartWriteStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<WriteRecord> First { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<WriteRecord> Second { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public bool ConcurrentWriteDetected => Interlocked.CompareExchange(ref _concurrentWrite, 0, 0) != 0;
@@ -221,11 +271,23 @@ public sealed class GrpcExtensionPayloadTransportTests
             }
         }
 
+        public void AbortPending()
+        {
+            Exception failure = new RpcException(new Status(StatusCode.Cancelled, "Transport write aborted."));
+            failure = Interlocked.CompareExchange(ref _abortFailure, failure, null) ?? failure;
+            foreach (WriteRecord write in _writes)
+            {
+                write.Completion.TrySetException(failure);
+            }
+        }
+
         public async Task WriteAsync(StreamingMessage message)
         {
             if (message.StartStream is not null)
             {
                 StartStream = message;
+                StartWriteStarted.TrySetResult(true);
+                await StartWriteCompletion;
                 return;
             }
 
@@ -237,7 +299,11 @@ public sealed class GrpcExtensionPayloadTransportTests
             WriteRecord write = new(message);
             _writes.Enqueue(write);
             (Interlocked.Increment(ref _writeCount) == 1 ? First : Second).TrySetResult(write);
-            if (Interlocked.CompareExchange(ref _complete, 0, 0) != 0)
+            if (Volatile.Read(ref _abortFailure) is { } failure)
+            {
+                write.Completion.TrySetException(failure);
+            }
+            else if (Interlocked.CompareExchange(ref _complete, 0, 0) != 0)
             {
                 write.Completion.TrySetResult(true);
             }

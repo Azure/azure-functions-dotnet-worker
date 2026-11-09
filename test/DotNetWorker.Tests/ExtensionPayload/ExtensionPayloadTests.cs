@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -29,6 +28,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     private readonly string _root;
     private readonly string _temporaryRoot;
     private readonly TestScopedEnvironmentVariable[] _environment;
+    private readonly ExtensionPayloadProvider _provider = new();
 
     public ExtensionPayloadTests()
     {
@@ -39,7 +39,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         File.WriteAllText(Path.Combine(_root, "extensions.json"), Manifest);
         _environment =
         [
-            new(ExtensionPayload.ApplicationDirectoryVariable, _root),
+            new(ExtensionPayloadProvider.ApplicationDirectoryVariable, _root),
             new("TMP", _temporaryRoot),
             new("TEMP", _temporaryRoot),
             new("TMPDIR", _temporaryRoot),
@@ -66,9 +66,9 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         File.WriteAllText(Path.Combine(_root, "worker.config.json"), "not included");
         File.WriteAllText(Path.Combine(_root, "functions.metadata"), "not included");
         string temporary;
-        using (FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None))
+        using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
         {
-            temporary = stream.Name;
+            temporary = Assert.Single(Directory.EnumerateFiles(_temporaryRoot, "*.zip", SearchOption.AllDirectories));
             using ZipArchive archive = new(stream, ZipArchiveMode.Read, leaveOpen: true);
             Assert.NotNull(archive.GetEntry(".azurefunctions/nested/binding.dll"));
             Assert.NotNull(archive.GetEntry(".azurefunctions/nested/.hidden"));
@@ -87,10 +87,10 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     [InlineData(false)]
     public async Task CapabilityIsSetOnceFromResolvedClient(bool supported)
     {
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayload.ApplicationDirectoryVariable, "relative");
+        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, "relative");
         WorkerOptions options = new();
         options.Capabilities[WorkerCapabilities.ExtensionPayload] = "application override";
-        using RecordingClient client = new() { SupportsExtensionPayload = supported };
+        using RecordingWorkerClient client = new() { SupportsExtensionPayload = supported };
         GrpcWorker worker = CreateWorker(client, options);
         await worker.StartAsync(CancellationToken.None);
         try
@@ -122,7 +122,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     [InlineData("payload")]
     public async Task MissingInputsAreValidatedOnlyWhenPayloadIsRequested(string missing)
     {
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayload.ApplicationDirectoryVariable,
+        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable,
             string.Equals(missing, "environment", StringComparison.Ordinal) ? null : _root);
         if (string.Equals(missing, "manifest", StringComparison.Ordinal))
         {
@@ -144,7 +144,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     [InlineData(" ")]
     public async Task MalformedRootIsValidatedOnlyWhenPayloadIsRequested(string root)
     {
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayload.ApplicationDirectoryVariable, root);
+        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, root);
         await AssertPayloadSupportIsAdvertisedAsync();
         await AssertPayloadRequestFailsAsync();
     }
@@ -154,7 +154,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     {
         string path = Path.Combine(_root, "not-a-directory");
         File.WriteAllText(path, "file");
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayload.ApplicationDirectoryVariable, path);
+        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, path);
         await AssertPayloadSupportIsAdvertisedAsync();
         await AssertPayloadRequestFailsAsync();
     }
@@ -174,8 +174,8 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     public async Task StreamsCorrelatedBoundedChunksAndExactlyOneTerminal(int messageLimit)
     {
         WriteData(200 * 1024);
-        using RecordingClient client = new();
-        await CreateProducer(messageLimit).SendAsync("payload-operation", client, CancellationToken.None);
+        using RecordingWorkerClient client = new();
+        await CreateHandler(messageLimit).SendAsync("payload-operation", client, CancellationToken.None);
         StreamingMessage[] messages = client.Messages.ToArray();
         Assert.True(messages.Length > 2);
         ulong offset = 0;
@@ -184,7 +184,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         {
             Assert.Equal("payload-operation", message.RequestId);
             Assert.Equal(ExtensionPayloadResponse.ContentOneofCase.Chunk, message.ExtensionPayloadResponse.ContentCase);
-            Assert.InRange(message.ExtensionPayloadResponse.Chunk.Length, 1, ExtensionPayload.MaximumChunkBytes);
+            Assert.InRange(message.ExtensionPayloadResponse.Chunk.Length, 1, ExtensionPayloadLimits.MaximumChunkBytes);
             Assert.True(message.CalculateSize() <= messageLimit);
             Assert.Equal(offset, message.ExtensionPayloadResponse.Offset);
             byte[] chunk = message.ExtensionPayloadResponse.Chunk.ToByteArray();
@@ -208,8 +208,8 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     [InlineData(true)]
     public async Task InitializationAndReloadAdvertiseSupportWithoutStartingATransfer(bool reload)
     {
-        using TestScopedEnvironmentVariable directory = new(ExtensionPayload.ApplicationDirectoryVariable, "relative");
-        using RecordingClient client = new();
+        using TestScopedEnvironmentVariable directory = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, "relative");
+        using RecordingWorkerClient client = new();
         TaskCompletionSource<StreamingMessage> initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
         client.OnMessage = message => initialized.TrySetResult(message);
         GrpcWorker worker = CreateWorker(client, new());
@@ -257,8 +257,8 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     public async Task OverlappingRequestsJoinDuplicatesRejectCompetitorsAndReleaseOwnership(bool failTerminalWrite)
     {
         WriteData(200 * 1024);
-        ExtensionPayload producer = CreateProducer();
-        using RecordingClient client = new();
+        ExtensionPayloadHandler handler = CreateHandler();
+        using RecordingWorkerClient client = new();
         TaskCompletionSource<bool> firstChunk = new(TaskCreationOptions.RunContinuationsAsynchronously);
         TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
         client.OnPayload = async (message, _) =>
@@ -278,17 +278,17 @@ public sealed partial class ExtensionPayloadTests : IDisposable
                 throw new IOException("Simulated terminal write failure.");
             }
         };
-        Task transfer = producer.SendAsync("active", client, CancellationToken.None);
+        Task transfer = handler.SendAsync("active", client, CancellationToken.None);
         try
         {
             await firstChunk.Task.WaitAsync(TimeSpan.FromSeconds(15));
             string archive = Assert.Single(Directory.EnumerateFiles(_temporaryRoot, "*.zip", SearchOption.AllDirectories));
-            Task duplicate = producer.SendAsync("active", client, CancellationToken.None);
+            Task duplicate = handler.SendAsync("active", client, CancellationToken.None);
             Assert.Same(transfer, duplicate);
             Assert.False(duplicate.IsCompleted);
             Assert.Single(client.Messages);
 
-            await producer.SendAsync("competing", client, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(15));
+            await handler.SendAsync("competing", client, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(15));
             Assert.Equal(2, client.Messages.Count);
             StreamingMessage rejected = Assert.Single(client.Messages.Where(message => string.Equals(message.RequestId, "competing", StringComparison.Ordinal)));
             Assert.Equal(ExtensionPayloadResponse.ContentOneofCase.Result, rejected.ExtensionPayloadResponse.ContentCase);
@@ -324,7 +324,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         Assert.Equal(offset, terminal.ExtensionPayloadResponse.Offset);
         AssertNoTemporaryArchives();
 
-        await producer.SendAsync("fresh", client, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(15));
+        await handler.SendAsync("fresh", client, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(15));
         StreamingMessage[] freshResponses = client.Messages.Where(message => string.Equals(message.RequestId, "fresh", StringComparison.Ordinal)).ToArray();
         Assert.Contains(freshResponses, message => message.ExtensionPayloadResponse.ContentCase is ExtensionPayloadResponse.ContentOneofCase.Chunk);
         StreamingMessage completed = Assert.Single(freshResponses.Where(message => message.ExtensionPayloadResponse.ContentCase is ExtensionPayloadResponse.ContentOneofCase.Result));
@@ -338,8 +338,8 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     public async Task ConnectionLossOrWorkerShutdownWaitsForInFlightWriteBeforeDeletingZip(bool connectionLost)
     {
         WriteData(200 * 1024);
-        ExtensionPayload producer = CreateProducer();
-        using RecordingClient client = new();
+        ExtensionPayloadHandler handler = CreateHandler();
+        using RecordingWorkerClient client = new();
         using CancellationTokenSource stopping = new();
         TaskCompletionSource<CancellationToken> firstChunk = new(TaskCreationOptions.RunContinuationsAsynchronously);
         TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -351,7 +351,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
                 await release.Task;
             }
         };
-        Task transfer = producer.SendAsync("active", client, stopping.Token);
+        Task transfer = handler.SendAsync("active", client, stopping.Token);
         try
         {
             CancellationToken token = await firstChunk.Task.WaitAsync(TimeSpan.FromSeconds(15));
@@ -367,7 +367,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
             }
 
             Assert.True(token.IsCancellationRequested);
-            Task drain = producer.CancelAsync();
+            Task drain = handler.CancelAsync();
             Assert.Same(transfer, drain);
             Assert.False(drain.IsCompleted);
             Assert.True(File.Exists(archive));
@@ -389,19 +389,19 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     [Fact]
     public async Task NativeTransportRejectsWithoutPreparingAnArchive()
     {
-        using TestScopedEnvironmentVariable malformed = new(ExtensionPayload.ApplicationDirectoryVariable, "relative");
+        using TestScopedEnvironmentVariable malformed = new(ExtensionPayloadProvider.ApplicationDirectoryVariable, "relative");
         GrpcHostChannel channel = new(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>());
         NativeWorkerClient native = new(Mock.Of<IMessageProcessor>(), channel);
         Assert.False(native.SupportsExtensionPayload);
-        await CreateProducer().SendAsync("native-request", native, CancellationToken.None);
+        await CreateHandler().SendAsync("native-request", native, CancellationToken.None);
         Assert.True(channel.Channel.Reader.TryRead(out StreamingMessage terminal));
         Assert.Equal(StatusResult.Types.Status.Failure, terminal.ExtensionPayloadResponse.Result.Status);
         Assert.False(channel.Channel.Reader.TryRead(out _));
         AssertNoTemporaryArchives();
     }
 
-    private ExtensionPayload CreateProducer(int messageLimit = 4 * 1024 * 1024)
-        => new(Options.Create(new GrpcWorkerStartupOptions { GrpcMaxMessageLength = messageLimit }), NullLogger<ExtensionPayload>.Instance);
+    private ExtensionPayloadHandler CreateHandler(int messageLimit = 4 * 1024 * 1024)
+        => new(_provider, Options.Create(new GrpcWorkerStartupOptions { GrpcMaxMessageLength = messageLimit }), NullLogger<ExtensionPayloadHandler>.Instance);
 
     private void WriteData(int length)
     {
@@ -416,13 +416,13 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         factory.Setup(value => value.CreateClient(It.IsAny<IMessageProcessor>())).Returns(client);
         return new GrpcWorker(Mock.Of<IFunctionsApplication>(), factory.Object, Mock.Of<IMethodInfoLocator>(), Options.Create(options),
             Mock.Of<IFunctionMetadataManager>(), new ApplicationLifetime(NullLogger<ApplicationLifetime>.Instance), Mock.Of<IInvocationHandler>(),
-            CreateProducer(), NullLogger<GrpcWorker>.Instance);
+            CreateHandler(), NullLogger<GrpcWorker>.Instance);
     }
 
     private async Task AssertPayloadSupportIsAdvertisedAsync()
     {
         WorkerOptions options = new();
-        using RecordingClient client = new();
+        using RecordingWorkerClient client = new();
         GrpcWorker worker = CreateWorker(client, options);
         await worker.StartAsync(CancellationToken.None);
         try
@@ -442,39 +442,4 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     }
 
     private void AssertNoTemporaryArchives() => Assert.Empty(Directory.EnumerateFileSystemEntries(_temporaryRoot));
-
-    private sealed class RecordingClient : IWorkerClient, IDisposable
-    {
-        private readonly CancellationTokenSource _closed = new();
-        public ConcurrentQueue<StreamingMessage> Messages { get; } = new();
-        public Func<StreamingMessage, CancellationToken, Task> OnPayload { get; set; }
-        public Action<StreamingMessage> OnMessage { get; set; }
-        public bool SupportsExtensionPayload { get; init; } = true;
-        public CancellationToken ConnectionClosed => _closed.Token;
-        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _closed.Cancel();
-            return Task.CompletedTask;
-        }
-
-        public ValueTask SendMessageAsync(StreamingMessage message)
-        {
-            Messages.Enqueue(message);
-            OnMessage?.Invoke(message);
-            return ValueTask.CompletedTask;
-        }
-
-        public async ValueTask SendPayloadMessageAsync(StreamingMessage message, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            Messages.Enqueue(message);
-            if (OnPayload is not null)
-            {
-                await OnPayload(message, cancellationToken);
-            }
-        }
-
-        public void Dispose() => _closed.Dispose();
-    }
 }

@@ -316,7 +316,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         metadataManager.Object,
                                         new ApplicationLifetime(TestLogger<ApplicationLifetime>.Create()),
                                         invocationHandlerMock.Object,
-                                        new ExtensionPayload(Options.Create(new GrpcWorkerStartupOptions { GrpcMaxMessageLength = 4 * 1024 * 1024 }), NullLogger<ExtensionPayload>.Instance),
+                                        Mock.Of<IExtensionPayloadHandler>(),
                                         NullLogger<GrpcWorker>.Instance);
 
             await worker.StartAsync(CancellationToken.None);

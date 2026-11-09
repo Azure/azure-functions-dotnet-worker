@@ -9,20 +9,17 @@ using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Google.Protobuf;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using static Microsoft.Azure.Functions.Worker.Grpc.ExtensionPayloadCleanup;
+using static Microsoft.Azure.Functions.Worker.Grpc.ExtensionPayloadLimits;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc;
 
 /// <summary>
-/// Creates filtered extension archives on demand and streams one active transfer over the worker transport.
+/// Opens filtered extension archives on demand, with temporary resources owned by the returned stream.
 /// </summary>
-internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions> startupOptions, ILogger<ExtensionPayload> logger)
+internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
 {
-    internal const int MaximumChunkBytes = 64 * 1024;
-    internal const long MaximumArchiveBytes = 256L * 1024 * 1024;
+    private const int CopyBufferSize = 64 * 1024;
     internal const long MaximumContentBytes = 1024L * 1024 * 1024;
     internal const int MaximumManifestBytes = 1024 * 1024;
     internal const int MaximumEntries = 10000;
@@ -33,218 +30,18 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
     private const string MetadataLoaderAssemblyName = "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader";
     private const string MetadataLoaderStartupTypeName = MetadataLoaderAssemblyName + ".Startup";
 
-    private readonly GrpcWorkerStartupOptions _startupOptions = startupOptions?.Value ?? throw new ArgumentNullException(nameof(startupOptions));
-    private readonly ILogger<ExtensionPayload> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private Transfer? _activeTransfer;
-
-    /// <summary>
-    /// Claims a transfer before dispatching it, reuses an identical active request, and rejects competing requests.
-    /// The returned task completes after sending and cleanup finish.
-    /// </summary>
-    public Task SendAsync(string requestId, IWorkerClient client, CancellationToken stopping)
-    {
-        if (!client.SupportsExtensionPayload)
-        {
-            return RejectAsync(requestId, client, "Extension payload transfer is not supported by this worker transport.");
-        }
-
-        if (string.IsNullOrEmpty(requestId))
-        {
-            return RejectAsync(requestId, client, "An extension payload request must have a request_id.");
-        }
-
-        Transfer transfer = new(requestId, client.ConnectionClosed, stopping);
-        Transfer? active = Interlocked.CompareExchange(ref _activeTransfer, transfer, null);
-        if (active is not null)
-        {
-            transfer.Cancellation.Dispose();
-            if (string.Equals(active.RequestId, requestId, StringComparison.Ordinal))
-            {
-                LogAlreadyActive(_logger, requestId);
-                return active.Completion.Task;
-            }
-
-            return RejectAsync(requestId, client, "Another extension payload request is already active.");
-        }
-
-        // Claim ownership before dispatch so worker shutdown can cancel and drain the active transfer.
-        _ = Task.Run(() => RunAsync(transfer, client));
-        return transfer.Completion.Task;
-    }
-
-    /// <summary>
-    /// Requests shutdown cancellation and returns the active transfer's completion task so its owner can drain it.
-    /// </summary>
-    public Task CancelAsync()
-    {
-        Transfer? transfer = Interlocked.CompareExchange(ref _activeTransfer, null, null);
-        if (transfer is null)
-        {
-            return Task.CompletedTask;
-        }
-
-        try
-        {
-            transfer.Cancellation.Cancel();
-        }
-        catch (ObjectDisposedException) when (!ReferenceEquals(Interlocked.CompareExchange(ref _activeTransfer, null, null), transfer))
-        {
-            // Only this finished generation may have disposed the captured cancellation source.
-        }
-
-        return transfer.Completion.Task;
-    }
-
-    /// <summary>
-    /// Runs a claimed transfer and completes its shared task after releasing that transfer's ownership and cancellation state.
-    /// </summary>
-    private async Task RunAsync(Transfer transfer, IWorkerClient client)
-    {
-        Exception? failure = null;
-        try
-        {
-            await StreamAsync(transfer, client).ConfigureAwait(false);
-        }
-        catch (Exception exception)
-        {
-            failure = exception;
-        }
-
-        Interlocked.CompareExchange(ref _activeTransfer, null, transfer);
-        failure = Dispose(transfer.Cancellation, failure);
-        if (failure is null)
-        {
-            transfer.Completion.TrySetResult(true);
-        }
-        else
-        {
-            transfer.Completion.TrySetException(failure);
-        }
-    }
-
-    /// <summary>
-    /// Builds the ZIP and awaits each chunk write before advancing its offset.
-    /// Deletes the archive before reporting success or failure; shutdown cancellation propagates after cleanup.
-    /// </summary>
-    private async Task StreamAsync(Transfer transfer, IWorkerClient client)
-    {
-        ulong offset = 0;
-        FileStream? archive = null;
-        Exception? failure = null;
-        try
-        {
-            int chunkSize = GetChunkSize(transfer.RequestId);
-            archive = await CreateArchiveAsync(transfer.Cancellation.Token).ConfigureAwait(false);
-            byte[] buffer = new byte[chunkSize];
-            int read;
-            while ((read = await archive.ReadAsync(buffer, 0, buffer.Length, transfer.Cancellation.Token).ConfigureAwait(false)) != 0)
-            {
-                StreamingMessage message = new()
-                {
-                    RequestId = transfer.RequestId,
-                    ExtensionPayloadResponse = new() { Offset = offset, Chunk = ByteString.CopyFrom(buffer, 0, read) }
-                };
-                await client.SendPayloadMessageAsync(message, transfer.Cancellation.Token).ConfigureAwait(false);
-                offset += (uint)read;
-            }
-
-            transfer.Cancellation.Token.ThrowIfCancellationRequested();
-        }
-        catch (Exception exception)
-        {
-            failure = exception;
-        }
-
-        failure = Dispose(archive, failure);
-        if (failure is OperationCanceledException && transfer.Cancellation.IsCancellationRequested)
-        {
-            LogCancelled(_logger, transfer.RequestId);
-            ExceptionDispatchInfo.Capture(failure).Throw();
-        }
-
-        StatusResult result = new() { Status = StatusResult.Types.Status.Success };
-        if (failure is not null)
-        {
-            result.Status = StatusResult.Types.Status.Failure;
-            result.Result = "Extension payload transfer failed. See the worker logs for details.";
-            LogFailure(_logger, transfer.RequestId, failure);
-        }
-
-        // Live operations send a terminal result; connection or worker shutdown cancels after cleanup.
-        await client.SendPayloadMessageAsync(CreateTerminal(transfer.RequestId, offset, result), transfer.Cancellation.Token).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Logs a rejected request and sends a correlated failure through the available transport without creating a ZIP.
-    /// </summary>
-    private Task RejectAsync(string requestId, IWorkerClient client, string reason)
-    {
-        LogRejected(_logger, requestId, reason);
-        StreamingMessage message = CreateTerminal(requestId, 0, new() { Status = StatusResult.Types.Status.Failure, Result = reason });
-        return client.SupportsExtensionPayload
-            ? client.SendPayloadMessageAsync(message, client.ConnectionClosed).AsTask()
-            : client.SendMessageAsync(message).AsTask();
-    }
-
-    /// <summary>
-    /// Builds the final correlated response, omitting diagnostic text if necessary to fit the configured message limit.
-    /// </summary>
-    private StreamingMessage CreateTerminal(string requestId, ulong offset, StatusResult result)
-    {
-        StreamingMessage message = new()
-        {
-            RequestId = requestId,
-            ExtensionPayloadResponse = new() { Offset = offset, Result = result }
-        };
-        if (_startupOptions.GrpcMaxMessageLength > 0 && message.CalculateSize() > _startupOptions.GrpcMaxMessageLength)
-        {
-            result.Result = string.Empty;
-            if (message.CalculateSize() > _startupOptions.GrpcMaxMessageLength)
-            {
-                throw new InvalidOperationException("The configured gRPC message limit cannot fit a correlated extension payload response.");
-            }
-        }
-
-        return message;
-    }
-
-    /// <summary>
-    /// Sizes chunks within 64 KiB and the transport limit, reserving space for the request ID, maximum offset, and protobuf envelope.
-    /// </summary>
-    private int GetChunkSize(string requestId)
-    {
-        if (_startupOptions.GrpcMaxMessageLength <= 0)
-        {
-            throw new InvalidOperationException("The configured gRPC message limit must be positive for extension payload transfer.");
-        }
-
-        StreamingMessage envelope = new()
-        {
-            RequestId = requestId,
-            ExtensionPayloadResponse = new() { Offset = (ulong)MaximumArchiveBytes, Chunk = ByteString.CopyFrom(new byte[MaximumChunkBytes]) }
-        };
-        int overhead = envelope.CalculateSize() - MaximumChunkBytes;
-        int size = Math.Min(MaximumChunkBytes, _startupOptions.GrpcMaxMessageLength - overhead);
-        if (size <= 0)
-        {
-            throw new InvalidOperationException("The configured gRPC message limit cannot fit an extension payload chunk.");
-        }
-
-        return size;
-    }
-
     /// <summary>
     /// Builds a bounded ZIP from worker-local inputs, filtering bootstrap assets and skipping nested links.
     /// The caller owns the rewound stream and its private temporary directory; preparation failures clean them up here.
     /// </summary>
-    internal static Task<FileStream> CreateArchiveAsync(CancellationToken cancellationToken)
-        => CreateArchiveAsync(cancellationToken, static path => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
-            MaximumChunkBytes, FileOptions.Asynchronous | FileOptions.SequentialScan));
+    public Task<Stream> OpenReadAsync(CancellationToken cancellationToken)
+        => OpenReadAsync(cancellationToken, static path => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
+            CopyBufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan));
 
     /// <summary>
     /// Uses supplied extension input streams while retaining archive validation, resource limits, and stream cleanup ownership.
     /// </summary>
-    internal static async Task<FileStream> CreateArchiveAsync(CancellationToken cancellationToken, Func<string, Stream> openExtensionFile)
+    internal async Task<Stream> OpenReadAsync(CancellationToken cancellationToken, Func<string, Stream> openExtensionFile)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (openExtensionFile is null)
@@ -264,7 +61,7 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
             Exception? failure = null;
             try
             {
-                byte[] buffer = new byte[MaximumChunkBytes];
+                byte[] buffer = new byte[CopyBufferSize];
                 int count = 0;
                 long contents = await CopyManifestAsync(manifest, AddEntry(archive, "extensions.json", ref count), cancellationToken).ConfigureAwait(false);
                 Stack<string> directories = new();
@@ -373,7 +170,7 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
         int length = 0;
         try
         {
-            input = new(path, FileMode.Open, FileAccess.Read, FileShare.Read, MaximumChunkBytes, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            input = new(path, FileMode.Open, FileAccess.Read, FileShare.Read, CopyBufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
             if (input.Length > MaximumManifestBytes)
             {
                 throw new InvalidDataException("The extension manifest exceeds the 1 MiB input limit.");
@@ -694,23 +491,6 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
     }
 
     /// <summary>
-    /// Disposes one resource while preserving an earlier failure, aggregating both exceptions if cleanup also fails.
-    /// </summary>
-    private static Exception? Dispose(IDisposable? resource, Exception? failure)
-    {
-        try
-        {
-            resource?.Dispose();
-        }
-        catch (Exception exception)
-        {
-            return failure is null ? exception : new AggregateException(failure, exception);
-        }
-
-        return failure;
-    }
-
-    /// <summary>
     /// Deletes an owned temporary directory while preserving any earlier failure.
     /// </summary>
     private static Exception? DeleteDirectory(DirectoryInfo? directory, Exception? failure)
@@ -732,7 +512,7 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
     /// </summary>
     private sealed class TemporaryArchiveStream(DirectoryInfo directory)
         : FileStream(Path.Combine(directory.FullName, "extensions.zip"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None,
-            MaximumChunkBytes, FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.DeleteOnClose)
+            CopyBufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan | FileOptions.DeleteOnClose)
     {
         private DirectoryInfo? _directory = directory;
 
@@ -763,16 +543,6 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
     }
 
     /// <summary>
-    /// Owns one transfer's linked shutdown cancellation and shared completion task.
-    /// </summary>
-    private sealed class Transfer(string requestId, CancellationToken connectionClosed, CancellationToken stopping)
-    {
-        public string RequestId { get; } = requestId;
-        public CancellationTokenSource Cancellation { get; } = CancellationTokenSource.CreateLinkedTokenSource(connectionClosed, stopping);
-        public TaskCompletionSource<bool> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    }
-
-    /// <summary>
     /// Provides non-seekable ZIP output with a size check on every write, leaving ownership of the underlying file to the caller.
     /// </summary>
     private sealed class ArchiveStream(FileStream file) : Stream
@@ -800,16 +570,4 @@ internal sealed partial class ExtensionPayload(IOptions<GrpcWorkerStartupOptions
             return file.WriteAsync(buffer, offset, count, cancellationToken);
         }
     }
-
-    [LoggerMessage(1, LogLevel.Error, "Extension payload request {RequestId} failed.")]
-    private static partial void LogFailure(ILogger logger, string requestId, Exception exception);
-
-    [LoggerMessage(2, LogLevel.Warning, "Extension payload request {RequestId} was rejected: {Reason}")]
-    private static partial void LogRejected(ILogger logger, string requestId, string reason);
-
-    [LoggerMessage(3, LogLevel.Debug, "Extension payload transfer {RequestId} stopped during worker or connection shutdown.")]
-    private static partial void LogCancelled(ILogger logger, string requestId);
-
-    [LoggerMessage(4, LogLevel.Debug, "Extension payload request {RequestId} is already active; its original response will complete the operation.")]
-    private static partial void LogAlreadyActive(ILogger logger, string requestId);
 }

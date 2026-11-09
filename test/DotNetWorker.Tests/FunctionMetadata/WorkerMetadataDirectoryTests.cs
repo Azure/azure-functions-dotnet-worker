@@ -68,7 +68,7 @@ public sealed class WorkerMetadataDirectoryTests : IDisposable
         DefaultFunctionMetadataManager metadata = new(new DefaultFunctionMetadataProvider(), [], NullLogger<DefaultFunctionMetadataManager>.Instance);
         GrpcWorker worker = new(Mock.Of<IFunctionsApplication>(), factory.Object, Mock.Of<IMethodInfoLocator>(), Options.Create(new WorkerOptions()),
             metadata, new ApplicationLifetime(NullLogger<ApplicationLifetime>.Instance), Mock.Of<IInvocationHandler>(),
-            new ExtensionPayload(Options.Create(new GrpcWorkerStartupOptions { GrpcMaxMessageLength = 4 * 1024 * 1024 }), NullLogger<ExtensionPayload>.Instance),
+            Mock.Of<IExtensionPayloadHandler>(handler => handler.CancelAsync() == Task.CompletedTask),
             NullLogger<GrpcWorker>.Instance);
         await worker.StartAsync(CancellationToken.None);
         try

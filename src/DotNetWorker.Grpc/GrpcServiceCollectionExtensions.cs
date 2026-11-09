@@ -52,7 +52,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // gRPC Core services
             services.TryAddSingleton<IWorker, GrpcWorker>();
-            services.TryAddSingleton<ExtensionPayload>();
+            services.TryAddSingleton<IExtensionPayloadProvider, ExtensionPayloadProvider>();
+            services.TryAddSingleton<IExtensionPayloadHandler, ExtensionPayloadHandler>();
             services.TryAddSingleton<IInvocationHandler, InvocationHandler>();
 
 #if NET6_0_OR_GREATER

@@ -82,7 +82,7 @@ public sealed partial class ExtensionPayloadTests
         string[] sourcePaths = [manifestPath, .. assets.Select(asset => Path.Combine(_root, ".azurefunctions", asset))];
         byte[][] sourceBytes = sourcePaths.Select(File.ReadAllBytes).ToArray();
         DateTime[] writeTimes = sourcePaths.Select(File.GetLastWriteTimeUtc).ToArray();
-        using (FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None))
+        using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
         using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
         {
             Assert.Null(archive.GetEntry(".azurefunctions/" + MetadataLoaderName + ".dll"));
@@ -123,7 +123,7 @@ public sealed partial class ExtensionPayloadTests
         File.WriteAllBytes(manifestPath, bytes);
         File.WriteAllText(Path.Combine(_root, ".azurefunctions", MetadataLoaderName + ".dll"), "ordinary publish DLL");
         File.WriteAllText(Path.Combine(_root, ".azurefunctions", MetadataLoaderName + ".pdb"), "ordinary publish PDB");
-        using (FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None))
+        using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
         using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
         {
             Assert.Equal(bytes, ReadManifestTestEntry(archive, "extensions.json"));
@@ -138,9 +138,8 @@ public sealed partial class ExtensionPayloadTests
     }
 
     [Fact]
-    public async Task EveryRequestFiltersTheCurrentManifestWithoutChangingOrdinaryPublishOutput()
+    public async Task EveryOpenFiltersTheCurrentManifestWithoutChangingOrdinaryPublishOutput()
     {
-        ExtensionPayload producer = CreateProducer();
         string manifestPath = Path.Combine(_root, "extensions.json");
         File.WriteAllText(Path.Combine(_root, ".azurefunctions", MetadataLoaderName + ".dll"), "retained on disk");
         string[] manifests = [Manifest, SdkManifest];
@@ -148,17 +147,15 @@ public sealed partial class ExtensionPayloadTests
         {
             byte[] source = Encoding.UTF8.GetBytes(manifests[index]);
             File.WriteAllBytes(manifestPath, source);
-            using RecordingClient client = new();
-            await producer.SendAsync("manifest-request-" + index, client, CancellationToken.None);
-            Assert.Equal(StatusResult.Types.Status.Success, client.Messages.Last().ExtensionPayloadResponse.Result.Status);
-            byte[] zip = client.Messages.Where(message => message.ExtensionPayloadResponse.ContentCase is ExtensionPayloadResponse.ContentOneofCase.Chunk)
-                .SelectMany(message => message.ExtensionPayloadResponse.Chunk.ToByteArray()).ToArray();
-            using MemoryStream bytes = new(zip);
-            using ZipArchive archive = new(bytes, ZipArchiveMode.Read);
-            Assert.Null(archive.GetEntry(".azurefunctions/" + MetadataLoaderName + ".dll"));
-            using JsonDocument document = JsonDocument.Parse(ReadManifestTestEntry(archive, "extensions.json"));
-            JsonElement extensions = document.RootElement.GetProperty("extensions");
-            Assert.Equal(index == 0 ? 1 : 2, extensions.GetArrayLength());
+            using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
+            using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
+            {
+                Assert.Null(archive.GetEntry(".azurefunctions/" + MetadataLoaderName + ".dll"));
+                using JsonDocument document = JsonDocument.Parse(ReadManifestTestEntry(archive, "extensions.json"));
+                JsonElement extensions = document.RootElement.GetProperty("extensions");
+                Assert.Equal(index == 0 ? 1 : 2, extensions.GetArrayLength());
+            }
+
             Assert.Equal(source, File.ReadAllBytes(manifestPath));
             Assert.Equal("retained on disk", File.ReadAllText(Path.Combine(_root, ".azurefunctions", MetadataLoaderName + ".dll")));
             AssertNoTemporaryArchives();
@@ -183,7 +180,7 @@ public sealed partial class ExtensionPayloadTests
     [Fact]
     public async Task OversizedManifestInputFailsWithCleanupAndUnchangedSource()
     {
-        byte[] source = Encoding.UTF8.GetBytes(Manifest.PadRight(ExtensionPayload.MaximumManifestBytes + 1));
+        byte[] source = Encoding.UTF8.GetBytes(Manifest.PadRight(ExtensionPayloadProvider.MaximumManifestBytes + 1));
         File.WriteAllBytes(Path.Combine(_root, "extensions.json"), source);
         await AssertPayloadRequestFailsAsync();
         Assert.Equal(source, File.ReadAllBytes(Path.Combine(_root, "extensions.json")));
@@ -194,14 +191,14 @@ public sealed partial class ExtensionPayloadTests
     [InlineData(1)]
     public async Task FilteredManifestOutputAccepts1MiBAndRejectsOneByteOverEvenWhenInputFits(int excess)
     {
-        int expectedLength = ExtensionPayload.MaximumManifestBytes + excess;
+        int expectedLength = ExtensionPayloadProvider.MaximumManifestBytes + excess;
         const int EscapedCharacters = 128;
         string escaped = string.Concat(Enumerable.Repeat("\\u003C", EscapedCharacters));
         int serializedBaseLength = Encoding.UTF8.GetByteCount("{\"extensions\":[],\"note\":\"" + escaped + "\"}");
         string sourceManifest = "{\"extensions\":[" + BootstrapEntry + "],\"note\":\"" + new string('<', EscapedCharacters)
             + new string('a', expectedLength - serializedBaseLength) + "\"}";
         byte[] source = Encoding.UTF8.GetBytes(sourceManifest);
-        Assert.True(source.Length <= ExtensionPayload.MaximumManifestBytes);
+        Assert.True(source.Length <= ExtensionPayloadProvider.MaximumManifestBytes);
         File.WriteAllBytes(Path.Combine(_root, "extensions.json"), source);
         if (excess != 0)
         {
@@ -209,7 +206,7 @@ public sealed partial class ExtensionPayloadTests
         }
         else
         {
-            using (FileStream stream = await ExtensionPayload.CreateArchiveAsync(CancellationToken.None))
+            using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
             using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
             {
                 byte[] filtered = ReadManifestTestEntry(archive, "extensions.json");
@@ -226,8 +223,8 @@ public sealed partial class ExtensionPayloadTests
 
     private async Task AssertPayloadRequestFailsAsync()
     {
-        using RecordingClient client = new();
-        await CreateProducer().SendAsync("invalid-payload", client, CancellationToken.None);
+        using RecordingWorkerClient client = new();
+        await CreateHandler().SendAsync("invalid-payload", client, CancellationToken.None);
         StreamingMessage terminal = Assert.Single(client.Messages);
         Assert.Equal("invalid-payload", terminal.RequestId);
         Assert.Equal(ExtensionPayloadResponse.ContentOneofCase.Result, terminal.ExtensionPayloadResponse.ContentCase);

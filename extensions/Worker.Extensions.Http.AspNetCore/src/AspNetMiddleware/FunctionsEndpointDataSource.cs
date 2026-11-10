@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
         {
             List<Endpoint> endpoints = new List<Endpoint>();
 
-            string scriptRoot = ApplicationDirectory.GetApplicationDirectory();
+            string scriptRoot = ApplicationDirectory.Current;
 
             var metadata = _functionMetadataManager.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
 

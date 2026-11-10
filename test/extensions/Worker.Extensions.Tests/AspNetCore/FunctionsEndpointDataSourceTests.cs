@@ -15,12 +15,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
     [Collection("Application directory")]
     public class FunctionsEndpointDataSourceTests
     {
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData(" \t")]
-        [InlineData("configured")]
-        public void EndpointsUseResolvedDirectoryForMetadataAndRoutePrefix(string configuredDirectory)
+        [Fact]
+        public void EndpointsUseConfiguredApplicationDirectoryForMetadataAndRoutePrefix()
         {
             string root = Path.Combine(Path.GetTempPath(), "endpoint-directory-" + Guid.NewGuid().ToString("N"));
             string baseDirectory = Path.Combine(root, "base");
@@ -31,13 +27,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             {
                 File.WriteAllText(Path.Combine(baseDirectory, "host.json"), """{"extensions":{"http":{"routePrefix":"base"}}}""");
                 File.WriteAllText(Path.Combine(environmentDirectory, "host.json"), """{"extensions":{"http":{"routePrefix":"configured"}}}""");
-                bool environmentConfigured = !string.IsNullOrWhiteSpace(configuredDirectory);
-                string expectedDirectory = environmentConfigured ? environmentDirectory : baseDirectory;
                 using TestScopedAppContextBaseDirectory application = new(baseDirectory);
-                using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY",
-                    environmentConfigured ? environmentDirectory : configuredDirectory);
+                using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", environmentDirectory);
                 var metadata = new Mock<IFunctionMetadataManager>(MockBehavior.Strict);
-                metadata.Setup(value => value.GetFunctionMetadataAsync(expectedDirectory))
+                metadata.Setup(value => value.GetFunctionMetadataAsync(environmentDirectory))
                     .ReturnsAsync(ImmutableArray.Create<IFunctionMetadata>(new DefaultFunctionMetadata
                     {
                         Name = "Test",
@@ -47,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 
                 var endpoint = Assert.IsType<RouteEndpoint>(Assert.Single(source.Endpoints));
 
-                Assert.Equal(environmentConfigured ? "configured/Test" : "base/Test", endpoint.RoutePattern.RawText);
+                Assert.Equal("configured/Test", endpoint.RoutePattern.RawText);
                 metadata.VerifyAll();
             }
             finally

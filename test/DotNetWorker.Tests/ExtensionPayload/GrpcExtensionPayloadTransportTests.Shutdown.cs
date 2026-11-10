@@ -53,6 +53,7 @@ public sealed partial class GrpcExtensionPayloadTransportTests
         using TestScopedEnvironmentVariable tmp = new("TMP", temporary);
         using TestScopedEnvironmentVariable temp = new("TEMP", temporary);
         using TestScopedEnvironmentVariable tmpdir = new("TMPDIR", temporary);
+        ApplicationDirectory.ResetForTests();
 
         ClientContext context = null;
         Mock<IWorkerClientFactory> factory = new();

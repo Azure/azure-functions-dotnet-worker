@@ -48,6 +48,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
             new("TMPDIR", _temporaryRoot),
             new("FUNCTIONS_APPLICATION_DIRECTORY", null),
         ];
+        ApplicationDirectory.ResetForTests();
     }
 
     public void Dispose()
@@ -101,6 +102,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY",
             environmentConfigured ? configuredDirectory + (trailingSeparator ? Path.DirectorySeparatorChar.ToString() : "") : null);
         using TestScopedAppContextBaseDirectory application = new(trailingSeparator ? _root + Path.DirectorySeparatorChar : _root);
+        ApplicationDirectory.ResetForTests();
         using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
         using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
         {
@@ -117,6 +119,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     public async Task MissingConfiguredDirectoryDoesNotFallBackToBaseDirectory()
     {
         using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", Path.Combine(_root, "does-not-exist"));
+        ApplicationDirectory.ResetForTests();
         await Assert.ThrowsAnyAsync<IOException>(() => _provider.OpenReadAsync(CancellationToken.None));
         AssertNoTemporaryArchives();
     }

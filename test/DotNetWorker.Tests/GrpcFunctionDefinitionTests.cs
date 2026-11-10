@@ -37,6 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY",
                 string.IsNullOrWhiteSpace(configuredDirectory) ? configuredDirectory : applicationDirectory);
             using TestScopedEnvironmentVariable worker = new("FUNCTIONS_WORKER_DIRECTORY", "not-the-application");
+            ApplicationDirectory.ResetForTests();
             string expectedAssembly = Path.GetFullPath(Path.Combine(applicationDirectory, "app.dll"));
             var locator = new Mock<IMethodInfoLocator>(MockBehavior.Strict);
             locator.Setup(value => value.GetMethod(expectedAssembly, "Functions.Run"))
@@ -57,6 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void Creates()
         {
             using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY", null);
+            ApplicationDirectory.ResetForTests();
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();
@@ -115,6 +117,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void GrpcFunctionDefinition_BlobInput_Creates()
         {
             using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY", null);
+            ApplicationDirectory.ResetForTests();
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();
@@ -182,6 +185,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void GrpcFunctionDefinition_QueueTrigger_Creates()
         {
             using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY", null);
+            ApplicationDirectory.ResetForTests();
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();
@@ -222,6 +226,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void GrpcFunctionDefinition_TableInput_Creates()
         {
             using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY", null);
+            ApplicationDirectory.ResetForTests();
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();

@@ -505,6 +505,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void AppRootUsesResolvedApplicationDirectory(string configuredDirectory)
         {
             using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", configuredDirectory);
+            ApplicationDirectory.ResetForTests();
             string opened = null;
             var fs = new FakeFileSystem(path =>
             {
@@ -525,6 +526,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Directory.CreateDirectory(configuredDirectory);
             using TestScopedAppContextBaseDirectory application = new(_appDirectory);
             using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", configuredDirectory);
+            ApplicationDirectory.ResetForTests();
             var provider = new HostConfigurationSnapshotProvider(new PhysicalHostConfigurationFileSystem());
 
             var result = provider.GetSnapshot();

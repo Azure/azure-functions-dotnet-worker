@@ -20,8 +20,9 @@ public class ApplicationDirectoryTests
         using TestScopedAppContextBaseDirectory application = new(baseDirectory);
         using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", configuredDirectory);
         using TestScopedEnvironmentVariable worker = new("FUNCTIONS_WORKER_DIRECTORY", "not-the-application");
+        ApplicationDirectory.ResetForTests();
 
-        Assert.Equal(baseDirectory, ApplicationDirectory.GetApplicationDirectory());
+        Assert.Equal(baseDirectory, ApplicationDirectory.Current);
     }
 
     [Fact]
@@ -31,11 +32,12 @@ public class ApplicationDirectoryTests
         string configuredDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
         using (TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", configuredDirectory))
         {
+            ApplicationDirectory.ResetForTests();
             Assert.False(Directory.Exists(configuredDirectory));
-            Assert.Equal(configuredDirectory, ApplicationDirectory.GetApplicationDirectory());
+            Assert.Equal(configuredDirectory, ApplicationDirectory.Current);
         }
 
         using TestScopedEnvironmentVariable changed = new("FUNCTIONS_APPLICATION_DIRECTORY", "another-directory");
-        Assert.Equal("another-directory", ApplicationDirectory.GetApplicationDirectory());
+        Assert.Equal(configuredDirectory, ApplicationDirectory.Current);
     }
 }

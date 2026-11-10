@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             Name = loadRequest.Metadata.Name;
             Id = loadRequest.FunctionId;
 
-            string scriptRoot = ApplicationDirectory.GetApplicationDirectory();
+            string scriptRoot = ApplicationDirectory.Current;
 
             if (string.IsNullOrWhiteSpace(loadRequest.Metadata.ScriptFile))
             {

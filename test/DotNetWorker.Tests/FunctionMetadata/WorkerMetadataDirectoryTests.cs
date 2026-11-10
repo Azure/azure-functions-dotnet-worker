@@ -43,6 +43,7 @@ public sealed class WorkerMetadataDirectoryTests : IDisposable
     {
         using TestScopedAppContextBaseDirectory application = new(Path.Combine(_root, "worker") + Path.DirectorySeparatorChar);
         using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", environmentConfigured ? Path.Combine(_root, "configured") : null);
+        ApplicationDirectory.ResetForTests();
         FunctionMetadataResponse response = await RequestAsync();
         Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
         Assert.False(response.UseDefaultMetadataIndexing);
@@ -55,6 +56,7 @@ public sealed class WorkerMetadataDirectoryTests : IDisposable
     {
         using TestScopedAppContextBaseDirectory application = new(Path.Combine(_root, "worker"));
         using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", Path.Combine(_root, "configured"));
+        ApplicationDirectory.ResetForTests();
         File.Delete(Path.Combine(_root, "configured", "functions.metadata"));
         FunctionMetadataResponse response = await RequestAsync();
         Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
@@ -66,6 +68,7 @@ public sealed class WorkerMetadataDirectoryTests : IDisposable
     {
         using TestScopedAppContextBaseDirectory application = new(Path.Combine(_root, "worker") + Path.DirectorySeparatorChar);
         using TestScopedEnvironmentVariable legacy = new("FUNCTIONS_APPLICATION_DIRECTORY", null);
+        ApplicationDirectory.ResetForTests();
         File.Delete(Path.Combine(_root, "worker", "functions.metadata"));
         FunctionMetadataResponse response = await RequestAsync();
         Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);

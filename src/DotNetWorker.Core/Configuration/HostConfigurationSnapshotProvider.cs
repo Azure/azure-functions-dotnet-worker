@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Configuration
         {
             try
             {
-                using Stream stream = fileSystem.OpenRead(Path.Combine(ApplicationDirectory.GetApplicationDirectory(), HostJsonFileName));
+                using Stream stream = fileSystem.OpenRead(Path.Combine(ApplicationDirectory.Current, HostJsonFileName));
                 using Stream utf8 = HostConfigurationReader.Read(stream);
                 using JsonDocument document = JsonDocument.Parse(utf8,
                     new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });

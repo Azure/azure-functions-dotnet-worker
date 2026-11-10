@@ -24,6 +24,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class GrpcHostConfigurationTests
     {
+        public GrpcHostConfigurationTests()
+        {
+            ApplicationDirectory.ResetForTests();
+        }
+
         private static WorkerInitRequest Requested(string value = GrpcWorker.HostConfigurationCapabilityValue)
         {
             var request = new WorkerInitRequest();

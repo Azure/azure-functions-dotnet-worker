@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests;
+using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -30,6 +31,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     private readonly TestScopedAppContextBaseDirectory _baseDirectory;
     private readonly TestScopedEnvironmentVariable[] _environment;
     private readonly ExtensionPayloadProvider _provider = new();
+    private readonly HostConfigurationSnapshotProvider _hostConfigurationProvider = new(new PhysicalHostConfigurationFileSystem());
 
     public ExtensionPayloadTests()
     {
@@ -121,7 +123,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         await worker.StartAsync(CancellationToken.None);
         try
         {
-            WorkerInitResponse init = GrpcWorker.WorkerInitRequestHandler(new(), options);
+            WorkerInitResponse init = GrpcWorker.WorkerInitRequestHandler(new(), options, _hostConfigurationProvider);
             FunctionEnvironmentReloadResponse reload = GrpcWorker.EnvironmentReloadRequestHandler(options);
             Assert.Equal(StatusResult.Types.Status.Success, init.Result.Status);
             Assert.Equal(StatusResult.Types.Status.Success, reload.Result.Status);
@@ -435,7 +437,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         factory.Setup(value => value.CreateClient(It.IsAny<IMessageProcessor>())).Returns(client);
         return new GrpcWorker(Mock.Of<IFunctionsApplication>(), factory.Object, Mock.Of<IMethodInfoLocator>(), Options.Create(options),
             Mock.Of<IFunctionMetadataManager>(), new ApplicationLifetime(NullLogger<ApplicationLifetime>.Instance), Mock.Of<IInvocationHandler>(),
-            CreateHandler(), NullLogger<GrpcWorker>.Instance);
+            _hostConfigurationProvider, CreateHandler(), NullLogger<GrpcWorker>.Instance);
     }
 
     private async Task AssertPayloadSupportIsAdvertisedAsync()
@@ -446,7 +448,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
         await worker.StartAsync(CancellationToken.None);
         try
         {
-            WorkerInitResponse init = GrpcWorker.WorkerInitRequestHandler(new(), options);
+            WorkerInitResponse init = GrpcWorker.WorkerInitRequestHandler(new(), options, _hostConfigurationProvider);
             FunctionEnvironmentReloadResponse reload = GrpcWorker.EnvironmentReloadRequestHandler(options);
             Assert.Equal(StatusResult.Types.Status.Success, init.Result.Status);
             Assert.Equal(StatusResult.Types.Status.Success, reload.Result.Status);

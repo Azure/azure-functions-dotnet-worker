@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Tests;
+using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -71,7 +72,7 @@ public sealed partial class GrpcExtensionPayloadTransportTests
             NullLogger<ExtensionPayloadHandler>.Instance);
         GrpcWorker worker = new(Mock.Of<IFunctionsApplication>(), factory.Object, Mock.Of<IMethodInfoLocator>(), Options.Create(new WorkerOptions()),
             Mock.Of<IFunctionMetadataManager>(), new ApplicationLifetime(NullLogger<ApplicationLifetime>.Instance), Mock.Of<IInvocationHandler>(),
-            handler, NullLogger<GrpcWorker>.Instance);
+            new HostConfigurationSnapshotProvider(new PhysicalHostConfigurationFileSystem()), handler, NullLogger<GrpcWorker>.Instance);
         try
         {
             await worker.StartAsync(CancellationToken.None);
@@ -150,7 +151,7 @@ public sealed partial class GrpcExtensionPayloadTransportTests
             NullLogger<ExtensionPayloadHandler>.Instance);
         GrpcWorker worker = new(Mock.Of<IFunctionsApplication>(), factory.Object, Mock.Of<IMethodInfoLocator>(), Options.Create(new WorkerOptions()),
             Mock.Of<IFunctionMetadataManager>(), new ApplicationLifetime(NullLogger<ApplicationLifetime>.Instance), Mock.Of<IInvocationHandler>(),
-            handler, NullLogger<GrpcWorker>.Instance);
+            new HostConfigurationSnapshotProvider(new PhysicalHostConfigurationFileSystem()), handler, NullLogger<GrpcWorker>.Instance);
         try
         {
             await worker.StartAsync(CancellationToken.None);

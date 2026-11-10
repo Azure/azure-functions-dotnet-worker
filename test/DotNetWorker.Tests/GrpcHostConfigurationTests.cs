@@ -8,8 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Tests;
-using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Core.Configuration;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
@@ -193,7 +193,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 new Mock<IFunctionMetadataManager>().Object,
                 new ApplicationLifetime(TestLogger<ApplicationLifetime>.Create()),
                 new Mock<IInvocationHandler>().Object,
-                provider);
+                provider,
+                Mock.Of<IExtensionPayloadHandler>(),
+                TestLogger<GrpcWorker>.Create());
 
             await worker.StartAsync(CancellationToken.None);
             await ((IMessageProcessor)worker).ProcessMessageAsync(new StreamingMessage

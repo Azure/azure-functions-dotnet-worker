@@ -8,9 +8,11 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -27,6 +29,9 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal partial class GrpcWorker : IWorker, IMessageProcessor
     {
+        internal const string HostConfigurationCapabilityName = "HostConfiguration";
+        internal const string HostConfigurationCapabilityValue = "1";
+
         private readonly IFunctionsApplication _application;
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly WorkerOptions _workerOptions;
@@ -34,6 +39,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataManager _metadataManager;
+        private readonly HostConfigurationSnapshotProvider _hostConfigurationSnapshotProvider;
         private readonly IExtensionPayloadHandler _extensionPayloadHandler;
         private readonly ILogger<GrpcWorker> _logger;
         private IWorkerClient? _workerClient;
@@ -45,9 +51,11 @@ namespace Microsoft.Azure.Functions.Worker
                           IFunctionMetadataManager metadataManager,
                           IHostApplicationLifetime hostApplicationLifetime,
                           IInvocationHandler invocationHandler,
+                          HostConfigurationSnapshotProvider hostConfigurationSnapshotProvider,
                           IExtensionPayloadHandler extensionPayloadHandler,
                           ILogger<GrpcWorker> logger)
         {
+            _hostConfigurationSnapshotProvider = hostConfigurationSnapshotProvider ?? throw new ArgumentNullException(nameof(hostConfigurationSnapshotProvider));
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
             _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
             _application = application ?? throw new ArgumentNullException(nameof(application));
@@ -120,7 +128,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.WorkerInitRequest:
-                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions);
+                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions, _hostConfigurationSnapshotProvider);
                     break;
 
                 case MsgType.WorkerStatusRequest:
@@ -187,7 +195,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions, HostConfigurationSnapshotProvider hostConfigurationSnapshotProvider)
         {
             var response = new WorkerInitResponse
             {
@@ -197,6 +205,29 @@ namespace Microsoft.Azure.Functions.Worker
             };
 
             response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
+
+            // host.json is read only when the host requests delivery; a failed read is reported in the response and never fails initialization.
+            if (request.Capabilities.TryGetValue(HostConfigurationCapabilityName, out string? value)
+                && string.Equals(value, HostConfigurationCapabilityValue, StringComparison.Ordinal))
+            {
+                HostConfigurationSnapshot snapshot = hostConfigurationSnapshotProvider.GetSnapshot();
+                response.HostConfiguration = new HostConfiguration
+                {
+                    Status = snapshot.Status switch
+                    {
+                        HostConfigurationStatus.Available => HostConfiguration.Types.Status.Available,
+                        HostConfigurationStatus.Missing => HostConfiguration.Types.Status.Missing,
+                        HostConfigurationStatus.Error => HostConfiguration.Types.Status.Error,
+                        HostConfigurationStatus.TooLarge => HostConfiguration.Types.Status.TooLarge,
+                        _ => throw new InvalidOperationException("Unsupported host configuration status.")
+                    }
+                };
+
+                if (snapshot.Status == HostConfigurationStatus.Available)
+                {
+                    response.HostConfiguration.Content = ByteString.CopyFrom(snapshot.Content.Span);
+                }
+            }
 
             return response;
         }

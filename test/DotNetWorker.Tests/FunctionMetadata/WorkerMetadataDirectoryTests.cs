@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests;
+using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -66,6 +67,7 @@ public sealed class WorkerMetadataDirectoryTests : IDisposable
         DefaultFunctionMetadataManager metadata = new(new DefaultFunctionMetadataProvider(), [], NullLogger<DefaultFunctionMetadataManager>.Instance);
         GrpcWorker worker = new(Mock.Of<IFunctionsApplication>(), factory.Object, Mock.Of<IMethodInfoLocator>(), Options.Create(new WorkerOptions()),
             metadata, new ApplicationLifetime(NullLogger<ApplicationLifetime>.Instance), Mock.Of<IInvocationHandler>(),
+            new HostConfigurationSnapshotProvider(new PhysicalHostConfigurationFileSystem()),
             Mock.Of<IExtensionPayloadHandler>(handler => handler.CancelAsync() == Task.CompletedTask),
             NullLogger<GrpcWorker>.Instance);
         await worker.StartAsync(CancellationToken.None);

@@ -12,6 +12,7 @@ using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Core.Diagnostics.Telemetry;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Logging;
@@ -72,8 +73,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // Worker initialization service
             services.AddHostedService<WorkerHostedService>();
 
-            // Worker metadata management
+            // Worker metadata and host configuration
             services.TryAddSingleton<IFunctionMetadataManager, DefaultFunctionMetadataManager>();
+            services.TryAddSingleton<HostConfigurationSnapshotProvider>();
 
             // Default serializer settings
             services.AddOptions();

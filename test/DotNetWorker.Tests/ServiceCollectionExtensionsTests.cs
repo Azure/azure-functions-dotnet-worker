@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using Microsoft.Azure.Functions.Worker.Core.Diagnostics.Telemetry;
+using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -100,5 +101,22 @@ public class ServiceCollectionExtensionsTests
         // Assert
         var baggagePropagator = provider.GetRequiredService<IBaggagePropagator>();
         Assert.IsType<NullBaggagePropagator>(baggagePropagator);
+    }
+
+    [Fact]
+    public void AddFunctionsWorkerCore_RegistersSingletonHostConfiguration_WithoutTransport()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddFunctionsWorkerCore();
+        services.AddFunctionsWorkerCore();
+        using var provider = services.BuildServiceProvider();
+
+        var descriptor = Assert.Single(services.Where(s => s.ServiceType == typeof(HostConfigurationSnapshotProvider)));
+        Assert.Equal(ServiceLifetime.Singleton, descriptor.Lifetime);
+        var configuration = provider.GetRequiredService<HostConfigurationSnapshotProvider>();
+        Assert.Same(configuration, provider.GetRequiredService<HostConfigurationSnapshotProvider>());
+        Assert.Equal(typeof(IFunctionsApplication).Assembly, configuration.GetType().Assembly);
+        Assert.DoesNotContain(services, s => s.ServiceType == typeof(IWorker));
     }
 }

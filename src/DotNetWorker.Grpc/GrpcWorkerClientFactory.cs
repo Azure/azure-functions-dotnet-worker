@@ -12,12 +12,6 @@ using RpcException = Grpc.Core.RpcException;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
-#if NET6_0_OR_GREATER
-using Grpc.Net.Client;
-#else
-using GrpcCore = Grpc.Core;
-#endif
-
 namespace Microsoft.Azure.Functions.Worker.Grpc
 {
     internal partial class GrpcWorkerClientFactory : IWorkerClientFactory
@@ -36,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
         public IWorkerClient CreateClient(IMessageProcessor messageProcessor)
             => new GrpcWorkerClient(_outputChannel, _startupOptions, messageProcessor, _logger);
 
-        internal sealed class GrpcWorkerClient : IWorkerClient
+        internal sealed partial class GrpcWorkerClient : IWorkerClient
         {
             private readonly FunctionRpcClient _grpcClient;
             private readonly GrpcWorkerStartupOptions _startupOptions;
@@ -58,11 +52,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             private Task _completion = Task.CompletedTask;
             private bool _started;
             private bool _terminated;
-
-            public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor, ILogger<GrpcWorkerClientFactory> logger)
-                : this(outputChannel, startupOptions, processor, logger, CreateClient(startupOptions ?? throw new ArgumentNullException(nameof(startupOptions))))
-            {
-            }
 
             internal GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor,
                 ILogger<GrpcWorkerClientFactory> logger, FunctionRpcClient grpcClient)
@@ -89,7 +78,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 {
                     startupRegistration = token.Register(static state => ((GrpcWorkerClient)state!).TerminateConnection(), this);
                     _connectionClosed.Token.ThrowIfCancellationRequested();
-                    var eventStream = _grpcClient.EventStream(cancellationToken: _connectionClosed.Token);
+                    var eventStream = CreateEventStream(_connectionClosed.Token);
                     if (!TryPublishCall(eventStream))
                     {
                         // Startup still owns a call that was created after termination began.
@@ -203,6 +192,18 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 {
                     failure = failure is null ? exception : new AggregateException(failure, exception);
                 }
+
+#if NET6_0_OR_GREATER
+                try
+                {
+                    // Stop channel retries even when startup has not published an RPC call.
+                    _grpcChannel?.Dispose();
+                }
+                catch (Exception exception)
+                {
+                    failure = failure is null ? exception : new AggregateException(failure, exception);
+                }
+#endif
 
                 if (failure is null)
                 {
@@ -329,29 +330,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 {
                     TerminateConnection();
                 }
-            }
-
-            private static FunctionRpcClient CreateClient(GrpcWorkerStartupOptions startupOptions)
-            {
-#if NET6_0_OR_GREATER
-                GrpcChannel grpcChannel = GrpcChannel.ForAddress(startupOptions.HostEndpoint!.AbsoluteUri, new GrpcChannelOptions()
-                {
-                    MaxReceiveMessageSize = startupOptions.GrpcMaxMessageLength,
-                    MaxSendMessageSize = startupOptions.GrpcMaxMessageLength,
-                    Credentials = ChannelCredentials.Insecure
-                });
-#else
-
-                var options = new ChannelOption[]
-                {
-                    new ChannelOption(GrpcCore.ChannelOptions.MaxReceiveMessageLength, startupOptions.GrpcMaxMessageLength),
-                    new ChannelOption(GrpcCore.ChannelOptions.MaxSendMessageLength, startupOptions.GrpcMaxMessageLength)
-                };
-
-                GrpcCore.Channel grpcChannel = new GrpcCore.Channel(startupOptions.HostEndpoint!.Host, startupOptions.HostEndpoint.Port, ChannelCredentials.Insecure, options);
-
-#endif
-                return new FunctionRpcClient(grpcChannel);
             }
         }
 

@@ -196,8 +196,7 @@ public sealed partial class GrpcExtensionPayloadTransportTests
         public bool AbortWritesOnDispose { get; init; }
         public TaskCompletionSource<bool> Disposed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public override AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage> EventStream(
-            Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
+        public override AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage> EventStream(CallOptions options)
         {
             OnCreate?.Invoke();
             return new(writer, reader, Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () =>

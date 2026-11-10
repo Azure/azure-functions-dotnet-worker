@@ -131,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker
                     responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync();
                     break;
 
-                case MsgType.GetExtensionPayloadRequest:
+                case MsgType.ExtensionPayloadRequest:
                     await ProcessExtensionPayloadAsync(request.RequestId);
                     return;
 

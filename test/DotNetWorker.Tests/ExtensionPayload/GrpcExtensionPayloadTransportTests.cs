@@ -24,18 +24,21 @@ public sealed partial class GrpcExtensionPayloadTransportTests
     [Fact]
     public void PayloadMessagesUseWireTags37And38()
     {
-        Assert.Equal(37, StreamingMessage.GetExtensionPayloadRequestFieldNumber);
+        Assert.Equal(37, StreamingMessage.ExtensionPayloadRequestFieldNumber);
         Assert.Equal(38, StreamingMessage.ExtensionPayloadResponseFieldNumber);
 
         byte[] requestBytes = [0xaa, 0x02, 0x00];
         byte[] responseBytes = [0xb2, 0x02, 0x03, 0x12, 0x01, 0x2a];
-        StreamingMessage request = new() { GetExtensionPayloadRequest = new() };
+        StreamingMessage request = new() { ExtensionPayloadRequest = new() };
         StreamingMessage response = new() { ExtensionPayloadResponse = new() { Chunk = ByteString.CopyFrom(new byte[] { 0x2a }) } };
 
         Assert.Equal(requestBytes, request.ToByteArray());
         Assert.Equal(responseBytes, response.ToByteArray());
         Assert.Equal(request, StreamingMessage.Parser.ParseFrom(requestBytes));
         Assert.Equal(response, StreamingMessage.Parser.ParseFrom(responseBytes));
+        Assert.Equal(StreamingMessage.ContentOneofCase.ExtensionPayloadRequest, request.ContentCase);
+        Assert.Equal("extension_payload_request", StreamingMessage.Descriptor.FindFieldByNumber(37).Name);
+        Assert.Equal("ExtensionPayloadRequest", ExtensionPayloadRequest.Descriptor.Name);
     }
 
     [Fact]

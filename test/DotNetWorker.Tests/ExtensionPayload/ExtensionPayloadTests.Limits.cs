@@ -191,11 +191,11 @@ public sealed partial class ExtensionPayloadTests
         TaskCompletionSource<CancellationToken> readStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
         TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
         using PreparationReadStream input = new(content, readStarted, release.Task);
-        Task<Stream> preparation = _provider.OpenReadAsync(cancellation.Token, path =>
+        Task<Stream> preparation = _provider.OpenReadAsync(path =>
         {
             Assert.Equal(payloadPath, path);
             return input;
-        });
+        }, cancellation.Token);
         try
         {
             CancellationToken token = await readStarted.Task.WaitAsync(TimeSpan.FromSeconds(15));

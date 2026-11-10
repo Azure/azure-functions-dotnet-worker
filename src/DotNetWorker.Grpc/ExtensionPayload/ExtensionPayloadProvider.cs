@@ -34,13 +34,13 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
     /// The caller owns the rewound stream and its private temporary directory; preparation failures clean them up here.
     /// </summary>
     public Task<Stream> OpenReadAsync(CancellationToken cancellationToken)
-        => OpenReadAsync(cancellationToken, static path => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
-            CopyBufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan));
+        => OpenReadAsync(static path => new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
+            CopyBufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan), cancellationToken);
 
     /// <summary>
     /// Uses supplied extension input streams while retaining archive validation, resource limits, and stream cleanup ownership.
     /// </summary>
-    internal async Task<Stream> OpenReadAsync(CancellationToken cancellationToken, Func<string, Stream> openExtensionFile)
+    internal async Task<Stream> OpenReadAsync(Func<string, Stream> openExtensionFile, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (openExtensionFile is null)
@@ -109,7 +109,7 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
                             }
 
                             contents += await CopyFileAsync(path, AddEntry(archive, entryName, ref count), buffer,
-                                MaximumContentBytes - contents, cancellationToken, openExtensionFile).ConfigureAwait(false);
+                                MaximumContentBytes - contents, openExtensionFile, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -170,29 +170,8 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
         try
         {
             input = new(path, FileMode.Open, FileAccess.Read, FileShare.Read, CopyBufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            if (input.Length > MaximumManifestBytes)
-            {
-                throw new InvalidDataException("The extension manifest exceeds the 1 MiB input limit.");
-            }
-
-            byte[] bytes = new byte[MaximumManifestBytes + 1];
-            while (length < bytes.Length)
-            {
-                int read = await input.ReadAsync(bytes, length, bytes.Length - length, cancellationToken).ConfigureAwait(false);
-                if (read == 0)
-                {
-                    break;
-                }
-
-                length += read;
-            }
-
-            if (length > MaximumManifestBytes)
-            {
-                throw new InvalidDataException("The extension manifest exceeds the 1 MiB input limit.");
-            }
-
-            (bytes, length) = FilterManifest(bytes, length, cancellationToken);
+            (byte[] bytes, int bytesRead) = await ReadManifestAsync(input, cancellationToken).ConfigureAwait(false);
+            (bytes, length) = FilterManifest(bytes, bytesRead, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             destination = entry.Open();
             await destination.WriteAsync(bytes, 0, length, cancellationToken).ConfigureAwait(false);
@@ -210,6 +189,42 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
         }
 
         return length;
+    }
+
+    internal static async Task<(byte[] Bytes, int Length)> ReadManifestAsync(Stream input, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        long initialLength = input.Length;
+        if (initialLength > MaximumManifestBytes)
+        {
+            throw new InvalidDataException("The extension manifest exceeds the 1 MiB input limit.");
+        }
+
+        // The extra byte detects growth beyond the initial length, including at the size limit.
+        byte[] bytes = new byte[checked((int)initialLength + 1)];
+        int length = 0;
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (length == bytes.Length)
+            {
+                Array.Resize(ref bytes, Math.Min(bytes.Length * 2, MaximumManifestBytes + 1));
+            }
+
+            int read = await input.ReadAsync(bytes, length, bytes.Length - length, cancellationToken).ConfigureAwait(false);
+            if (read == 0)
+            {
+                break;
+            }
+
+            length += read;
+            if (length > MaximumManifestBytes)
+            {
+                throw new InvalidDataException("The extension manifest exceeds the 1 MiB input limit.");
+            }
+        }
+
+        return (bytes, length);
     }
 
     /// <summary>
@@ -356,7 +371,7 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
     /// Returns the archived byte count and preserves both copy and cleanup failures.
     /// </summary>
     private static async Task<long> CopyFileAsync(string path, ZipArchiveEntry entry, byte[] buffer, long remaining,
-        CancellationToken cancellationToken, Func<string, Stream> openExtensionFile)
+        Func<string, Stream> openExtensionFile, CancellationToken cancellationToken)
     {
         Stream? input = null;
         Stream? destination = null;

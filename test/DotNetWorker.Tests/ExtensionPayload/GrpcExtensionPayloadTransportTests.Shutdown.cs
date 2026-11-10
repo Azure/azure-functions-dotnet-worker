@@ -75,7 +75,7 @@ public sealed partial class GrpcExtensionPayloadTransportTests
         try
         {
             await worker.StartAsync(CancellationToken.None);
-            context.Incoming.Add(new() { RequestId = "shutdown", GetExtensionPayloadRequest = new() });
+            context.Incoming.Add(new() { RequestId = "shutdown", ExtensionPayloadRequest = new() });
             WriteRecord write = await context.Transport.First.Task.WaitAsync(Timeout);
             Assert.Equal(ExtensionPayloadResponse.ContentOneofCase.Chunk, write.Message.ExtensionPayloadResponse.ContentCase);
             Stream payload = await provider.Opened.Task.WaitAsync(Timeout);
@@ -154,7 +154,7 @@ public sealed partial class GrpcExtensionPayloadTransportTests
         try
         {
             await worker.StartAsync(CancellationToken.None);
-            context.Incoming.Add(new() { RequestId = "cleanup-then-shutdown", GetExtensionPayloadRequest = new() });
+            context.Incoming.Add(new() { RequestId = "cleanup-then-shutdown", ExtensionPayloadRequest = new() });
             WriteRecord chunk = await context.Transport.First.Task.WaitAsync(Timeout);
             chunk.Completion.SetResult(true);
             WriteRecord terminal = await context.Transport.Second.Task.WaitAsync(Timeout);

@@ -8,11 +8,12 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
-using Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -25,6 +26,9 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal partial class GrpcWorker : IWorker, IMessageProcessor
     {
+        internal const string HostConfigurationCapabilityName = "HostConfiguration";
+        internal const string HostConfigurationCapabilityValue = "1";
+
         private readonly IFunctionsApplication _application;
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly WorkerOptions _workerOptions;
@@ -142,7 +146,27 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             // host.json is read only when the host requests delivery; a failed read is reported in the response and never fails initialization.
-            response.HostConfiguration = hostConfigurationSnapshotProvider.TryGetConfiguration(request);
+            if (request.Capabilities.TryGetValue(HostConfigurationCapabilityName, out string? value)
+                && string.Equals(value, HostConfigurationCapabilityValue, StringComparison.Ordinal))
+            {
+                HostConfigurationSnapshot snapshot = hostConfigurationSnapshotProvider.GetSnapshot();
+                response.HostConfiguration = new HostConfiguration
+                {
+                    Status = snapshot.Status switch
+                    {
+                        HostConfigurationStatus.Available => HostConfiguration.Types.Status.Available,
+                        HostConfigurationStatus.Missing => HostConfiguration.Types.Status.Missing,
+                        HostConfigurationStatus.Error => HostConfiguration.Types.Status.Error,
+                        HostConfigurationStatus.TooLarge => HostConfiguration.Types.Status.TooLarge,
+                        _ => throw new InvalidOperationException("Unsupported host configuration status.")
+                    }
+                };
+
+                if (snapshot.Status == HostConfigurationStatus.Available)
+                {
+                    response.HostConfiguration.Content = ByteString.CopyFrom(snapshot.Content.Span);
+                }
+            }
 
             return response;
         }

@@ -54,6 +54,14 @@ jobs:
         **/Azure.Functions.Sdk.Tests.csproj
 
   - task: DotNetCoreCLI@2
+    displayName: Host configuration tests without reflection serialization
+    inputs:
+      command: test
+      arguments: -v m --no-restore -p:JsonSerializerIsReflectionEnabledByDefault=false --filter FullyQualifiedName~HostConfiguration
+      projects: '**/DotNetWorker.Tests.csproj'
+      testRunTitle: Host configuration without reflection serialization
+
+  - task: DotNetCoreCLI@2
     displayName: Extension Tests
     inputs:
       command: test

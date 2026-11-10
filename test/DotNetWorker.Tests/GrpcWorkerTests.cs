@@ -13,7 +13,7 @@ using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
-using Microsoft.Azure.Functions.Worker.Grpc.HostConfigurationDelivery;
+using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -171,7 +171,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(expectedFramework, result);
         }
 
-        private static HostConfigurationSnapshotProvider NewHostConfigurationProvider() => new(() => null, new PhysicalHostConfigurationFileSystem());
+        private static HostConfigurationSnapshotProvider NewHostConfigurationProvider() => new(new PhysicalHostConfigurationFileSystem());
 
         [Fact]
         public void InitRequest_ReturnsExpectedMetadata()

@@ -17,7 +17,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Grpc 2.53.0-preview1
 
-- Fall back to `AppContext.BaseDirectory` when neither application nor legacy worker directory is configured.
+- Use `FUNCTIONS_APPLICATION_DIRECTORY` for function assembly loading, falling back to `AppContext.BaseDirectory` instead of `FUNCTIONS_WORKER_DIRECTORY`. (#3532)
 - Added on-demand extension payload streaming for compute-separated hosts. (#3525)
 - Retry the initial host connection before opening the worker stream. (#3528)
 - Ensured gRPC worker background stream loops do not capture an ambient SynchronizationContext, preventing a worker hang when the application uses a single-threaded context (e.g. Nito.AsyncEx AsyncContext). (#3455)

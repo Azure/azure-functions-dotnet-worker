@@ -87,7 +87,7 @@ public class GrpcWorkerClientStartupTests
             HostEndpoint = new Uri($"http://127.0.0.1:{port}"),
             WorkerId = "production-worker",
             GrpcMaxMessageLength = 1024 * 1024
-        }));
+        }), NullLogger<GrpcWorkerClientFactory>.Instance);
         var client = factory.CreateClient(processor.Object);
         // Check the actual transport configuration without adding a product API solely for test inspection.
         using var channel = (GrpcChannel)client.GetType().GetField("_grpcChannel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(client);
@@ -95,7 +95,6 @@ public class GrpcWorkerClientStartupTests
         Assert.Equal(TimeSpan.FromSeconds(10), GetChannelOption(channel, "MaxReconnectBackoff"));
         Assert.IsType<NullLoggerFactory>(GetChannelOption(channel, "LoggerFactory"));
         output.Channel.Writer.TryWrite(new StreamingMessage { RequestId = "queued" });
-        output.Channel.Writer.Complete();
 
         Task startup = client.StartAsync(cancellation.Token);
         // Keep the port closed long enough for startup to encounter an unavailable listener.
@@ -113,12 +112,48 @@ public class GrpcWorkerClientStartupTests
 
         // End the stream and dispose its transport before stopping the server.
         cancellation.Cancel();
-        channel.Dispose();
+        await client.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
         await server.StopAsync();
     }
 
     private static object GetChannelOption(GrpcChannel channel, string name)
         => typeof(GrpcChannel).GetProperty(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(channel);
+
+    [Fact]
+    public async Task ProductionClientStopCancelsPendingConnection()
+    {
+        using var reservedPort = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        reservedPort.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        int port = ((IPEndPoint)reservedPort.LocalEndPoint).Port;
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var output = new GrpcHostChannel(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>());
+        var factory = new GrpcWorkerClientFactory(output, Options.Create(new GrpcWorkerStartupOptions
+        {
+            HostEndpoint = new Uri($"http://127.0.0.1:{port}"),
+            WorkerId = "stopped-worker",
+            GrpcMaxMessageLength = 1024 * 1024
+        }), NullLogger<GrpcWorkerClientFactory>.Instance);
+        var client = factory.CreateClient(Mock.Of<IMessageProcessor>());
+        try
+        {
+            Task startup = client.StartAsync(cancellation.Token);
+            Assert.False(startup.IsCompleted);
+
+            Task stopping = client.StopAsync(CancellationToken.None);
+            Exception failure = await Record.ExceptionAsync(() => startup.WaitAsync(TimeSpan.FromSeconds(10)));
+            Assert.True(failure is OperationCanceledException
+                || failure is RpcException rpc && rpc.StatusCode == StatusCode.Cancelled);
+            await stopping.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.True(client.ConnectionClosed.IsCancellationRequested);
+            Assert.False(cancellation.IsCancellationRequested);
+            Assert.False(output.Channel.Writer.TryWrite(new()));
+        }
+        finally
+        {
+            cancellation.Cancel();
+            await client.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
+        }
+    }
 
     [Fact]
     public async Task UngatedStartStreamFailsWhenListenerIsAbsent()
@@ -146,7 +181,7 @@ public class GrpcWorkerClientStartupTests
         Assert.False(startup.IsCompleted);
         Assert.Equal(1, fixture.StreamCalls);
         Assert.True(fixture.StreamOptions.IsWaitForReady);
-        Assert.Equal(cancellation.Token, fixture.StreamOptions.CancellationToken);
+        Assert.Equal(fixture.Client.ConnectionClosed, fixture.StreamOptions.CancellationToken);
         Assert.Empty(fixture.Messages);
 
         fixture.PendingWrite.SetResult(true);
@@ -176,6 +211,28 @@ public class GrpcWorkerClientStartupTests
         Assert.Equal(1, fixture.StreamCalls);
         Assert.True(fixture.StreamDisposed);
         Assert.Empty(fixture.Messages);
+    }
+
+    [Fact]
+    public async Task StoppingPendingStartupCancelsRetriesAndDisposesStreamAndChannel()
+    {
+        using var fixture = new ClientFixture();
+        fixture.PendingWrite = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        Task startup = fixture.Client.StartAsync(cancellation.Token);
+        Assert.False(startup.IsCompleted);
+
+        Task stopping = fixture.Client.StopAsync(CancellationToken.None);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => startup).WaitAsync(TimeSpan.FromSeconds(10));
+        await stopping.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.False(cancellation.IsCancellationRequested);
+        Assert.True(fixture.StreamOptions.CancellationToken.IsCancellationRequested);
+        Assert.True(fixture.StreamOptions.IsWaitForReady);
+        Assert.Equal(1, fixture.StreamCalls);
+        Assert.True(fixture.StreamDisposed);
+        Assert.Empty(fixture.Messages);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => fixture.Channel.ConnectAsync());
     }
 
     [Fact]
@@ -250,7 +307,8 @@ public class GrpcWorkerClientStartupTests
                 return new AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage>(writer.Object, reader.Object, Task.FromResult(new Metadata()),
                     () => Status.DefaultSuccess, () => new Metadata(), () => StreamDisposed = true);
             });
-            Client = new(Output, new GrpcWorkerStartupOptions { WorkerId = "test-worker" }, Mock.Of<IMessageProcessor>(), Channel, rpc.Object);
+            Client = new(Output, new GrpcWorkerStartupOptions { WorkerId = "test-worker" }, Mock.Of<IMessageProcessor>(),
+                NullLogger<GrpcWorkerClientFactory>.Instance, Channel, rpc.Object);
         }
 
         public void Dispose()

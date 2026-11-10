@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -200,6 +201,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             string expectedCapabilityValue = null)
         {
             var workerOptions = new WorkerOptions();
+            workerOptions.Capabilities[WorkerCapabilities.ExtensionPayload] = "1";
 
             // Update boolean property values of workerOption based on test input parameters.
             workerOptions.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOptions, booleanPropertyValue);
@@ -215,6 +217,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Same(bool.TrueString, capabilitiesDict["WorkerStatus"]);
             Assert.Same(bool.TrueString, capabilitiesDict["HandlesWorkerTerminateMessage"]);
             Assert.Same(bool.TrueString, capabilitiesDict["HandlesInvocationCancelMessage"]);
+            Assert.Equal("1", capabilitiesDict["ExtensionPayload"]);
 
             if (shouldCapabilityPresent)
             {
@@ -303,7 +306,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             clientMock.Setup(c => c.SendMessageAsync(It.IsAny<StreamingMessage>()))
                 .Returns(ValueTask.CompletedTask);
 
-            clientFactoryMock.Setup(f=>f.CreateClient(It.IsAny<IMessageProcessor>()))
+            clientFactoryMock.Setup(f => f.CreateClient(It.IsAny<IMessageProcessor>()))
                 .Returns(clientMock.Object);
 
             var worker = new GrpcWorker(_mockApplication.Object,
@@ -312,7 +315,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         new OptionsWrapper<WorkerOptions>(new WorkerOptions()),
                                         metadataManager.Object,
                                         new ApplicationLifetime(TestLogger<ApplicationLifetime>.Create()),
-                                        invocationHandlerMock.Object);
+                                        invocationHandlerMock.Object,
+                                        Mock.Of<IExtensionPayloadHandler>(),
+                                        NullLogger<GrpcWorker>.Instance);
 
             await worker.StartAsync(CancellationToken.None);
 

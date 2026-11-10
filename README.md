@@ -26,6 +26,30 @@ You can find samples on how to use different features of the .NET Worker under `
 
 Please see our [Guide for running C# Azure Functions in an isolated worker process](https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide) for information on how to develop, debug and deploy using the Isolated Worker model.
 
+## Extension payload transfer
+
+The normal gRPC worker advertises `ExtensionPayload="1"` on .NET 7 and later. The capability is set once in `WorkerOptions.Capabilities` after resolving the client, based only on transport support. Initialization and environment reload do not inspect payload paths, open files, enumerate directories, or create an archive. The capability is not a promise that deployment files are available or an instruction to send; a worker sends no payload without an explicit Host request.
+
+Only when requested, the worker looks up `AppContext.BaseDirectory` and validates that it contains readable `extensions.json` and an accessible `.azurefunctions` directory. Missing, malformed, or inaccessible payload inputs fail that request with a correlated terminal failure and local diagnostics, not worker initialization.
+
+The Host requests a payload while acquiring its first accepted extension source, then reuses that source for later or concurrent worker links instead of requesting or comparing additional payloads. Later workers may still advertise support; the Host decides whether acquisition is needed.
+
+`ExtensionPayloadRequest` on the existing EventStream creates a temporary ZIP containing the root manifest and recursive `.azurefunctions` assets. The provider removes the SDK-owned Host metadata-loader startup from the archived `extensions.json` and excludes only its known root `Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll` and `.pdb` files. Deployment originals and ordinary co-located build/publish output are not changed, and no SDK opt-out is required. Other manifest fields, entries, hints, real extension assets, and shared dependencies are preserved; an already-filtered manifest is copied unchanged.
+
+Payload provision is separate from delivery. `IExtensionPayloadProvider.OpenReadAsync` returns an owned readable stream without depending on the worker client or protobuf messages. `ExtensionPayloadHandler` owns request coordination, chunk framing, awaited transport writes, and disposal of that stream. It does not require seeking, a known length, or a file-backed stream, so a future provider can open a build-produced ZIP without changing delivery.
+
+Discovered nested links are skipped without traversal, and linked root inputs are rejected. Each ZIP is created in a private temporary directory with owner-only permissions on Unix; disposing the archive stream removes both the ZIP and directory. The limits are 256 MiB compressed, 1 GiB of archived file contents, 1 MiB each for manifest input and filtered output, 10,000 filesystem entries including implicit directories, and 32 path segments. Malformed or oversized manifests fail the request and remove their temporary artifacts. The archive has no comment or ZIP64 end records.
+
+The manifest input buffer starts at the file's reported length plus one byte and grows only if needed. The input limit is enforced against actual bytes read, including when a file grows after its length is checked.
+
+Responses share the request's outer `request_id`. Chunks contain at most 64 KiB, fit the configured protobuf-envelope limit, and have cumulative byte offsets. A live transfer ends with one success or failure result. Cancellation belongs to connection loss or worker shutdown; there is no payload-cancellation message or recoverable per-request cancellation on the same link. Shutdown cancels preparation or sending and drains in-flight writes before releasing the temporary ZIP. No terminal response is required on a closed or shutting-down connection. Payload writes await the actual serialized gRPC write, not admission to the logging queue. If terminal delivery also fails after a payload or cleanup failure, both failures are retained locally.
+
+The gRPC client is one-shot. Startup failure, startup cancellation, either message loop ending, and explicit shutdown use the same idempotent termination path to close the output writer, cancel the connection, and dispose the RPC call. Loop draining and startup-registration cleanup are separate, so a loop never waits for itself. Cleanup failures from both published and startup-owned RPC calls are included in shutdown completion. Once terminated, the client rejects new queued messages; shutdown aborts the connection rather than promising delivery of all queued messages. As before, shutdown waits for owned operations to finish even if its caller's shutdown token expires.
+
+Native-host workers do not advertise this capability: their current ABI reports queue admission rather than transport completion. The .NET 6 and .NET Standard 2.0 assets also do not advertise payload support because private temporary directory creation requires .NET 7+. These workers retain ordinary transport behavior and reject unexpected payload requests without preparing a ZIP. No new RPC service or HTTP download is introduced.
+
+Worker indexing passes `AppContext.BaseDirectory` to its metadata provider, including the `functions.metadata` fallback provider, rather than using the Host-supplied directory. The Host and WorkerProxy do not gain access to these files.
+
 ## Running E2E Tests
 
 ### Requirements

@@ -15,6 +15,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
+using Moq;
 using Xunit;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.BindingInfo.Types;
 
@@ -22,10 +23,40 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class GrpcFunctionDefinitionTests
     {
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" \t")]
+        [InlineData("configured-application")]
+        public void AssemblyPathUsesResolvedApplicationDirectory(string configuredDirectory)
+        {
+            string baseDirectory = Path.Combine(Path.GetTempPath(), "application-base");
+            string applicationDirectory = string.IsNullOrWhiteSpace(configuredDirectory)
+                ? baseDirectory : Path.Combine(Path.GetTempPath(), configuredDirectory);
+            using TestScopedAppContextBaseDirectory application = new(baseDirectory);
+            using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY",
+                string.IsNullOrWhiteSpace(configuredDirectory) ? configuredDirectory : applicationDirectory);
+            using TestScopedEnvironmentVariable worker = new("FUNCTIONS_WORKER_DIRECTORY", "not-the-application");
+            string expectedAssembly = Path.GetFullPath(Path.Combine(applicationDirectory, "app.dll"));
+            var locator = new Mock<IMethodInfoLocator>(MockBehavior.Strict);
+            locator.Setup(value => value.GetMethod(expectedAssembly, "Functions.Run"))
+                .Returns(typeof(MyFunctionClass).GetMethod(nameof(MyFunctionClass.Run)));
+            var request = new FunctionLoadRequest
+            {
+                FunctionId = "directory-test",
+                Metadata = new RpcFunctionMetadata { EntryPoint = "Functions.Run", ScriptFile = "app.dll", Name = "Test" }
+            };
+
+            FunctionDefinition definition = request.ToFunctionDefinition(locator.Object);
+
+            Assert.Equal(expectedAssembly, definition.PathToAssembly);
+            locator.VerifyAll();
+        }
+
         [Fact]
         public void Creates()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY", null);
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();
@@ -83,7 +114,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void GrpcFunctionDefinition_BlobInput_Creates()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY", null);
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();
@@ -150,7 +181,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void GrpcFunctionDefinition_QueueTrigger_Creates()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY", null);
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();
@@ -190,7 +221,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void GrpcFunctionDefinition_TableInput_Creates()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY", null);
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();

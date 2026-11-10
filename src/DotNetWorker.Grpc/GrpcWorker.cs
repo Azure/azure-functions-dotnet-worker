@@ -242,7 +242,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionMetadataList = await _metadataManager.GetFunctionMetadataAsync(AppContext.BaseDirectory);
+                var functionMetadataList = await _metadataManager.GetFunctionMetadataAsync(ApplicationDirectory.GetApplicationDirectory());
 
                 foreach (var func in functionMetadataList)
                 {

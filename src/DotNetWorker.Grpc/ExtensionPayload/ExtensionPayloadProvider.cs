@@ -466,7 +466,7 @@ internal sealed class ExtensionPayloadProvider : IExtensionPayloadProvider
     /// </summary>
     private static string GetValidatedApplicationDirectory()
     {
-        string root = AppContext.BaseDirectory;
+        string root = ApplicationDirectory.GetApplicationDirectory();
         if ((ValidateEntry(root) & FileAttributes.Directory) == 0)
         {
             throw new InvalidDataException("The worker-local application root must be a directory.");

@@ -46,6 +46,7 @@ public sealed partial class ExtensionPayloadTests : IDisposable
             new("TMP", _temporaryRoot),
             new("TEMP", _temporaryRoot),
             new("TMPDIR", _temporaryRoot),
+            new("FUNCTIONS_APPLICATION_DIRECTORY", null),
         ];
     }
 
@@ -91,12 +92,14 @@ public sealed partial class ExtensionPayloadTests : IDisposable
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public async Task PayloadUsesBaseDirectoryRegardlessOfEnvironment(bool trailingSeparator, bool legacyConfigured)
+    public async Task PayloadUsesResolvedApplicationDirectory(bool trailingSeparator, bool environmentConfigured)
     {
-        string legacyDirectory = Path.Combine(_root, "legacy-application");
-        Directory.CreateDirectory(Path.Combine(legacyDirectory, ".azurefunctions"));
-        File.WriteAllText(Path.Combine(legacyDirectory, "extensions.json"), "{\"extensions\":[]}");
-        using TestScopedEnvironmentVariable legacy = new("FUNCTIONS_APPLICATION_DIRECTORY", legacyConfigured ? legacyDirectory : null);
+        string configuredDirectory = Path.Combine(_root, "configured-application");
+        Directory.CreateDirectory(Path.Combine(configuredDirectory, ".azurefunctions"));
+        const string configuredManifest = "{\"extensions\":[]}";
+        File.WriteAllText(Path.Combine(configuredDirectory, "extensions.json"), configuredManifest);
+        using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY",
+            environmentConfigured ? configuredDirectory + (trailingSeparator ? Path.DirectorySeparatorChar.ToString() : "") : null);
         using TestScopedAppContextBaseDirectory application = new(trailingSeparator ? _root + Path.DirectorySeparatorChar : _root);
         using (Stream stream = await _provider.OpenReadAsync(CancellationToken.None))
         using (ZipArchive archive = new(stream, ZipArchiveMode.Read))
@@ -104,9 +107,17 @@ public sealed partial class ExtensionPayloadTests : IDisposable
             Assert.NotNull(archive.GetEntry(".azurefunctions/"));
             Assert.All(archive.Entries, entry => Assert.False(entry.FullName.StartsWith("/", StringComparison.Ordinal)));
             using StreamReader reader = new(archive.GetEntry("extensions.json")!.Open());
-            Assert.Equal(Manifest, await reader.ReadToEndAsync());
+            Assert.Equal(environmentConfigured ? configuredManifest : Manifest, await reader.ReadToEndAsync());
         }
 
+        AssertNoTemporaryArchives();
+    }
+
+    [Fact]
+    public async Task MissingConfiguredDirectoryDoesNotFallBackToBaseDirectory()
+    {
+        using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", Path.Combine(_root, "does-not-exist"));
+        await Assert.ThrowsAnyAsync<IOException>(() => _provider.OpenReadAsync(CancellationToken.None));
         AssertNoTemporaryArchives();
     }
 

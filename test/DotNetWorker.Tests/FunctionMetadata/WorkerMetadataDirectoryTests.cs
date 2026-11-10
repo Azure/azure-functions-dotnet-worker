@@ -28,8 +28,10 @@ public sealed class WorkerMetadataDirectoryTests : IDisposable
     {
         Directory.CreateDirectory(Path.Combine(_root, "worker"));
         Directory.CreateDirectory(Path.Combine(_root, "host"));
+        Directory.CreateDirectory(Path.Combine(_root, "configured"));
         WriteMetadata(Path.Combine(_root, "worker"), "WorkerOnly");
         WriteMetadata(Path.Combine(_root, "host"), "HostOnly");
+        WriteMetadata(Path.Combine(_root, "configured"), "ConfiguredOnly");
     }
 
     public void Dispose() => Directory.Delete(_root, recursive: true);
@@ -37,15 +39,26 @@ public sealed class WorkerMetadataDirectoryTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task FileProviderUsesBaseDirectoryInsteadOfHostOrEnvironment(bool legacyConfigured)
+    public async Task FileProviderUsesResolvedApplicationDirectory(bool environmentConfigured)
     {
         using TestScopedAppContextBaseDirectory application = new(Path.Combine(_root, "worker") + Path.DirectorySeparatorChar);
-        using TestScopedEnvironmentVariable legacy = new("FUNCTIONS_APPLICATION_DIRECTORY", legacyConfigured ? Path.Combine(_root, "host") : null);
+        using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", environmentConfigured ? Path.Combine(_root, "configured") : null);
         FunctionMetadataResponse response = await RequestAsync();
         Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
         Assert.False(response.UseDefaultMetadataIndexing);
-        Assert.Equal("WorkerOnly", Assert.Single(response.FunctionMetadataResults).Name);
+        Assert.Equal(environmentConfigured ? "ConfiguredOnly" : "WorkerOnly", Assert.Single(response.FunctionMetadataResults).Name);
         Assert.False(File.Exists(Path.Combine(_root, "worker", "extensions.json")));
+    }
+
+    [Fact]
+    public async Task MissingConfiguredMetadataDoesNotFallBackToBaseDirectory()
+    {
+        using TestScopedAppContextBaseDirectory application = new(Path.Combine(_root, "worker"));
+        using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", Path.Combine(_root, "configured"));
+        File.Delete(Path.Combine(_root, "configured", "functions.metadata"));
+        FunctionMetadataResponse response = await RequestAsync();
+        Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
+        Assert.Empty(response.FunctionMetadataResults);
     }
 
     [Fact]

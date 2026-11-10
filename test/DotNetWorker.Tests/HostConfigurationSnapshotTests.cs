@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Tests.HostConfigurationDelivery;
 using Microsoft.Extensions.Logging;
@@ -496,9 +497,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(0, fs.Opens);
         }
 
-        [Fact]
-        public void AppRootIsBaseDirectory()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" \t")]
+        [InlineData("configured-application")]
+        public void AppRootUsesResolvedApplicationDirectory(string configuredDirectory)
         {
+            using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", configuredDirectory);
             string opened = null;
             var fs = new FakeFileSystem(path =>
             {
@@ -507,7 +513,24 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
             var provider = new HostConfigurationSnapshotProvider(fs);
             Assert.Equal(HostConfigurationStatus.Available, provider.GetSnapshot().Status);
-            Assert.Equal(Path.Combine(AppContext.BaseDirectory, "host.json"), opened);
+            string expectedDirectory = string.IsNullOrWhiteSpace(configuredDirectory) ? AppContext.BaseDirectory : configuredDirectory;
+            Assert.Equal(Path.Combine(expectedDirectory, "host.json"), opened);
+        }
+
+        [Fact]
+        public void MissingConfiguredHostJsonDoesNotFallBackToBaseDirectory()
+        {
+            WriteHostJson(Encoding.UTF8.GetBytes("{}"));
+            string configuredDirectory = Path.Combine(_appDirectory, "configured");
+            Directory.CreateDirectory(configuredDirectory);
+            using TestScopedAppContextBaseDirectory application = new(_appDirectory);
+            using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", configuredDirectory);
+            var provider = new HostConfigurationSnapshotProvider(new PhysicalHostConfigurationFileSystem());
+
+            var result = provider.GetSnapshot();
+
+            Assert.Equal(HostConfigurationStatus.Missing, result.Status);
+            Assert.True(result.Content.IsEmpty);
         }
 
         [Fact]

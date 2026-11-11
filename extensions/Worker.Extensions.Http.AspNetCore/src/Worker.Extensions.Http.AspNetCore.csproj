@@ -7,7 +7,7 @@
 
     <!--Version information-->
     <VersionPrefix>2.1.2</VersionPrefix>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionSuffix>-preview.1</VersionSuffix>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
   </PropertyGroup>
 

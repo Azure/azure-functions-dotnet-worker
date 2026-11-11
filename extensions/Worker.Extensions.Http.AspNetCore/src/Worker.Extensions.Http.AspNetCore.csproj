@@ -13,6 +13,10 @@
   <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
+    <Compile Include="..\..\..\src\Shared\ApplicationDirectory.cs" Link="Shared\ApplicationDirectory.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 

@@ -1,14 +1,54 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMiddleware;
+using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 {
+    [Collection("Application directory")]
     public class FunctionsEndpointDataSourceTests
     {
+        [Fact]
+        public void EndpointsUseConfiguredApplicationDirectoryForMetadataAndRoutePrefix()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "endpoint-directory-" + Guid.NewGuid().ToString("N"));
+            string baseDirectory = Path.Combine(root, "base");
+            string environmentDirectory = Path.Combine(root, "configured");
+            Directory.CreateDirectory(baseDirectory);
+            Directory.CreateDirectory(environmentDirectory);
+            try
+            {
+                File.WriteAllText(Path.Combine(baseDirectory, "host.json"), """{"extensions":{"http":{"routePrefix":"base"}}}""");
+                File.WriteAllText(Path.Combine(environmentDirectory, "host.json"), """{"extensions":{"http":{"routePrefix":"configured"}}}""");
+                using TestScopedAppContextBaseDirectory application = new(baseDirectory);
+                using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", environmentDirectory);
+                var metadata = new Mock<IFunctionMetadataManager>(MockBehavior.Strict);
+                metadata.Setup(value => value.GetFunctionMetadataAsync(environmentDirectory))
+                    .ReturnsAsync(ImmutableArray.Create<IFunctionMetadata>(new DefaultFunctionMetadata
+                    {
+                        Name = "Test",
+                        RawBindings = new[] { """{"type":"httpTrigger","methods":["get"]}""" }
+                    }));
+                var source = new FunctionsEndpointDataSource(metadata.Object);
+
+                var endpoint = Assert.IsType<RouteEndpoint>(Assert.Single(source.Endpoints));
+
+                Assert.Equal("configured/Test", endpoint.RoutePattern.RawText);
+                metadata.VerifyAll();
+            }
+            finally
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+
         [Theory]
         [InlineData("api")]
         [InlineData("customRoutePrefix")]
@@ -160,5 +200,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             string prefix = FunctionsEndpointDataSource.GetRoutePrefix(hostJson);
             Assert.Equal("custom", prefix);
         }
+    }
+
+    [CollectionDefinition("Application directory", DisableParallelization = true)]
+    public class ApplicationDirectoryCollection
+    {
     }
 }

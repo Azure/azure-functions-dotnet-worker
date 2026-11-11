@@ -13,7 +13,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
 {
     internal class FunctionsEndpointDataSource : EndpointDataSource
     {
-        private const string FunctionsApplicationDirectoryKey = "FUNCTIONS_APPLICATION_DIRECTORY";
         private const string HostJsonFileName = "host.json";
         private const string DefaultRoutePrefix = "api";
 
@@ -55,8 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
         {
             List<Endpoint> endpoints = new List<Endpoint>();
 
-            string scriptRoot = Environment.GetEnvironmentVariable(FunctionsApplicationDirectoryKey) ??
-                           throw new InvalidOperationException("Cannot determine script root directory.");
+            string scriptRoot = ApplicationDirectory.Current;
 
             var metadata = _functionMetadataManager.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
 

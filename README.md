@@ -30,7 +30,7 @@ Please see our [Guide for running C# Azure Functions in an isolated worker proce
 
 The normal gRPC worker advertises `ExtensionPayload="1"` on .NET 7 and later. The capability is set once in `WorkerOptions.Capabilities` after resolving the client, based only on transport support. Initialization and environment reload do not inspect payload paths, open files, enumerate directories, or create an archive. The capability is not a promise that deployment files are available or an instruction to send; a worker sends no payload without an explicit Host request.
 
-Only when requested, the worker looks up `AppContext.BaseDirectory` and validates that it contains readable `extensions.json` and an accessible `.azurefunctions` directory. Missing, malformed, or inaccessible payload inputs fail that request with a correlated terminal failure and local diagnostics, not worker initialization.
+Only when requested, the worker resolves the application directory once and retains it for the process lifetime. Resolution prefers `FUNCTIONS_APPLICATION_DIRECTORY` when nonempty and non-whitespace, otherwise falling back to `AppContext.BaseDirectory`. An explicitly configured directory is not replaced if files are missing or inaccessible. Missing, malformed, or inaccessible payload inputs fail that request with a correlated terminal failure and local diagnostics, not worker initialization.
 
 The Host requests a payload while acquiring its first accepted extension source, then reuses that source for later or concurrent worker links instead of requesting or comparing additional payloads. Later workers may still advertise support; the Host decides whether acquisition is needed.
 
@@ -48,7 +48,7 @@ The gRPC client is one-shot. Startup failure, startup cancellation, either messa
 
 Native-host workers do not advertise this capability: their current ABI reports queue admission rather than transport completion. The .NET 6 and .NET Standard 2.0 assets also do not advertise payload support because private temporary directory creation requires .NET 7+. These workers retain ordinary transport behavior and reject unexpected payload requests without preparing a ZIP. No new RPC service or HTTP download is introduced.
 
-Worker indexing passes `AppContext.BaseDirectory` to its metadata provider, including the `functions.metadata` fallback provider, rather than using the Host-supplied directory. The Host and WorkerProxy do not gain access to these files.
+Worker indexing passes the resolved application directory to its metadata provider, including the `functions.metadata` fallback provider, rather than using the Host-supplied directory. Function assembly loading, host configuration delivery, and ASP.NET Core endpoint discovery use the same resolution policy. `FUNCTIONS_WORKER_DIRECTORY` is no longer used as a fallback for function assembly loading. The Host and WorkerProxy do not gain access to these files.
 
 ## Running E2E Tests
 

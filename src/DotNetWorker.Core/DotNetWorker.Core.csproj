@@ -15,6 +15,10 @@
 
   <Import Project="..\..\build\Common.props" />
 
+  <ItemGroup>
+    <Compile Include="..\Shared\ApplicationDirectory.cs" Link="Shared\ApplicationDirectory.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
     <Compile Remove="Context\Features\IDictionaryExtensions.cs" />
     <Compile Remove="FunctionsDebugger.cs" />

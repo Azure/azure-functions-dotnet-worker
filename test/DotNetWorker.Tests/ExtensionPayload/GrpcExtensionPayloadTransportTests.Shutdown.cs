@@ -49,9 +49,11 @@ public sealed partial class GrpcExtensionPayloadTransportTests
         File.WriteAllText(Path.Combine(root, "extensions.json"), "{\"extensions\":[]}");
         File.WriteAllText(Path.Combine(root, ".azurefunctions", "extension.dll"), "extension contents");
         using TestScopedAppContextBaseDirectory application = new(root + Path.DirectorySeparatorChar);
+        using TestScopedEnvironmentVariable environment = new("FUNCTIONS_APPLICATION_DIRECTORY", null);
         using TestScopedEnvironmentVariable tmp = new("TMP", temporary);
         using TestScopedEnvironmentVariable temp = new("TEMP", temporary);
         using TestScopedEnvironmentVariable tmpdir = new("TMPDIR", temporary);
+        ApplicationDirectory.ResetForTests();
 
         ClientContext context = null;
         Mock<IWorkerClientFactory> factory = new();

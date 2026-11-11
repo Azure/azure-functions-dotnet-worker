@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Configuration
     /// </summary>
     /// <remarks>
     /// Captured once on first access and replayed afterwards, including failures (restart to retry).
-    /// App content is treated as immutable for the process lifetime. The UTF-8 file in AppContext.BaseDirectory is
+    /// App content is treated as immutable for the process lifetime. The UTF-8 file in the application directory is
     /// normalized to strict JSON (comments and trailing commas removed); the host owns interpretation. A failure is
     /// logged once with a fixed reason code only, never with paths, exception messages or file content.
     /// The ASP.NET Core extension reads the route prefix independently, so changing
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Configuration
         {
             try
             {
-                using Stream stream = fileSystem.OpenRead(Path.Combine(AppContext.BaseDirectory, HostJsonFileName));
+                using Stream stream = fileSystem.OpenRead(Path.Combine(ApplicationDirectory.Current, HostJsonFileName));
                 using Stream utf8 = HostConfigurationReader.Read(stream);
                 using JsonDocument document = JsonDocument.Parse(utf8,
                     new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });

@@ -50,6 +50,45 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
     }
 
     [Fact]
+    public void Publish_StandaloneContainerMode_IncludesWorkerConfig()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("FunctionsContainerMode", "Standalone")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+
+        // Act
+        BuildOutput output = project.Publish(build: true, restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        string publishPath = project.GetPublishPath();
+        File.Exists(Path.Combine(publishPath, "worker.config.json")).Should().BeTrue();
+        File.Exists(Path.Combine(project.GetOutputPath(), "worker.config.json")).Should().BeTrue();
+        ValidateExtensionsPayload(publishPath, MinExpectedExtensionFiles);
+    }
+
+    [Fact]
+    public void Target_StandaloneContainerPublish_RemovesWorkerConfig()
+    {
+        string publishPath = Path.Combine(TestRootPath, "publish");
+        Directory.CreateDirectory(publishPath);
+        string workerConfigPath = Path.Combine(publishPath, "worker.config.json");
+        File.WriteAllText(workerConfigPath, "{}");
+
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(GetTempCsproj())
+            .Property("FunctionsContainerMode", "Standalone")
+            .Property("PublishDir", publishPath + Path.DirectorySeparatorChar);
+
+        project.TryBuild("_RemoveWorkerConfigFromStandaloneContainer", null, out _, out BuildOutput output, out _);
+
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        File.Exists(workerConfigPath).Should().BeFalse();
+    }
+
+    [Fact]
     public void Publish_NoBuild_SelfContained_GeneratesFreshWorkerConfig()
     {
         // Arrange: build with RID but without self-contained (config gets "dotnet")

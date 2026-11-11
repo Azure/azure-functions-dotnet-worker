@@ -64,6 +64,9 @@ packed rather than taken from the application's version. As with other labels, t
 .NET SDK does not add it when `ContainerGenerateLabels` is `false`; labels inherited from the
 base image are unchanged.
 
+When publishing a standalone container, the SDK removes `worker.config.json` before the container
+image is created. Regular `dotnet publish` output is unchanged and retains the file.
+
 ## Migrating from Microsoft.Azure.Functions.Worker.Sdk
 
 Migration only requires changes to your project file (`.csproj`). **No C# code changes are needed.** (assuming you are on the latest `Microsoft.Azure.Functions.Worker`).

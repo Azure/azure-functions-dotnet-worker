@@ -19,6 +19,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Text="Invalid FunctionsContainerMode '$(FunctionsContainerMode)'. Supported values are 'HostEmbedded' and 'Standalone'." />
   </Target>
 
+  <Target Name="_RemoveWorkerConfigFromStandaloneContainer" BeforeTargets="PublishContainer"
+          Condition="'$(FunctionsContainerMode)' == 'Standalone'">
+    <!-- Standalone containers do not need worker.config.json. -->
+    <Delete Files="$(PublishDir)$(_WorkerConfigFileName)" />
+  </Target>
+
   <Target Name="ComputeFunctionsContainerConfig" BeforeTargets="ComputeContainerBaseImage"
           DependsOnTargets="ValidateFunctionsContainerMode;ComputeFunctionsContainerConfig_HostEmbedded">
     <PropertyGroup>

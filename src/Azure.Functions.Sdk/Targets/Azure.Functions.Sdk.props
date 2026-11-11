@@ -17,6 +17,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)publish/Azure.Functions.Sdk.Publish.props" />
   <Import Sdk="Microsoft.NET.Sdk.Worker" Project="Sdk.props" />
   <Import Project="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Analyzers.props" />
   <Import Project="$(MSBuildThisFileDirectory)extensions/Azure.Functions.Sdk.Extensions.props" />

@@ -1,6 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using Microsoft.Build.Construction;
+using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
 
 namespace Azure.Functions.Sdk.Tests.Integration;
@@ -110,4 +113,134 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             .Which.Message.Should().Be(
                 "The publish url 'not-an-absolute-url' is invalid. Publish url must be an absolute HTTP or HTTPS url.");
     }
+
+    [Theory]
+    [InlineData("HostEmbedded")]
+    [InlineData("Standalone")]
+    public void Target_ContainerConfig_UsesModeDefaultsAndSdkVersion(string mode)
+    {
+        const string consumerVersion = "987.654.321-consumer";
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("FunctionsContainerMode", mode)
+            .Property("AssemblyName", "ContainerApp")
+            .Property("Version", consumerVersion)
+            .Property("PackageVersion", consumerVersion)
+            .Property("_SdkVersionDuringEvaluation", "$(AzureFunctionsSdkVersion)");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerRuntimeIdentifier").Should().Be("linux-x64");
+        ITaskItem label = items.Should().ContainSingle(x => x.ItemSpec == "com.azure.functions.sdk").Which;
+        project.TryGetPropertyValue("AzureFunctionsSdkVersion", out string sdkVersion);
+        sdkVersion.Should().NotBeNullOrWhiteSpace().And.NotBe(consumerVersion);
+        project.TryGetPropertyValue("_SdkVersionDuringEvaluation", out string evaluatedSdkVersion);
+        evaluatedSdkVersion.Should().Be(sdkVersion);
+        label.GetMetadata("Value").Should().Be(sdkVersion);
+
+        if (mode == "HostEmbedded")
+        {
+            GetContainerProperty(items, "ContainerBaseImage")
+                .Should().Be("mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated8.0");
+            GetContainerProperty(items, "ContainerWorkingDirectory").Should().Be("/home/site/wwwroot");
+            items.Should().ContainSingle(x => x.ItemSpec == "/opt/startup/start_nonappservice.sh");
+            items.Should().ContainSingle(x => x.ItemSpec == "AzureWebJobsScriptRoot")
+                .Which.GetMetadata("Value").Should().Be("/home/site/wwwroot");
+            items.Should().ContainSingle(x => x.ItemSpec == "AzureFunctionsJobHost__Logging__Console__IsEnabled")
+                .Which.GetMetadata("Value").Should().Be("true");
+        }
+        else
+        {
+#if NET
+            GetContainerProperty(items, "ContainerBaseImage").Should().Be("mcr.microsoft.com/dotnet/runtime:8.0");
+            GetContainerProperty(items, "ContainerWorkingDirectory").Should().Be("/app/");
+            items.Should().ContainSingle(x => x.ItemSpec == "dotnet");
+            items.Should().ContainSingle(x => x.ItemSpec == "/app/ContainerApp.dll");
+#else
+            GetContainerProperty(items, "ContainerBaseImage").Should().BeEmpty();
+            GetContainerProperty(items, "ContainerWorkingDirectory").Should().BeEmpty();
+#endif
+            items.Should().NotContain(x => x.ItemSpec == "AzureWebJobsScriptRoot");
+            items.Should().NotContain(x => x.ItemSpec == "AzureFunctionsJobHost__Logging__Console__IsEnabled");
+        }
+    }
+
+    [Theory]
+    [InlineData("HostEmbedded")]
+    [InlineData("Standalone")]
+    public void Target_ContainerConfig_PreservesExplicitSettings(string mode)
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("FunctionsContainerMode", mode)
+            .Property("ContainerBaseImage", "example.com/custom:latest")
+            .Property("ContainerRuntimeIdentifier", "linux-arm64")
+            .Property("ContainerWorkingDirectory", "/custom/");
+        ProjectItemElement environmentVariable = project.RootElement.AddItem(
+            "ContainerEnvironmentVariable", "AzureWebJobsScriptRoot");
+        environmentVariable.AddMetadata("Value", "/existing");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerBaseImage").Should().Be("example.com/custom:latest");
+        GetContainerProperty(items, "ContainerRuntimeIdentifier").Should().Be("linux-arm64");
+        GetContainerProperty(items, "ContainerWorkingDirectory").Should().Be("/custom/");
+        items.Should().ContainSingle(x => x.ItemSpec == "AzureWebJobsScriptRoot")
+            .Which.GetMetadata("Value").Should().Be("/existing");
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_InvalidModeFails()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(GetTempCsproj())
+            .Property("FunctionsContainerMode", "Invalid");
+
+        project.TryBuild("ComputeContainerBaseImage", null, out _, out BuildOutput output, out _);
+
+        output.Should().BeFailed().And.HaveSingleError()
+            .Which.Message.Should().Be(
+                "Invalid FunctionsContainerMode 'Invalid'. Supported values are 'HostEmbedded' and 'Standalone'.");
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_EmptySdkVersionAddsEmptyLabel()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(),
+            globalProperties: new Dictionary<string, string>
+            {
+                ["AzureFunctionsSdkVersion"] = string.Empty,
+            });
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        items.Should().ContainSingle(x => x.ItemSpec == "com.azure.functions.sdk")
+            .Which.GetMetadata("Value").Should().BeEmpty();
+    }
+
+    private static ITaskItem[] GetContainerConfig(ProjectCreator project)
+    {
+        ProjectTargetElement target = project.RootElement.AddTarget("_TestContainerConfig");
+#if NET
+        target.DependsOnTargets = "ComputeContainerConfig";
+#else
+        // The .NET container tasks cannot be hosted by the full-framework in-process test runner.
+        target.DependsOnTargets = "ComputeFunctionsContainerConfig";
+#endif
+        target.Returns = "@(_ContainerTestProperty);@(ContainerLabel);@(ContainerAppCommand);@(ContainerEnvironmentVariable)";
+
+        ProjectItemGroupElement properties = target.AddItemGroup();
+        foreach (string name in new[] { "ContainerBaseImage", "ContainerRuntimeIdentifier", "ContainerWorkingDirectory" })
+        {
+            properties.AddItem("_ContainerTestProperty", name).AddMetadata("Value", $"$({name})");
+        }
+
+        project.RootElement.Save();
+        project.TryBuild(target.Name, null, out _, out BuildOutput output, out IDictionary<string, TargetResult>? results);
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        return results![target.Name].Items;
+    }
+
+    private static string GetContainerProperty(ITaskItem[] items, string name) =>
+        items.Should().ContainSingle(x => x.ItemSpec == name).Which.GetMetadata("Value");
 }

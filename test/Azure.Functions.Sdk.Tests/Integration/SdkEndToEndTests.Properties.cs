@@ -17,10 +17,12 @@ public partial class SdkEndToEndTests
         // Act
         project.TryGetPropertyValue("OutputType", out string outputType);
         project.TryGetPropertyValue("AzureFunctionsVersion", out string functionsVersion);
+        project.TryGetPropertyValue("FunctionsContainerMode", out string functionsContainerMode);
 
         // Assert
         outputType.Should().Be("Exe");
         functionsVersion.Should().Be("v4");
+        functionsContainerMode.Should().Be("HostEmbedded");
     }
 
     [Theory]

@@ -76,6 +76,28 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="_GenerateSdkVersionProps" BeforeTargets="AssignTargetPaths;_GetPackageFiles">
+    <PropertyGroup>
+      <_AzureFunctionsSdkVersionPropsFile>$(IntermediateOutputPath)Azure.Functions.Sdk.Version.props</_AzureFunctionsSdkVersionPropsFile>
+      <_AzureFunctionsSdkVersionPropsContent><![CDATA[
+<Project>
+  <PropertyGroup>
+    <AzureFunctionsSdkVersion>$(PackageVersion)</AzureFunctionsSdkVersion>
+  </PropertyGroup>
+</Project>
+]]></_AzureFunctionsSdkVersionPropsContent>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(_AzureFunctionsSdkVersionPropsFile)" Lines="$(_AzureFunctionsSdkVersionPropsContent)"
+      Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <None Include="$(_AzureFunctionsSdkVersionPropsFile)" Pack="true" PackagePath="sdk/Azure.Functions.Sdk.Version.props"
+        CopyToPublishDirectory="PreserveNewest" TargetPath="sdk/Azure.Functions.Sdk.Version.props" />
+      <FileWrites Include="$(_AzureFunctionsSdkVersionPropsFile)" />
+    </ItemGroup>
+  </Target>
+
   <Target Name="_AddPackagePath" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
       <!-- Convert these file paths to camel case, which is the nuget package convention. -->

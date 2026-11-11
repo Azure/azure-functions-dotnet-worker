@@ -28,14 +28,14 @@ pipelines:
         credscan:
           lastModifiedDate: 2024-09-17
         eslint:
-          lastModifiedDate: 2026-11-10
+          lastModifiedDate: 2024-09-17
         armory:
-          lastModifiedDate: 2026-11-10
+          lastModifiedDate: 2024-09-17
       binary:
         credscan:
           lastModifiedDate: 2025-02-03
         binskim:
-          lastModifiedDate: 2026-11-10
+          lastModifiedDate: 2025-05-21
   339:
     retail:
       source:
@@ -134,9 +134,9 @@ pipelines:
         credscan:
           lastModifiedDate: 2024-10-09
         eslint:
-          lastModifiedDate: 2024-10-09
+          lastModifiedDate: 2026-11-11
         armory:
-          lastModifiedDate: 2024-10-09
+          lastModifiedDate: 2026-11-11
   496:
     usedNonDefaultBranch: true
     retail:

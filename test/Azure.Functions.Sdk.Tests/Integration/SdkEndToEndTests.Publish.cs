@@ -88,6 +88,64 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         File.Exists(workerConfigPath).Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData("IsPublishable")]
+    [InlineData("EnableSdkContainerSupport")]
+    public void Target_PublishContainer_WhenSkipped_PreservesWorkerConfig(string disabledProperty)
+    {
+        string publishPath = Path.Combine(TestRootPath, "publish");
+        Directory.CreateDirectory(publishPath);
+        string workerConfigPath = Path.Combine(publishPath, "worker.config.json");
+        File.WriteAllText(workerConfigPath, "{}");
+
+        Dictionary<string, string> globalProperties = new()
+        {
+            ["IsPublishable"] = "true",
+            ["EnableSdkContainerSupport"] = "true",
+            [disabledProperty] = "false",
+        };
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), globalProperties: globalProperties)
+            .Property("FunctionsContainerMode", "Standalone")
+            .Property("PublishDir", publishPath + Path.DirectorySeparatorChar);
+
+        project.TryBuild("PublishContainer", null, out _, out BuildOutput output, out _);
+
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        File.Exists(workerConfigPath).Should().BeTrue();
+    }
+
+#if NET
+    [Theory]
+    [InlineData("Standalone", false)]
+    [InlineData("HostEmbedded", true)]
+    public void Target_PublishContainer_RemovesWorkerConfigOnlyForStandalone(string mode, bool configExists)
+    {
+        string publishPath = Path.Combine(TestRootPath, "publish");
+        Directory.CreateDirectory(publishPath);
+        string workerConfigPath = Path.Combine(publishPath, "worker.config.json");
+        File.WriteAllText(workerConfigPath, "{}");
+
+        Dictionary<string, string> globalProperties = new()
+        {
+            ["ContainerRuntimeIdentifier"] = "linux-x64",
+            ["IsPublishable"] = "true",
+            ["EnableSdkContainerSupport"] = "true",
+            ["_IsSingleRIDBuild"] = "false",
+            ["_IsMultiRIDBuild"] = "false",
+        };
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), globalProperties: globalProperties)
+            .Property("FunctionsContainerMode", mode)
+            .Property("PublishDir", publishPath + Path.DirectorySeparatorChar);
+
+        project.TryBuild("PublishContainer", null, out _, out BuildOutput output, out _);
+
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        File.Exists(workerConfigPath).Should().Be(configExists);
+    }
+#endif
+
     [Fact]
     public void Publish_NoBuild_SelfContained_GeneratesFreshWorkerConfig()
     {
@@ -162,6 +220,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: "net8.0")
             .Property("FunctionsContainerMode", mode)
+            .Property("ContainerRuntimeIdentifier", "linux-x64")
             .Property("AssemblyName", "ContainerApp")
             .Property("Version", consumerVersion)
             .Property("PackageVersion", consumerVersion)
@@ -169,7 +228,6 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
         ITaskItem[] items = GetContainerConfig(project);
 
-        GetContainerProperty(items, "ContainerRuntimeIdentifier").Should().Be("linux-x64");
         ITaskItem label = items.Should().ContainSingle(x => x.ItemSpec == "com.azure.functions.sdk").Which;
         project.TryGetPropertyValue("AzureFunctionsSdkVersion", out string sdkVersion);
         sdkVersion.Should().NotBeNullOrWhiteSpace().And.NotBe(consumerVersion);
@@ -212,8 +270,8 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: "net8.0")
             .Property("FunctionsContainerMode", mode)
+            .Property("ContainerRuntimeIdentifier", "linux-x64")
             .Property("ContainerBaseImage", "example.com/custom:latest")
-            .Property("ContainerRuntimeIdentifier", "linux-arm64")
             .Property("ContainerWorkingDirectory", "/custom/");
         ProjectItemElement environmentVariable = project.RootElement.AddItem(
             "ContainerEnvironmentVariable", "AzureWebJobsScriptRoot");
@@ -222,10 +280,99 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         ITaskItem[] items = GetContainerConfig(project);
 
         GetContainerProperty(items, "ContainerBaseImage").Should().Be("example.com/custom:latest");
-        GetContainerProperty(items, "ContainerRuntimeIdentifier").Should().Be("linux-arm64");
         GetContainerProperty(items, "ContainerWorkingDirectory").Should().Be("/custom/");
         items.Should().ContainSingle(x => x.ItemSpec == "AzureWebJobsScriptRoot")
             .Which.GetMetadata("Value").Should().Be("/existing");
+    }
+
+#if NET
+    [Theory]
+    [InlineData("HostEmbedded", "linux-x64", "", "")]
+    [InlineData("Standalone", "linux-x64", "", "")]
+    [InlineData("HostEmbedded", "linux-arm64", "linux-x64", "")]
+    [InlineData("Standalone", "linux-arm64", "", "linux-x64")]
+    [InlineData("Standalone", "linux-arm64", "win-x64", "linux-x64")]
+    public void Target_ContainerConfig_UsesSdkContainerRuntimeIdentifier(
+        string mode, string sdkRuntimeIdentifier, string runtimeIdentifier, string containerRuntimeIdentifier)
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(),
+            globalProperties: new Dictionary<string, string>
+            {
+                ["NETCoreSdkPortableRuntimeIdentifier"] = sdkRuntimeIdentifier,
+            })
+            .Property("FunctionsContainerMode", mode)
+            .Property("RuntimeIdentifier", runtimeIdentifier)
+            .Property("ContainerRuntimeIdentifier", containerRuntimeIdentifier);
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerRuntimeIdentifier").Should().Be("linux-x64");
+    }
+
+    [Theory]
+    [InlineData("win-x64",
+        "Invalid ContainerRuntimeIdentifier 'win-x64'. Azure Functions containers only support linux-x64.")]
+    [InlineData("linux-arm64",
+        "Invalid ContainerRuntimeIdentifier 'linux-arm64'. Azure Functions containers only support linux-x64.")]
+    public void Target_ContainerConfig_InvalidComputedRuntimeIdentifierFails(string runtimeIdentifier, string error)
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(GetTempCsproj())
+            .Property("RuntimeIdentifier", runtimeIdentifier);
+
+        project.TryBuild("ComputeContainerBaseImage", null, out _, out BuildOutput output, out _);
+
+        output.Should().BeFailed().And.HaveSingleError().Which.Message.Should().Be(error);
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_PortablePublishOnArm64Fails()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(),
+            globalProperties: new Dictionary<string, string>
+            {
+                ["NETCoreSdkPortableRuntimeIdentifier"] = "linux-arm64",
+            });
+
+        project.TryBuild("ComputeContainerBaseImage", null, out _, out BuildOutput output, out _);
+
+        output.Should().BeFailed().And.HaveSingleError()
+            .Which.Message.Should().Be(
+                "Invalid ContainerRuntimeIdentifier 'linux-arm64'. Azure Functions containers only support linux-x64.");
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_SingleContainerRuntimeIdentifierTakesPrecedence()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(GetTempCsproj())
+            .Property("ContainerRuntimeIdentifier", "linux-x64")
+            .Property("ContainerRuntimeIdentifiers", "linux-x64;linux-arm64");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerRuntimeIdentifier").Should().Be("linux-x64");
+    }
+#endif
+
+    [Theory]
+    [InlineData("ContainerRuntimeIdentifier", "linux-arm64",
+        "Invalid ContainerRuntimeIdentifier 'linux-arm64'. Azure Functions containers only support linux-x64.")]
+    [InlineData("ContainerRuntimeIdentifiers", "linux-x64;linux-arm64",
+        "Multi-architecture containers are not supported. Azure Functions containers only support linux-x64.")]
+    public void Target_ContainerConfig_InvalidRuntimeIdentifierFails(string property, string value, string error)
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(GetTempCsproj())
+            .Property(property, value);
+
+#if NET
+        project.TryBuild("ComputeContainerBaseImage", null, out _, out BuildOutput output, out _);
+#else
+        // The .NET container tasks cannot be hosted by the full-framework in-process test runner.
+        project.TryBuild("ValidateFunctionsContainerRuntimeIdentifier", null, out _, out BuildOutput output, out _);
+#endif
+
+        output.Should().BeFailed().And.HaveSingleError().Which.Message.Should().Be(error);
     }
 
     [Fact]
@@ -249,6 +396,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             globalProperties: new Dictionary<string, string>
             {
                 ["AzureFunctionsSdkVersion"] = string.Empty,
+                ["ContainerRuntimeIdentifier"] = "linux-x64",
             });
 
         ITaskItem[] items = GetContainerConfig(project);

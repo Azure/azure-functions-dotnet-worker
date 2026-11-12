@@ -58,7 +58,13 @@ container. To use the .NET SDK's default containerization for a bring-your-own-c
 The supported values are `HostEmbedded` (the default) and `Standalone`. Any other value produces an
 error during container publishing.
 
-Both modes default `ContainerRuntimeIdentifier` to `linux-x64` and add the container label
+Both modes support only `linux-x64` containers. The .NET SDK uses an explicit
+`ContainerRuntimeIdentifier` if supplied; otherwise it uses `RuntimeIdentifier`, or, for a portable
+publish, a Linux RID matching the SDK's architecture. A `ContainerRuntimeIdentifier` other than
+`linux-x64`, or `ContainerRuntimeIdentifiers` without a single `ContainerRuntimeIdentifier`, produces
+an error. On a non-x64 machine, set `ContainerRuntimeIdentifier` to `linux-x64` for a portable publish.
+
+Both modes also add the container label
 `com.azure.functions.sdk` with `AzureFunctionsSdkVersion`, embedded when the SDK is published or
 packed rather than taken from the application's version. As with other labels, the
 .NET SDK does not add it when `ContainerGenerateLabels` is `false`; labels inherited from the

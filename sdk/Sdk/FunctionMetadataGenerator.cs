@@ -368,7 +368,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                             "Please use an encapsulation to define the bindings in properties. For more information: https://aka.ms/dotnet-worker-poco-binding.");
                     }
 
-                    AddOutputBindingMetadata(bindingMetadata, methodAttribute, methodAttribute.AttributeType, Constants.ReturnBindingName);
+                    TypeReference returnType = GetTaskElementType(method.ReturnType) ?? method.ReturnType;
+                    AddOutputBindingMetadata(bindingMetadata, methodAttribute, returnType, Constants.ReturnBindingName);
                     AddExtensionInfo(_extensions, methodAttribute);
 
                     foundBinding = true;

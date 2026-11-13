@@ -10,7 +10,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
 
-- <entry>
+- Refactored the monolithic `BlobStorageConverter` into per-target-type converters under `TypeConverters/`, mirroring the Tables extension pattern. Behavior is unchanged. (#1512)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
 

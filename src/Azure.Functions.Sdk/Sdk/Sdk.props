@@ -11,6 +11,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
 <Project>
 
+  <Import Project="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Version.props" />
+
   <PropertyGroup>
     <UsingAzureFunctionsSdk>true</UsingAzureFunctionsSdk>
     <_AzureFunctionsExtensionProjectName>azure_functions.g.csproj</_AzureFunctionsExtensionProjectName>

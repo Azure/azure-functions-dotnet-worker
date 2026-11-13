@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -10,6 +10,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Azure.ServiceBus.Grpc;
+using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
@@ -47,6 +48,59 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
             var message = ServiceBusModelFactory.ServiceBusReceivedMessage(lockTokenGuid: Guid.NewGuid(), sessionId: "test");
             var messageActions = new ServiceBusSessionMessageActions(new MockSettlementClient(message.SessionId), message.SessionId, message.LockedUntil);
             await messageActions.RenewSessionLockAsync();
+        }
+
+
+        [Fact]
+        public async Task CanSetNullSessionState()
+        {
+            var mockClient = new Mock<Settlement.SettlementClient>();
+            var message = ServiceBusModelFactory.ServiceBusReceivedMessage(lockTokenGuid: Guid.NewGuid(), sessionId: "test");
+            var messageActions = new ServiceBusSessionMessageActions(mockClient.Object, message.SessionId, message.LockedUntil);
+
+            mockClient
+                .Setup(x => x.SetSessionStateAsync(
+                    It.IsAny<SetSessionStateRequest>(),
+                    It.IsAny<Metadata>(),
+                    It.IsAny<DateTime?>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(new AsyncUnaryCall<Empty>(
+                    Task.FromResult(new Empty()),
+                    Task.FromResult(new Metadata()),
+                    () => Status.DefaultSuccess,
+                    () => new Metadata(),
+                    () => { }));
+
+            await messageActions.SetSessionStateAsync(null);
+
+            mockClient
+                .Verify(x => x.SetSessionStateAsync(
+                    It.Is<SetSessionStateRequest>(r => r.SessionState == ByteString.Empty),
+                    It.IsAny<Metadata>(),
+                    It.IsAny<DateTime?>(),
+                    It.IsAny<CancellationToken>()),
+                    Times.Once);
+        }
+
+        [Fact]
+        public async Task CanGetNullSessionState()
+        {
+            var mockClient = new Mock<Settlement.SettlementClient>();
+
+            mockClient
+                .Setup(x => x.GetSessionStateAsync(
+                    It.IsAny<GetSessionStateRequest>(),
+                    It.IsAny<Metadata>(),
+                    It.IsAny<DateTime?>(),
+                    It.IsAny<CancellationToken>())
+                )
+                .Returns(new AsyncUnaryCall<GetSessionStateResponse>(Task.FromResult(new GetSessionStateResponse() { SessionState = ByteString.Empty }), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { }));
+
+            var message = ServiceBusModelFactory.ServiceBusReceivedMessage(lockTokenGuid: Guid.NewGuid(), sessionId: "test");
+            var messageActions = new ServiceBusSessionMessageActions(settlement: mockClient.Object, sessionId: message.SessionId, sessionLockedUntil: message.LockedUntil);
+
+            var nullState = await messageActions.GetSessionStateAsync();
+            Assert.Null(nullState);
         }
 
         private class MockSettlementClient : Settlement.SettlementClient

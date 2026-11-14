@@ -46,6 +46,55 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
         }
 
         [Fact]
+        public void CosmosTriggerPreservesBatchSettingNameInMetadata()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var typeDef = TypeHelpers.GetTypeDefinition(typeof(CosmosBatchSetting));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var functionName = nameof(CosmosBatchSetting.NamedBatchLimit);
+
+            ValidateFunction(functions.Single(), functionName, GetEntryPoint(nameof(CosmosBatchSetting), functionName),
+                ValidateTrigger);
+
+            void ValidateTrigger(ExpandoObject binding)
+            {
+                var properties = (IDictionary<string, object?>)binding;
+                Assert.Equal("BatchLimit", properties["MaxItemsPerInvocationSetting"]);
+            }
+        }
+
+        [Theory]
+        [InlineData(nameof(CosmosBatchValues.BatchOmitted), null)]
+        [InlineData(nameof(CosmosBatchValues.BatchZero), 0)]
+        [InlineData(nameof(CosmosBatchValues.BatchNegative), -1)]
+        [InlineData(nameof(CosmosBatchValues.BatchPositive), 12)]
+        public void CosmosTriggerPreservesExplicitAndOmittedBatchValues(string functionName, int? expectedBatchLimit)
+        {
+            var generator = new FunctionMetadataGenerator();
+            var typeDef = TypeHelpers.GetTypeDefinition(typeof(CosmosBatchValues));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var function = functions.Single(f => f.Name == functionName);
+
+            ValidateFunction(function, functionName, GetEntryPoint(nameof(CosmosBatchValues), functionName),
+                ValidateTrigger);
+
+            void ValidateTrigger(ExpandoObject binding)
+            {
+                var properties = (IDictionary<string, object?>)binding;
+                Assert.False(properties.ContainsKey("MaxItemsPerInvocationSetting"));
+
+                if (expectedBatchLimit.HasValue)
+                {
+                    Assert.Equal(expectedBatchLimit.Value, properties["MaxItemsPerInvocation"]);
+                }
+                else
+                {
+                    Assert.False(properties.ContainsKey("MaxItemsPerInvocation"));
+                }
+            }
+        }
+
+        [Fact]
         public void BasicHttpFunction()
         {
             var generator = new FunctionMetadataGenerator();
@@ -1561,6 +1610,43 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             [Function(nameof(ServiceBusBatchTriggerFunction))]
             public static void ServiceBusBatchTriggerFunction(
                 [ServiceBusTrigger("queue", IsBatched = true)] ServiceBusReceivedMessage[] messages)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class CosmosBatchSetting
+        {
+            [Function(nameof(NamedBatchLimit))]
+            public void NamedBatchLimit(
+                [CosmosDBTrigger("database", "items", MaxItemsPerInvocationSetting = "BatchLimit")] string[] documents)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class CosmosBatchValues
+        {
+            [Function(nameof(BatchOmitted))]
+            public void BatchOmitted([CosmosDBTrigger("database", "items")] string[] documents)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(BatchZero))]
+            public void BatchZero([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = 0)] string[] documents)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(BatchNegative))]
+            public void BatchNegative([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = -1)] string[] documents)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(BatchPositive))]
+            public void BatchPositive([CosmosDBTrigger("database", "items", MaxItemsPerInvocation = 12)] string[] documents)
             {
                 throw new NotImplementedException();
             }

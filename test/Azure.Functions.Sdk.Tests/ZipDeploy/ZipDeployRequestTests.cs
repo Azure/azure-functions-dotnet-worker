@@ -1,16 +1,13 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Net.Http;
-using System.Text;
+using System.IO.Abstractions.TestingHelpers;
 using AwesomeAssertions.Execution;
 
 namespace Azure.Functions.Sdk.ZipDeploy.Tests;
 
 public sealed class ZipDeployRequestTests
 {
-    private static readonly Stream _content = new MemoryStream();
-
     [Theory]
     [InlineData(null)]
     [InlineData("https://base.uri.test")]
@@ -33,13 +30,15 @@ public sealed class ZipDeployRequestTests
     public void CreateRequestMessage_Expected()
     {
         // arrange
-        ZipDeployRequest request = new("User", "Pass", _content)
+        MockFileSystem fileSystem = new();
+        fileSystem.AddFile("deploy.zip", new MockFileData("zip content"));
+        ZipDeployRequest request = new("User", "Pass", fileSystem.FileInfo.New("deploy.zip"))
         {
             UseBlobContainer = true,
         };
 
         // act
-        HttpRequestMessage message = request.CreateRequestMessage();
+        using HttpRequestMessage message = request.CreateRequestMessage();
 
         // assert
         message.Should().NotBeNull();
@@ -62,7 +61,7 @@ public sealed class ZipDeployRequestTests
     {
         // arrange
         expected = baseUri is null ? expected : new(baseUri, expected);
-        ZipDeployRequest request = new("User", "Pass", _content)
+        ZipDeployRequest request = new("User", "Pass", new MockFileSystem().FileInfo.New("deploy.zip"))
         {
             UseBlobContainer = blob,
         };

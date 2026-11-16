@@ -1,11 +1,14 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 using AwesomeAssertions.Execution;
 using AwesomeAssertions.Specialized;
+using Azure.Functions.Sdk.Tests;
 using Microsoft.Build.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -42,9 +45,8 @@ public sealed class DeploymentClientTests
             Content = CreateStatusContent(DeployStatus.Success)
         });
 
-        using Stream content = new MemoryStream();
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         DeployStatus result = await client.ZipDeployAsync(request, default);
@@ -81,8 +83,7 @@ public sealed class DeploymentClientTests
         });
 
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        using Stream content = new MemoryStream();
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         DeployStatus result = await client.ZipDeployAsync(request, default);
@@ -117,8 +118,7 @@ public sealed class DeploymentClientTests
         });
 
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        using Stream content = new MemoryStream();
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         DeployStatus result = await client.ZipDeployAsync(request, default);
@@ -126,6 +126,33 @@ public sealed class DeploymentClientTests
         // Assert
         result.Should().Be(DeployStatus.Success);
         pollCount.Should().Be(3, "Should have polled 3 times before completion");
+    }
+
+    [Fact]
+    public async Task ZipDeployAsync_ReleasesUploadBeforePolling()
+    {
+        using TempDirectory directory = new();
+        string path = Path.Combine(directory.Path, "deploy.zip");
+        File.WriteAllBytes(path, [1, 2, 3]);
+        using MockHttpMessageHandler handler = new(req =>
+        {
+            if (req.Method == HttpMethod.Post)
+            {
+                return CreateResponseWithLocation(
+                    HttpStatusCode.Accepted, TestLocationUri, CreateStatusContent(DeployStatus.Pending));
+            }
+
+            using FileStream exclusive = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = CreateStatusContent(DeployStatus.Success),
+            };
+        });
+        DeploymentClient client = CreateDeploymentClient(handler);
+
+        DeployStatus result = await client.ZipDeployAsync(new("User", "Pass", new FileSystem().FileInfo.New(path)), default);
+
+        result.Should().Be(DeployStatus.Success);
     }
 
     [Fact]
@@ -149,8 +176,7 @@ public sealed class DeploymentClientTests
         });
 
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        using Stream content = new MemoryStream();
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         Func<Task> act = () => client.ZipDeployAsync(request, cts.Token);
@@ -170,8 +196,7 @@ public sealed class DeploymentClientTests
 
         using HttpClient httpClient = new(handler) { BaseAddress = TestBaseUri };
         DeploymentClient client = new(httpClient);
-        using Stream content = new MemoryStream();
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         Func<Task> act = () => client.ZipDeployAsync(request, default);
@@ -365,9 +390,8 @@ public sealed class DeploymentClientTests
             };
         });
 
-        using Stream content = new MemoryStream();
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         DeployStatus result = await client.ZipDeployAsync(request, default);
@@ -400,9 +424,8 @@ public sealed class DeploymentClientTests
             };
         });
 
-        using Stream content = new MemoryStream();
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         Func<Task> act = () => client.ZipDeployAsync(request, default);
@@ -439,11 +462,9 @@ public sealed class DeploymentClientTests
             };
         });
 
-        using Stream content = new MemoryStream();
-
         // Pass null logger to ensure no logging issues
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         DeployStatus result = await client.ZipDeployAsync(request, default);
@@ -479,8 +500,7 @@ public sealed class DeploymentClientTests
         });
 
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        using Stream content = new MemoryStream();
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         await client.ZipDeployAsync(request, default);
@@ -517,10 +537,8 @@ public sealed class DeploymentClientTests
         });
 
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        using Stream content = new MemoryStream();
-
         // Use the well-known GUID as username to trigger Bearer auth (see ZipDeployRequest.AddAuthenticationHeader)
-        ZipDeployRequest request = new("00000000-0000-0000-0000-000000000000", "token-value", content);
+        ZipDeployRequest request = CreateZipDeployRequest("00000000-0000-0000-0000-000000000000", "token-value");
 
         // Act
         await client.ZipDeployAsync(request, default);
@@ -569,8 +587,7 @@ public sealed class DeploymentClientTests
         });
 
         DeploymentClient client = CreateDeploymentClient(handler, null);
-        using Stream content = new MemoryStream();
-        ZipDeployRequest request = new("User", "Pass", content);
+        ZipDeployRequest request = CreateZipDeployRequest();
 
         // Act
         await client.ZipDeployAsync(request, default);
@@ -587,6 +604,13 @@ public sealed class DeploymentClientTests
     #endregion
 
     #region Helpers
+
+    private static ZipDeployRequest CreateZipDeployRequest(string userName = "User", string password = "Pass")
+    {
+        MockFileSystem fileSystem = new();
+        fileSystem.AddFile("deploy.zip", new MockFileData("zip content"));
+        return new(userName, password, fileSystem.FileInfo.New("deploy.zip"));
+    }
 
     private static StringContent CreateStatusContent(DeployStatus status, string? text = null)
     {

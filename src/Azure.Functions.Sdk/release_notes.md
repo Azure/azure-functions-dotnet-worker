@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Azure.Functions.Sdk 1.1.0
+### Azure.Functions.Sdk <Version>
 
-- Support standalone container publishing with `FunctionsContainerMode`, while keeping host-embedded images as the default. Standalone container images omit `worker.config.json`.
+- Fix Visual Studio zip deployments failing when the deployment endpoint returns an empty response. (#3539)

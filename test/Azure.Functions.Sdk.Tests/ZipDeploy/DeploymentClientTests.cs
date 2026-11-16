@@ -54,11 +54,13 @@ public sealed class DeploymentClientTests
     }
 
     [Theory]
-    [InlineData(DeployStatus.Success)]
-    [InlineData(DeployStatus.Failed)]
-    [InlineData(DeployStatus.PartialSuccess)]
-    [InlineData(DeployStatus.Conflict)]
-    public async Task ZipDeployAsync_WithLocationHeader_PollsAndReturnsStatus(DeployStatus expectedStatus)
+    [InlineData(DeployStatus.Success, false)]
+    [InlineData(DeployStatus.Failed, false)]
+    [InlineData(DeployStatus.PartialSuccess, false)]
+    [InlineData(DeployStatus.Conflict, false)]
+    [InlineData(DeployStatus.Success, true)]
+    public async Task ZipDeployAsync_WithLocationHeader_PollsAndReturnsStatus(
+        DeployStatus expectedStatus, bool emptyContent)
     {
         // Arrange
         int pollCount = 0;
@@ -69,7 +71,7 @@ public sealed class DeploymentClientTests
                 return CreateResponseWithLocation(
                     HttpStatusCode.Accepted,
                     TestLocationUri,
-                    CreateStatusContent(DeployStatus.Pending));
+                    emptyContent ? new StringContent(string.Empty) : CreateStatusContent(DeployStatus.Pending));
             }
 
             // Simulate polling - return expected status on first poll
@@ -281,6 +283,77 @@ public sealed class DeploymentClientTests
             result.Status.Should().Be(DeployStatus.Unknown);
             result.Text.Should().BeEmpty();
         }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StatusResult_ParseAsync_EmptyContent_ReturnsDefault(bool explicitContent)
+    {
+        using HttpResponseMessage response = new(HttpStatusCode.Accepted)
+        {
+            Content = explicitContent ? new StringContent(string.Empty) : null
+        };
+
+        DeploymentClient.StatusResult result = await DeploymentClient.StatusResult.ParseAsync(
+            response, default);
+
+        result.Should().BeSameAs(DeploymentClient.StatusResult.Default);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StatusResult_ParseAsync_FailedResponseWithEmptyContent_ThrowsDeploymentException(
+        bool explicitContent)
+    {
+        using HttpResponseMessage response = new(HttpStatusCode.BadRequest)
+        {
+            Content = explicitContent ? new StringContent(string.Empty) : null
+        };
+
+        Func<Task> act = () => DeploymentClient.StatusResult.ParseAsync(response, default);
+
+        (await act.Should().ThrowExactlyAsync<DeploymentException>())
+            .WithMessage("*unknown error*")
+            .Where(e => e.StatusCode == HttpStatusCode.BadRequest)
+            .Where(e => e.DeployStatus == DeployStatus.Unknown)
+            .WithInnerException<HttpRequestException>();
+    }
+
+    [Theory]
+    [InlineData("invalid json")]
+    [InlineData("<html>Bad Gateway</html>")]
+    public async Task StatusResult_ParseAsync_FailedResponseWithMalformedContent_ThrowsDeploymentException(
+        string content)
+    {
+        using HttpResponseMessage response = new(HttpStatusCode.BadGateway)
+        {
+            Content = new StringContent(content, Encoding.UTF8, "application/json")
+        };
+
+        Func<Task> act = () => DeploymentClient.StatusResult.ParseAsync(response, default);
+
+        (await act.Should().ThrowExactlyAsync<DeploymentException>())
+            .WithMessage("*unknown error*")
+            .Where(e => e.StatusCode == HttpStatusCode.BadGateway)
+            .Where(e => e.DeployStatus == DeployStatus.Unknown)
+            .WithInnerException<HttpRequestException>();
+    }
+
+    [Theory]
+    [InlineData("invalid json")]
+    [InlineData(" ")]
+    public async Task StatusResult_ParseAsync_InvalidJson_ThrowsJsonException(string content)
+    {
+        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        {
+            Content = new StringContent(content, Encoding.UTF8, "application/json")
+        };
+
+        Func<Task> act = () => DeploymentClient.StatusResult.ParseAsync(response, default);
+
+        await act.Should().ThrowAsync<JsonException>();
     }
 
     [Fact]

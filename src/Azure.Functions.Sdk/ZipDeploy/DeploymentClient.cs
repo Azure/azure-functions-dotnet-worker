@@ -112,7 +112,15 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
 
         public static async Task<StatusResult> ParseAsync(HttpResponseMessage response, CancellationToken cancellation)
         {
-            StatusResult result = await ParseResponseAsync(response, cancellation);
+            StatusResult result;
+            try
+            {
+                result = await ParseResponseAsync(response, cancellation);
+            }
+            catch (JsonException) when (!response.IsSuccessStatusCode)
+            {
+                result = Default;
+            }
 
             try
             {
@@ -141,7 +149,7 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
         private static async Task<StatusResult> ParseResponseAsync(
             HttpResponseMessage response, CancellationToken cancellation)
         {
-            if (response.Content is null)
+            if (response.Content is null || response.Content.Headers.ContentLength == 0)
             {
                 return Default;
             }

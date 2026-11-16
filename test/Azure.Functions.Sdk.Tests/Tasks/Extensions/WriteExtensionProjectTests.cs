@@ -11,6 +11,7 @@ namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 public sealed class WriteExtensionProjectTests
 {
     private const string TargetFramework = "net8.0";
+    private const string SdkPackageVersion = "1.1.0";
     private const string ProjectPath = $"test_{TargetFramework}/output.g.csproj";
     private const string HashPath = $"test_{TargetFramework}/output.g.csproj.hash";
     private readonly Mock<IBuildEngine> _buildEngine = new();
@@ -165,6 +166,21 @@ public sealed class WriteExtensionProjectTests
     }
 
     [Fact]
+    public void SdkVersionChanges_RegeneratesProjectWithPrereleaseVersion()
+    {
+        WriteExtensionProject task = CreateTask();
+        task.SdkPackageVersion = "1.0.0";
+        task.Execute().Should().BeTrue();
+        string originalHash = _fileSystem.File.ReadAllText(HashPath);
+
+        task.SdkPackageVersion = "1.0.0-preview.1";
+        task.Execute().Should().BeTrue();
+
+        _fileSystem.File.ReadAllText(HashPath).Should().NotBe(originalHash);
+        ValidateProject(_fileSystem.File.ReadAllText(ProjectPath), [], "1.0.0-preview.1");
+    }
+
+    [Fact]
     public void MultiTarget_GeneratesMultipleProjects()
     {
         // Arrange
@@ -202,14 +218,14 @@ public sealed class WriteExtensionProjectTests
         }
     }
 
-    private static void ValidateProject(string content, TaskItem[] packages)
+    private static void ValidateProject(string content, TaskItem[] packages, string? sdkVersion = null)
     {
         XmlDocument doc = new();
         Action act = () => doc.LoadXml(content);
         act.Should().NotThrow();
 
         doc.DocumentElement.Should().NotBeNull()
-            .And.HaveAttribute("Sdk", ThisAssembly.Name);
+            .And.HaveAttribute("Sdk", $"{ThisAssembly.Name}/{sdkVersion ?? SdkPackageVersion}");
 
         doc.SelectNodes("/Project/PropertyGroup")!.Count.Should().Be(0);
 
@@ -242,7 +258,8 @@ public sealed class WriteExtensionProjectTests
         {
             BuildEngine = _buildEngine.Object,
             Projects = [CreateProject(TargetFramework)],
-            Packages = packages ?? []
+            Packages = packages ?? [],
+            SdkPackageVersion = SdkPackageVersion
         };
     }
 }

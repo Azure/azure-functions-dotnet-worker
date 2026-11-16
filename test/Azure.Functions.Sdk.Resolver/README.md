@@ -2,6 +2,8 @@
 
 This project scaffolds out a custom `Microsoft.Build.Framework.SdkResolver` which will automatically resolve the `Azure.Functions.Sdk/99.99.99` SDK for integration testing.
 
+The resolver also injects `AzureFunctionsSdkVersion=99.99.99`, so generated extension projects use the same version as the resolver.
+
 To use this, you must scaffold out the contents as follows:
 
 ```

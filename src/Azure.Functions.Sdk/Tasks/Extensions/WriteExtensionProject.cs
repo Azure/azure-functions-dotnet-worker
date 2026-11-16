@@ -51,6 +51,9 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
     [Required]
     public ITaskItem[] Projects { get; set; } = [];
 
+    [Required]
+    public string SdkPackageVersion { get; set; } = string.Empty;
+
     public override bool Execute()
     {
         static bool IsTfmMatch(NuGetFramework left, string right)
@@ -105,8 +108,7 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
                 writer.WriteComment(string.Format(CultureInfo.InvariantCulture, Disclaimer, _time.GetUtcNow(), hash));
                 writer.WriteStartElement("Project");
 
-                // Omit version so the outer projects version is implicitly used.
-                writer.WriteAttributeString("Sdk", ThisAssembly.Name);
+                writer.WriteAttributeString("Sdk", $"{ThisAssembly.Name}/{SdkPackageVersion}");
 
                 if (packages.Any())
                 {
@@ -176,6 +178,7 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
     /// <remarks>
     /// The hash calculation uses the following as input:
     /// - The tooling generating the hash itself (so any change to tooling forces a project update).
+    /// - The SDK package version used by the generated project.
     /// - The list of extension packages (identity and version).
     /// </remarks>
     private string CalculateHash(IEnumerable<ITaskItem> packages)
@@ -186,6 +189,7 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
         // Verify if the tooling has changed.
         hash.WriteNameValue("version", ThisAssembly.Version.ToString());
         hash.WriteNameValue("moduleId", ThisAssembly.ModuleVersionId);
+        hash.WriteNameValue("sdkPackageVersion", SdkPackageVersion);
 
         hash.WriteArrayStart("packages");
         foreach (ITaskItem item in packages)

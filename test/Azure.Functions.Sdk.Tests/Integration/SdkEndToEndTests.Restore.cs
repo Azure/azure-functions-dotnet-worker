@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Xml;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
 using NuGet.ProjectModel;
 
@@ -24,6 +26,34 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         // Assert
         output.Should().BeSuccessful().And.HaveNoIssues();
         ValidateProject([]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GeneratedProject_DirectBuild_ReportsWarning(bool useGlobalJson)
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(GetTempCsproj());
+        if (useGlobalJson)
+        {
+            File.WriteAllText(Path.Combine(TestRootPath, "global.json"),
+                """{"msbuild-sdks":{"Azure.Functions.Sdk":"99.99.99"}}""");
+            project.RootElement.Sdk = "Azure.Functions.Sdk";
+        }
+
+        project.Restore().Should().BeSuccessful().And.HaveNoIssues();
+        ValidateProject([]);
+        GeneratedProject generated = GeneratedProject.Create(TestRootPath, null);
+
+        List<BuildWarningEventArgs> warnings = [];
+        Mock<ILogger> logger = new();
+        logger.Setup(x => x.Initialize(It.IsAny<IEventSource>()))
+            .Callback<IEventSource>(events => events.WarningRaised += (_, e) => warnings.Add(e));
+        using ProjectCollection collection = new();
+        Project inner = collection.LoadProject(generated.ProjectPath);
+
+        inner.Build("Build", [logger.Object]).Should().BeTrue();
+        warnings.Should().ContainSingle().Which.Code.Should().Be("AZFW0109");
     }
 
     [Theory]
@@ -204,7 +234,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         act.Should().NotThrow();
 
         doc.DocumentElement.Should().NotBeNull()
-            .And.HaveAttribute("Sdk", ThisAssembly.Name);
+            .And.HaveAttribute("Sdk", $"{ThisAssembly.Name}/99.99.99");
 
         doc.SelectNodes("/Project/PropertyGroup")!.Count.Should().Be(0);
 

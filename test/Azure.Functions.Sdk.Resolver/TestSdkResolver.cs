@@ -7,8 +7,16 @@ namespace Azure.Functions.Sdk.Resolver;
 
 public class TestSdkResolver : SdkResolver
 {
+    private const string TestVersion = "99.99.99";
+
     private static readonly string SdkPath = Path.Combine(
         Path.GetDirectoryName(GetAssemblyLocation()), "sdk");
+
+    // Evaluated before Sdk.props, so the SDK reports the same version this resolver does.
+    private static readonly Dictionary<string, string> SdkProperties = new()
+    {
+        ["AzureFunctionsSdkVersion"] = TestVersion,
+    };
 
     public override string Name => "Test Azure Functions SDK Resolver";
 
@@ -18,7 +26,7 @@ public class TestSdkResolver : SdkResolver
     {
         if (sdkReference.Name == "Azure.Functions.Sdk")
         {
-            return factory.IndicateSuccess(SdkPath, "99.99.99"); // test version.
+            return factory.IndicateSuccess(SdkPath, TestVersion, SdkProperties, itemsToAdd: null);
         }
 
         return factory.IndicateFailure([]);

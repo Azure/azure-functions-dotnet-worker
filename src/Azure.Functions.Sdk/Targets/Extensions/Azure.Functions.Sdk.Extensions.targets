@@ -77,7 +77,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <ValidateExtensionPackages ExtensionPackages="@(_AzureFunctionPackageReference)">
       <Output TaskParameter="FilteredPackages" ItemName="_ValidatedAzureFunctionPackageReference" />
     </ValidateExtensionPackages>
-    <WriteExtensionProject Projects="@(_AzureFunctionsTargetFramework)" Packages="@(_ValidatedAzureFunctionPackageReference)" />
+    <WriteExtensionProject Projects="@(_AzureFunctionsTargetFramework)" Packages="@(_ValidatedAzureFunctionPackageReference)"
+      SdkPackageVersion="$(AzureFunctionsSdkVersion)" />
   </Target>
 
   <!--

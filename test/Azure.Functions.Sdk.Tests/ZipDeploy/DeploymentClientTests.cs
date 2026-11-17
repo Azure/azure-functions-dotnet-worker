@@ -301,6 +301,87 @@ public sealed class DeploymentClientTests
         result.Should().BeSameAs(DeploymentClient.StatusResult.Default);
     }
 
+    [Fact]
+    public async Task StatusResult_ParseAsync_ZeroContentLength_DoesNotReadContent()
+    {
+        Mock<Stream> stream = new() { CallBase = true };
+        stream.SetupGet(s => s.CanRead).Returns(true);
+        stream.Setup(s => s.ReadAsync(
+            It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Throws<InvalidOperationException>();
+        using HttpResponseMessage response = new(HttpStatusCode.Accepted)
+        {
+            Content = new StreamContent(stream.Object)
+        };
+        response.Content.Headers.ContentLength = 0;
+
+        DeploymentClient.StatusResult result = await DeploymentClient.StatusResult.ParseAsync(
+            response, default);
+
+        result.Should().BeSameAs(DeploymentClient.StatusResult.Default);
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    [InlineData(null, true)]
+    [InlineData("", true)]
+    public async Task StatusResult_ParseAsync_UnknownContentLength_UsesResponseBody(
+        string? contentLength, bool hasContent)
+    {
+        string text = hasContent ? "Deployment succeeded" : string.Empty;
+        string content = hasContent
+            ? JsonSerializer.Serialize(new { status = (int)DeployStatus.Success, status_text = text })
+            : string.Empty;
+        Mock<MemoryStream> stream = new(Encoding.UTF8.GetBytes(content)) { CallBase = true };
+        stream.SetupGet(s => s.CanSeek).Returns(false);
+        stream.SetupGet(s => s.Length).Throws<NotSupportedException>();
+        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        {
+            Content = new StreamContent(stream.Object)
+        };
+        if (contentLength is not null)
+        {
+            response.Content.Headers.TryAddWithoutValidation("Content-Length", contentLength).Should().BeTrue();
+        }
+
+        response.Content.Headers.ContentLength.Should().BeNull();
+
+        DeploymentClient.StatusResult result = await DeploymentClient.StatusResult.ParseAsync(
+            response, default);
+
+        using (new AssertionScope())
+        {
+            result.Status.Should().Be(hasContent ? DeployStatus.Success : DeployStatus.Unknown);
+            result.Text.Should().Be(text);
+        }
+    }
+
+    [Fact]
+    public async Task StatusResult_ParseAsync_CanceledWhileReading_ThrowsOperationCanceledException()
+    {
+        using CancellationTokenSource cts = new();
+        Mock<Stream> stream = new() { CallBase = true };
+        stream.SetupGet(s => s.CanRead).Returns(true);
+        stream.Setup(s => s.ReadAsync(
+            It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Returns((byte[] buffer, int offset, int count, CancellationToken cancellation) =>
+            {
+                cts.Cancel();
+                return cancellation.IsCancellationRequested
+                    ? Task.FromCanceled<int>(cancellation)
+                    : Task.FromResult(0);
+            });
+        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        {
+            Content = new StreamContent(stream.Object)
+        };
+
+        Func<Task> act = () => DeploymentClient.StatusResult.ParseAsync(response, cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

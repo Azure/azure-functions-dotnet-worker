@@ -56,11 +56,13 @@ public sealed class DeploymentClientTests
     }
 
     [Theory]
-    [InlineData(DeployStatus.Success)]
-    [InlineData(DeployStatus.Failed)]
-    [InlineData(DeployStatus.PartialSuccess)]
-    [InlineData(DeployStatus.Conflict)]
-    public async Task ZipDeployAsync_WithLocationHeader_PollsAndReturnsStatus(DeployStatus expectedStatus)
+    [InlineData(DeployStatus.Success, false)]
+    [InlineData(DeployStatus.Failed, false)]
+    [InlineData(DeployStatus.PartialSuccess, false)]
+    [InlineData(DeployStatus.Conflict, false)]
+    [InlineData(DeployStatus.Success, true)]
+    public async Task ZipDeployAsync_WithLocationHeader_PollsAndReturnsStatus(
+        DeployStatus expectedStatus, bool emptyContent)
     {
         // Arrange
         int pollCount = 0;
@@ -71,7 +73,7 @@ public sealed class DeploymentClientTests
                 return CreateResponseWithLocation(
                     HttpStatusCode.Accepted,
                     TestLocationUri,
-                    CreateStatusContent(DeployStatus.Pending));
+                    emptyContent ? new StringContent(string.Empty) : CreateStatusContent(DeployStatus.Pending));
             }
 
             // Simulate polling - return expected status on first poll
@@ -306,6 +308,158 @@ public sealed class DeploymentClientTests
             result.Status.Should().Be(DeployStatus.Unknown);
             result.Text.Should().BeEmpty();
         }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StatusResult_ParseAsync_EmptyContent_ReturnsDefault(bool explicitContent)
+    {
+        using HttpResponseMessage response = new(HttpStatusCode.Accepted)
+        {
+            Content = explicitContent ? new StringContent(string.Empty) : null
+        };
+
+        DeploymentClient.StatusResult result = await DeploymentClient.StatusResult.ParseAsync(
+            response, default);
+
+        result.Should().BeSameAs(DeploymentClient.StatusResult.Default);
+    }
+
+    [Fact]
+    public async Task StatusResult_ParseAsync_ZeroContentLength_DoesNotReadContent()
+    {
+        Mock<Stream> stream = new() { CallBase = true };
+        stream.SetupGet(s => s.CanRead).Returns(true);
+        stream.Setup(s => s.ReadAsync(
+            It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Throws<InvalidOperationException>();
+        using HttpResponseMessage response = new(HttpStatusCode.Accepted)
+        {
+            Content = new StreamContent(stream.Object)
+        };
+        response.Content.Headers.ContentLength = 0;
+
+        DeploymentClient.StatusResult result = await DeploymentClient.StatusResult.ParseAsync(
+            response, default);
+
+        result.Should().BeSameAs(DeploymentClient.StatusResult.Default);
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    [InlineData(null, true)]
+    [InlineData("", true)]
+    public async Task StatusResult_ParseAsync_UnknownContentLength_UsesResponseBody(
+        string? contentLength, bool hasContent)
+    {
+        string text = hasContent ? "Deployment succeeded" : string.Empty;
+        string content = hasContent
+            ? JsonSerializer.Serialize(new { status = (int)DeployStatus.Success, status_text = text })
+            : string.Empty;
+        Mock<MemoryStream> stream = new(Encoding.UTF8.GetBytes(content)) { CallBase = true };
+        stream.SetupGet(s => s.CanSeek).Returns(false);
+        stream.SetupGet(s => s.Length).Throws<NotSupportedException>();
+        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        {
+            Content = new StreamContent(stream.Object)
+        };
+        if (contentLength is not null)
+        {
+            response.Content.Headers.TryAddWithoutValidation("Content-Length", contentLength).Should().BeTrue();
+        }
+
+        response.Content.Headers.ContentLength.Should().BeNull();
+
+        DeploymentClient.StatusResult result = await DeploymentClient.StatusResult.ParseAsync(
+            response, default);
+
+        using (new AssertionScope())
+        {
+            result.Status.Should().Be(hasContent ? DeployStatus.Success : DeployStatus.Unknown);
+            result.Text.Should().Be(text);
+        }
+    }
+
+    [Fact]
+    public async Task StatusResult_ParseAsync_CanceledWhileReading_ThrowsOperationCanceledException()
+    {
+        using CancellationTokenSource cts = new();
+        Mock<Stream> stream = new() { CallBase = true };
+        stream.SetupGet(s => s.CanRead).Returns(true);
+        stream.Setup(s => s.ReadAsync(
+            It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Returns((byte[] buffer, int offset, int count, CancellationToken cancellation) =>
+            {
+                cts.Cancel();
+                return cancellation.IsCancellationRequested
+                    ? Task.FromCanceled<int>(cancellation)
+                    : Task.FromResult(0);
+            });
+        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        {
+            Content = new StreamContent(stream.Object)
+        };
+
+        Func<Task> act = () => DeploymentClient.StatusResult.ParseAsync(response, cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StatusResult_ParseAsync_FailedResponseWithEmptyContent_ThrowsDeploymentException(
+        bool explicitContent)
+    {
+        using HttpResponseMessage response = new(HttpStatusCode.BadRequest)
+        {
+            Content = explicitContent ? new StringContent(string.Empty) : null
+        };
+
+        Func<Task> act = () => DeploymentClient.StatusResult.ParseAsync(response, default);
+
+        (await act.Should().ThrowExactlyAsync<DeploymentException>())
+            .WithMessage("*unknown error*")
+            .Where(e => e.StatusCode == HttpStatusCode.BadRequest)
+            .Where(e => e.DeployStatus == DeployStatus.Unknown)
+            .WithInnerException<HttpRequestException>();
+    }
+
+    [Theory]
+    [InlineData("invalid json")]
+    [InlineData("<html>Bad Gateway</html>")]
+    public async Task StatusResult_ParseAsync_FailedResponseWithMalformedContent_ThrowsDeploymentException(
+        string content)
+    {
+        using HttpResponseMessage response = new(HttpStatusCode.BadGateway)
+        {
+            Content = new StringContent(content, Encoding.UTF8, "application/json")
+        };
+
+        Func<Task> act = () => DeploymentClient.StatusResult.ParseAsync(response, default);
+
+        (await act.Should().ThrowExactlyAsync<DeploymentException>())
+            .WithMessage("*unknown error*")
+            .Where(e => e.StatusCode == HttpStatusCode.BadGateway)
+            .Where(e => e.DeployStatus == DeployStatus.Unknown)
+            .WithInnerException<HttpRequestException>();
+    }
+
+    [Theory]
+    [InlineData("invalid json")]
+    [InlineData(" ")]
+    public async Task StatusResult_ParseAsync_InvalidJson_ThrowsJsonException(string content)
+    {
+        using HttpResponseMessage response = new(HttpStatusCode.OK)
+        {
+            Content = new StringContent(content, Encoding.UTF8, "application/json")
+        };
+
+        Func<Task> act = () => DeploymentClient.StatusResult.ParseAsync(response, default);
+
+        await act.Should().ThrowAsync<JsonException>();
     }
 
     [Fact]

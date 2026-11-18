@@ -112,7 +112,15 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
 
         public static async Task<StatusResult> ParseAsync(HttpResponseMessage response, CancellationToken cancellation)
         {
-            StatusResult result = await ParseResponseAsync(response, cancellation);
+            StatusResult result;
+            try
+            {
+                result = await ParseResponseAsync(response, cancellation);
+            }
+            catch (JsonException) when (!response.IsSuccessStatusCode)
+            {
+                result = Default;
+            }
 
             try
             {
@@ -141,14 +149,88 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
         private static async Task<StatusResult> ParseResponseAsync(
             HttpResponseMessage response, CancellationToken cancellation)
         {
-            if (response.Content is null)
+            if (response.Content is null || response.Content.Headers.ContentLength is 0)
             {
                 return Default;
             }
 
-            using Stream stream = await response.Content.ReadAsStreamAsync();
+            using Stream content = await response.Content.ReadAsStreamAsync();
+
+            // First test if there is any content at all.
+            byte[] first = new byte[1];
+            if (await content.ReadAsync(first, 0, 1, cancellation) == 0)
+            {
+                return Default;
+            }
+
+            using PrefixedStream stream = new(first[0], content);
             return await JsonSerializer.DeserializeAsync<StatusResult>(stream, cancellationToken: cancellation)
                 ?? Default;
+        }
+    }
+
+    /// <summary>
+    /// A read-only stream that yields a single already-consumed byte before reading from the inner stream.
+    /// </summary>
+    private sealed class PrefixedStream(byte prefix, Stream inner) : Stream
+    {
+        private bool _prefixRead;
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (TryReadPrefix(buffer, offset, count))
+            {
+                return 1;
+            }
+
+            return inner.Read(buffer, offset, count);
+        }
+
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (TryReadPrefix(buffer, offset, count))
+            {
+                return Task.FromResult(1);
+            }
+
+            return inner.ReadAsync(buffer, offset, count, cancellationToken);
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        private bool TryReadPrefix(byte[] buffer, int offset, int count)
+        {
+            if (_prefixRead || count == 0)
+            {
+                return false;
+            }
+
+            buffer[offset] = prefix;
+            _prefixRead = true;
+            return true;
         }
     }
 }

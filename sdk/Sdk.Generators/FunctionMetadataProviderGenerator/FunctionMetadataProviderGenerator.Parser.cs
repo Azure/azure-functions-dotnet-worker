@@ -170,6 +170,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         return false;
                     }
 
+                    // Determine DataType from the method's actual return type for output bindings
+                    ITypeSymbol? returnTypeSymbol = method.ReturnType;
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol?.OriginalDefinition, _knownTypes.TaskOfTType)
+                        && returnTypeSymbol is INamedTypeSymbol namedReturnType
+                        && namedReturnType.IsGenericType)
+                    {
+                        returnTypeSymbol = namedReturnType.TypeArguments.FirstOrDefault();
+                    }
+
+                    if (returnTypeSymbol != null)
+                    {
+                        DataType dataType = _dataTypeParser.GetDataType(returnTypeSymbol);
+                        if (dataType is not DataType.Undefined)
+                        {
+                            bindings!["dataType"] = Enum.GetName(typeof(DataType), dataType);
+                        }
+                    }
+
                     bindingsList = new List<IDictionary<string, object>>(capacity: 1)
                     {
                         bindings!

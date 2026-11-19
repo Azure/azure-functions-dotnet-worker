@@ -3,10 +3,17 @@
 
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.TypeConverters;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [InputConverter(typeof(BlobStorageConverter))]
+    [InputConverter(typeof(BlobContainerClientConverter))]
+    [InputConverter(typeof(BlobClientConverter))]
+    [InputConverter(typeof(BlobStringConverter))]
+    [InputConverter(typeof(BlobStreamConverter))]
+    [InputConverter(typeof(BlobByteArrayConverter))]
+    [InputConverter(typeof(BlobCollectionConverter))]
+    [InputConverter(typeof(BlobPocoConverter))]
     [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     public sealed class BlobInputAttribute : InputBindingAttribute
     {

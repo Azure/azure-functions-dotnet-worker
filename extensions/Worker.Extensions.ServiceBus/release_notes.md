@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus <version>
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.24.0
 
-- <entry>
+- Added 'null' support in SetSessionState and GetSessionState methods (#2548)

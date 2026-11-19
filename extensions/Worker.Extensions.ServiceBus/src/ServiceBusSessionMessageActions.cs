@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker
         public virtual DateTimeOffset SessionLockedUntil { get; protected set; }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
-        public virtual async Task<BinaryData> GetSessionStateAsync(
+        public virtual async Task<BinaryData?> GetSessionStateAsync(
             CancellationToken cancellationToken = default)
         {
             var request = new GetSessionStateRequest()
@@ -52,19 +52,25 @@ namespace Microsoft.Azure.Functions.Worker
             };
 
             GetSessionStateResponse result = await _settlement.GetSessionStateAsync(request, cancellationToken: cancellationToken);
-            BinaryData binaryData = new BinaryData(result.SessionState.Memory);
-            return binaryData;
+
+            if (result.SessionState is null || result.SessionState.IsEmpty)
+            {
+                return null;
+            }
+
+            return new BinaryData(result.SessionState.Memory);
         }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
         public virtual async Task SetSessionStateAsync(
-            BinaryData sessionState,
+            BinaryData? sessionState,
             CancellationToken cancellationToken = default)
+
         {
             var request = new SetSessionStateRequest()
             {
                 SessionId = _sessionId,
-                SessionState = ByteString.CopyFrom(sessionState.ToMemory().Span),
+                SessionState = sessionState is null ? ByteString.Empty : ByteString.CopyFrom(sessionState.ToMemory().Span),
             };
 
             await _settlement.SetSessionStateAsync(request, cancellationToken: cancellationToken);

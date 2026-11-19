@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
         {
             try
             {
-                var attributes = new List<KeyValuePair<string, object>>(capacity: 10)
+                var attributes = new List<KeyValuePair<string, object>>(capacity: 13)
                 {
                     new(ResourceSemanticConventions.AISDKPrefix, $"{OpenTelemetryConstants.SDKPrefix}:{AssemblyVersion}"),
                     new(ResourceSemanticConventions.ProcessId, Process.GetCurrentProcess().Id)
@@ -55,7 +55,25 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                         attributes.Add(new(ResourceSemanticConventions.CloudRegion, region));
                     }
 
-                    if (GetAzureResourceUri(siteName!) is { } uri)
+                    var subscriptionId = GetSubscriptionId();
+                    var resourceGroup = Environment.GetEnvironmentVariable(OpenTelemetryConstants.ResourceGroupEnvVar);
+
+                    if (subscriptionId is { Length: > 0 } && !IsResourceAttributeConfigured(ResourceSemanticConventions.CloudAccountId, resourceAttributes))
+                    {
+                        attributes.Add(new(ResourceSemanticConventions.CloudAccountId, subscriptionId));
+                    }
+
+                    if (resourceGroup is { Length: > 0 } && !IsResourceAttributeConfigured(ResourceSemanticConventions.AzureResourceGroupName, resourceAttributes))
+                    {
+                        attributes.Add(new(ResourceSemanticConventions.AzureResourceGroupName, resourceGroup));
+                    }
+
+                    if (GetInstanceId() is { Length: > 0 } instanceId && !IsResourceAttributeConfigured(ResourceSemanticConventions.FaasInstance, resourceAttributes))
+                    {
+                        attributes.Add(new(ResourceSemanticConventions.FaasInstance, instanceId));
+                    }
+
+                    if (GetAzureResourceUri(siteName!, resourceGroup, subscriptionId) is { } uri)
                     {
                         attributes.Add(new(ResourceSemanticConventions.CloudResourceId, uri));
                     }
@@ -130,12 +148,10 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
             return false;
         }
 
-        private static string? GetAzureResourceUri(string siteName)
+        private static string? GetSubscriptionId()
         {
-            var resourceGroup = Environment.GetEnvironmentVariable(OpenTelemetryConstants.ResourceGroupEnvVar);
             var owner = Environment.GetEnvironmentVariable(OpenTelemetryConstants.OwnerNameEnvVar);
-
-            if (string.IsNullOrEmpty(resourceGroup) || string.IsNullOrEmpty(owner))
+            if (string.IsNullOrEmpty(owner))
             {
                 return null;
             }
@@ -144,9 +160,33 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
             var span = owner.AsSpan();
             var plusIndex = span.IndexOf('+');
 
-            var subscriptionId = plusIndex > 0
+            return plusIndex > 0
                 ? span[..plusIndex].ToString()
                 : owner;
+        }
+
+        private static string? GetInstanceId()
+        {
+            if (Environment.GetEnvironmentVariable(OpenTelemetryConstants.InstanceIdEnvVar) is { Length: > 0 } instanceId)
+            {
+                return instanceId;
+            }
+
+            // Linux Consumption and Flex Consumption can expose a pod or container name instead.
+            if (Environment.GetEnvironmentVariable(OpenTelemetryConstants.PodNameEnvVar) is { Length: > 0 } podName)
+            {
+                return podName;
+            }
+
+            return Environment.GetEnvironmentVariable(OpenTelemetryConstants.ContainerNameEnvVar);
+        }
+
+        private static string? GetAzureResourceUri(string siteName, string? resourceGroup, string? subscriptionId)
+        {
+            if (string.IsNullOrEmpty(resourceGroup) || string.IsNullOrEmpty(subscriptionId))
+            {
+                return null;
+            }
 
             return $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/sites/{siteName}";
         }

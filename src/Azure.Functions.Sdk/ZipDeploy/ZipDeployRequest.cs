@@ -1,13 +1,14 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.IO.Abstractions;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
 
 namespace Azure.Functions.Sdk.ZipDeploy;
 
-public record ZipDeployRequest(string UserName, string Password, Stream Content)
+public record ZipDeployRequest(string UserName, string Password, IFileInfo ZipFile)
 {
     private const string AzureADUserName = "00000000-0000-0000-0000-000000000000";
     private const string BearerAuthenticationScheme = "Bearer";
@@ -28,20 +29,29 @@ public record ZipDeployRequest(string UserName, string Password, Stream Content)
             : new Uri(baseUri, path);
     }
 
+    /// <summary>
+    /// Opens the zip file and creates an HTTP request that owns its stream.
+    /// Dispose the returned request to close the file.
+    /// </summary>
     public HttpRequestMessage CreateRequestMessage(Uri? baseUri = null)
     {
-        HttpRequestMessage request = new(HttpMethod.Post, GetUri(baseUri))
+        HttpRequestMessage request = new(HttpMethod.Post, GetUri(baseUri));
+        try
         {
-            Content = GetContent(),
-        };
-
-        AddAuthenticationHeader(request);
-        return request;
+            request.Content = GetContent();
+            AddAuthenticationHeader(request);
+            return request;
+        }
+        catch
+        {
+            request.Dispose();
+            throw;
+        }
     }
 
     private StreamContent GetContent()
     {
-        return new StreamContent(Content)
+        return new StreamContent(ZipFile.OpenRead())
         {
             Headers =
             {

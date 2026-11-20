@@ -83,6 +83,78 @@ public class FunctionsAssemblyScannerTests
         reference.HintPath.Should().Be("./.azurefunctions/WebJobsStartupConsumer.dll");
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetWebJobsReferences_ReleasesAssemblyAndResolvedDependencies(bool invalidAttribute)
+    {
+        using TempDirectory directory = new();
+        string assemblyPath = Path.Combine(directory.Path, "Consumer.dll");
+        string dependencyPath = Path.Combine(directory.Path, "CustomAttributes.dll");
+        CreateDerivedStartupConsumerAssembly(assemblyPath, dependencyPath, invalidAttribute);
+        FunctionsAssemblyScanner scanner = new([directory.Path]);
+
+        if (invalidAttribute)
+        {
+            Action scan = () => scanner.GetWebJobsReferences(assemblyPath).ToArray();
+            scan.Should().Throw<InvalidOperationException>();
+        }
+        else
+        {
+            IEnumerable<WebJobsReference> references = scanner.GetWebJobsReferences(assemblyPath);
+            using (File.Open(assemblyPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            using (File.Open(dependencyPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                references.Single().Name.Should().Be("ExternalFunctionsStartup");
+            }
+        }
+
+        using FileStream assemblyFile = File.Open(assemblyPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        using FileStream dependencyFile = File.Open(dependencyPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+    }
+
+    private static void CreateDerivedStartupConsumerAssembly(
+        string assemblyPath, string dependencyPath, bool invalidAttribute)
+    {
+        using AssemblyDefinition dependency = AssemblyDefinition.CreateAssembly(
+            new AssemblyNameDefinition("CustomAttributes", new Version(1, 0)),
+            "CustomAttributes",
+            ModuleKind.Dll);
+        ModuleDefinition dependencyModule = dependency.MainModule;
+        AssemblyNameReference functionsExtensions = new("Microsoft.Azure.Functions.Extensions", new Version(1, 0));
+        dependencyModule.AssemblyReferences.Add(functionsExtensions);
+        TypeReference baseAttribute = new(
+            "Microsoft.Azure.Functions.Extensions.DependencyInjection", "FunctionsStartupAttribute",
+            dependencyModule, functionsExtensions);
+        TypeDefinition derivedAttribute = new(
+            "Custom", "DerivedStartupAttribute",
+            Mono.Cecil.TypeAttributes.Public | Mono.Cecil.TypeAttributes.Class, baseAttribute);
+        dependencyModule.Types.Add(derivedAttribute);
+        dependency.Write(dependencyPath);
+
+        using AssemblyDefinition assembly = AssemblyDefinition.CreateAssembly(
+            new AssemblyNameDefinition("Consumer", new Version(1, 0)), "Consumer", ModuleKind.Dll);
+        ModuleDefinition module = assembly.MainModule;
+        TypeDefinition startupType = new(
+            "Azure.Functions.Sdk.Tests", "ExternalFunctionsStartup",
+            Mono.Cecil.TypeAttributes.Public | Mono.Cecil.TypeAttributes.Class, module.TypeSystem.Object);
+        module.Types.Add(startupType);
+        MethodReference constructor = new(".ctor", module.TypeSystem.Void, module.ImportReference(derivedAttribute))
+        {
+            HasThis = true,
+        };
+        CustomAttribute attribute = new(constructor);
+        if (!invalidAttribute)
+        {
+            TypeReference systemType = module.ImportReference(typeof(Type));
+            constructor.Parameters.Add(new ParameterDefinition(systemType));
+            attribute.ConstructorArguments.Add(new CustomAttributeArgument(systemType, startupType));
+        }
+
+        assembly.CustomAttributes.Add(attribute);
+        assembly.Write(assemblyPath);
+    }
+
     private static void CreateStartupConsumerAssembly(string assemblyPath, string? extensionName = null)
     {
         using AssemblyDefinition assembly = AssemblyDefinition.CreateAssembly(

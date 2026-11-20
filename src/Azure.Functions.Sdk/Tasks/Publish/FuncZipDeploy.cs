@@ -98,8 +98,7 @@ public sealed class FuncZipDeploy(IFileSystem fileSystem, DeploymentClient? clie
         Log.LogMessageFromResources(
             MessageImportance.High, nameof(Strings.Deploy_BeginPublish), ZipContentsPath, PublishUrl.ToLogSafeString());
 
-        using FileSystemStream content = _fileSystem.File.OpenRead(ZipContentsPath);
-        ZipDeployRequest request = new(DeploymentUsername, DeploymentPassword, content)
+        ZipDeployRequest request = new(DeploymentUsername, DeploymentPassword, _fileSystem.FileInfo.New(ZipContentsPath))
         {
             UseBlobContainer = UseBlobContainerDeploy,
         };

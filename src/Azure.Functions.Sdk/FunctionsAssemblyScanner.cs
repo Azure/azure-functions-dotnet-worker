@@ -17,8 +17,7 @@ public sealed partial class FunctionsAssemblyScanner
         @"^(System|Azure\.Core|Azure\.Identity|Microsoft\.Bcl|Microsoft\.Extensions|Microsoft\.Identity|Microsoft\.NETCore|Microsoft\.NETStandard|Microsoft\.Win32|Grpc|OpenTelemetry)(\..*|$)",
         RegexOptions.Compiled);
 
-    private readonly FunctionsAssemblyResolver _resolver;
-    private readonly ReaderParameters _readerParameters;
+    private readonly string[] _searchDirectories;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FunctionsAssemblyScanner"/> class.
@@ -26,19 +25,7 @@ public sealed partial class FunctionsAssemblyScanner
     /// <param name="searchDirectories">The search directories to include, if any.</param>
     public FunctionsAssemblyScanner(IEnumerable<string>? searchDirectories = null)
     {
-        _resolver = new();
-        _readerParameters = new ReaderParameters
-        {
-            AssemblyResolver = _resolver,
-        };
-
-        if (searchDirectories != null)
-        {
-            foreach (string directory in searchDirectories)
-            {
-                _resolver.AddSearchDirectory(directory);
-            }
-        }
+        _searchDirectories = searchDirectories?.ToArray() ?? [];
     }
 
     /// <summary>
@@ -76,7 +63,14 @@ public sealed partial class FunctionsAssemblyScanner
     public IEnumerable<WebJobsReference> GetWebJobsReferences(string assembly, ILogger? logger = null)
     {
         Throw.IfNullOrEmpty(assembly);
-        AssemblyDefinition definition = AssemblyDefinition.ReadAssembly(assembly, _readerParameters);
-        return WebJobsReference.FromModule(definition, logger);
+        using FunctionsAssemblyResolver resolver = new();
+        foreach (string directory in _searchDirectories)
+        {
+            resolver.AddSearchDirectory(directory);
+        }
+
+        ReaderParameters readerParameters = new() { AssemblyResolver = resolver };
+        using AssemblyDefinition definition = AssemblyDefinition.ReadAssembly(assembly, readerParameters);
+        return [.. WebJobsReference.FromModule(definition, logger)];
     }
 }

@@ -23,15 +23,22 @@ public partial class DeploymentClient(HttpClient client, Logger? logger = null)
     public virtual async Task<DeployStatus> ZipDeployAsync(ZipDeployRequest request, CancellationToken cancellation)
     {
         Throw.IfNull(request);
-        using HttpRequestMessage httpRequest = request.CreateRequestMessage();
-        using HttpResponseMessage response = await _client.SendAsync(httpRequest, cancellation);
-        StatusResult status = await StatusResult.ParseAsync(response, cancellation);
+        Uri? location;
+        AuthenticationHeaderValue? authorization;
+        StatusResult status;
+        using (HttpRequestMessage httpRequest = request.CreateRequestMessage())
+        using (HttpResponseMessage response = await _client.SendAsync(httpRequest, cancellation))
+        {
+            status = await StatusResult.ParseAsync(response, cancellation);
+            location = response.Headers.Location;
+            authorization = httpRequest.Headers.Authorization;
+        }
 
-        if (response.Headers.Location is Uri location)
+        if (location is not null)
         {
             // If the response contains a location header, we can assume the deployment is asynchronous
             _logger?.LogMessageFromResources(nameof(Strings.Deploy_AsyncDeployment), location.ToLogSafeString());
-            return await PollDeploymentStatusAsync(location, httpRequest.Headers.Authorization, cancellation);
+            return await PollDeploymentStatusAsync(location, authorization, cancellation);
         }
 
         return status.Status;

@@ -10,6 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
         internal const string CloudProvider = "cloud.provider";
         internal const string CloudPlatform = "cloud.platform";
         internal const string CloudRegion = "cloud.region";
+        internal const string CloudAccountId = "cloud.account.id";
         internal const string CloudResourceId = "cloud.resource_id";
         
         // Process
@@ -22,6 +23,8 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
         internal const string DeploymentEnvironmentName = "deployment.environment.name";
 
         // Azure Functions
+        internal const string AzureResourceGroupName = "azure.resource_group.name";
+        internal const string FaasInstance = "faas.instance";
         internal const string SiteUpdateId = "azure.functions.site.update_id";
     }
 }

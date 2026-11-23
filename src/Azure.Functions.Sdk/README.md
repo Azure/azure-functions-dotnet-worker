@@ -58,6 +58,39 @@ container. To use the .NET SDK's default containerization for a bring-your-own-c
 The supported values are `HostEmbedded` (the default) and `Standalone`. Any other value produces an
 error during container publishing.
 
+Publish a host-embedded container with:
+
+```shell
+dotnet publish -c Release -t:PublishContainer
+```
+
+For `net11.0` and later, the default host-embedded image is the published Chiseled Functions image
+(for example, `4-dotnet-isolated11.0-chiseled`). Its entrypoint starts the Functions host, while a
+framework-dependent worker uses a private .NET runtime matching its target framework, staged into
+the container. The host's runtime and the ordinary publish directory are not
+modified. Self-contained publishes use their own runtime instead. A different `ContainerBaseImage`
+does not receive this automatic runtime staging or Chiseled entrypoint configuration; configure the
+custom image and its startup command as needed.
+
+The private runtime comes from Linux runtime packs resolved using the selected .NET SDK and the
+project's NuGet settings. Container publishing restores these packs, including when `--no-restore`
+is specified; the packs must be available in the cache or configured sources. The SDK chooses the
+latest compatible runtime patch known to it unless the application disables patch roll-forward.
+Rebuild and republish with an updated SDK to pick up newer runtime patches. Set any worker
+roll-forward policy before publishing: a deployment-time override such as
+`DOTNET_ROLL_FORWARD=Disable` can prevent the host or worker from finding its required runtime.
+Only the `Microsoft.NETCore.App` and `Microsoft.AspNetCore.App` shared frameworks are supported
+for this automatic staging. Application files named `.functions-runtime` or `.functions-worker`
+are reserved for it.
+
+Temporary files are removed after successful image publishing or an error during staging. An error
+after staging can leave a directory under `obj/.../azure_functions_container`.
+
+To support container staging with an explicit publish directory, the SDK treats `PublishDir` as a
+local MSBuild property in `net11.0`-or-later host-embedded projects. A target that reassigns it can therefore
+override a command-line value in subsequent `CallTarget` invocations, including during ordinary
+publishing.
+
 Both modes support only `linux-x64` containers. The .NET SDK uses an explicit
 `ContainerRuntimeIdentifier` if supplied; otherwise it uses `RuntimeIdentifier`, or, for a portable
 publish, a Linux RID matching the SDK's architecture. A `ContainerRuntimeIdentifier` other than

@@ -285,6 +285,152 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             .Which.GetMetadata("Value").Should().Be("/existing");
     }
 
+    [Theory]
+    [InlineData("net11.0", "11.0")]
+    [InlineData("net12.0", "12.0")]
+    public void Target_ContainerConfig_Net11OrLater_UsesChiseledImageAndItsEntrypoint(string targetFramework, string version)
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: targetFramework)
+            .Property("ContainerRuntimeIdentifier", "linux-x64");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerBaseImage")
+            .Should().Be($"mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated{version}-chiseled");
+        GetContainerProperty(items, "ContainerUser").Should().Be("0");
+        GetContainerProperty(items, "ContainerAppCommandInstruction").Should().Be("None");
+        items.Should().NotContain(x => x.ItemSpec == "/opt/startup/start_nonappservice.sh");
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_Net11_ExplicitDefaultImageKeepsItsEntrypoint()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net11.0")
+            .Property("ContainerRuntimeIdentifier", "linux-x64")
+            .Property("ContainerBaseImage", "mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated11.0-chiseled");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerAppCommandInstruction").Should().Be("None");
+        GetContainerProperty(items, "ContainerUser").Should().Be("0");
+        items.Should().NotContain(x => x.ItemSpec == "/opt/startup/start_nonappservice.sh");
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_Net10_KeepsExistingImageAndCommand()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net10.0")
+            .Property("ContainerRuntimeIdentifier", "linux-x64");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerBaseImage")
+            .Should().Be("mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated10.0");
+        items.Should().ContainSingle(x => x.ItemSpec == "/opt/startup/start_nonappservice.sh");
+    }
+
+    [Theory]
+    [InlineData("net8.0", "HostEmbedded")]
+    [InlineData("net10.0", "HostEmbedded")]
+    [InlineData("net11.0", "Standalone")]
+    public void Target_PublishDir_UnchangedModesKeepGlobalPropertyPrecedence(string targetFramework, string mode)
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: targetFramework,
+            globalProperties: new Dictionary<string, string> { ["PublishDir"] = "command-line-output/" })
+            .Property("FunctionsContainerMode", mode);
+        ProjectTargetElement target = project.RootElement.AddTarget("_TestPublishDir");
+        target.AddPropertyGroup().AddProperty("PublishDir", "target-output/");
+        ProjectTaskElement callTarget = target.AddTask("CallTarget");
+        callTarget.SetParameter("Targets", "_ReportPublishDir");
+        callTarget.AddOutputItem("TargetOutputs", "_TestPublishDirValue");
+        target.Returns = "@(_TestPublishDirValue)";
+        ProjectTargetElement report = project.RootElement.AddTarget("_ReportPublishDir");
+        report.AddItemGroup().AddItem("_ObservedPublishDir", "$(PublishDir)");
+        report.Returns = "@(_ObservedPublishDir)";
+        project.RootElement.Save();
+
+        project.TryBuild(target.Name, null, out _, out BuildOutput output, out IDictionary<string, TargetResult>? results);
+
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        results![target.Name].Items.Should().ContainSingle().Which.ItemSpec.Should().Be("command-line-output/");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Target_ContainerConfig_Net11_PreservesExplicitCommandAndUser(bool customBaseImage)
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net11.0")
+            .Property("ContainerRuntimeIdentifier", "linux-x64")
+            .Property("ContainerUser", "1234")
+            .Property("ContainerAppCommandInstruction", "Entrypoint");
+        if (customBaseImage)
+        {
+            project.Property("ContainerBaseImage", "example.com/custom:latest");
+        }
+
+        project.RootElement.AddItem("ContainerAppCommand", "/custom/start");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerUser").Should().Be("1234");
+        GetContainerProperty(items, "ContainerAppCommandInstruction").Should().Be("Entrypoint");
+        GetContainerProperty(items, "ContainerBaseImage").Should().Be(customBaseImage
+            ? "example.com/custom:latest"
+            : "mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated11.0-chiseled");
+        items.Should().ContainSingle(x => x.ItemSpec == "/custom/start");
+        items.Should().NotContain(x => x.ItemSpec == "/opt/startup/start_nonappservice.sh"
+            || x.ItemSpec == "/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost");
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_Net11_CustomImageKeepsExistingStartup()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net11.0")
+            .Property("ContainerRuntimeIdentifier", "linux-x64")
+            .Property("ContainerBaseImage", "example.com/custom:latest");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerBaseImage").Should().Be("example.com/custom:latest");
+        items.Should().ContainSingle(x => x.ItemSpec == "/opt/startup/start_nonappservice.sh");
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_Net11_CustomImageCanKeepItsEntrypoint()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net11.0")
+            .Property("ContainerRuntimeIdentifier", "linux-x64")
+            .Property("ContainerBaseImage", "example.com/custom:latest")
+            .Property("ContainerAppCommandInstruction", "None");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        GetContainerProperty(items, "ContainerAppCommandInstruction").Should().Be("None");
+        items.Should().NotContain(x => x.ItemSpec == "/opt/startup/start_nonappservice.sh");
+    }
+
+    [Fact]
+    public void Target_ContainerConfig_Net11_CommandArgumentsUseHostExecutable()
+    {
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net11.0")
+            .Property("ContainerRuntimeIdentifier", "linux-x64");
+        project.RootElement.AddItem("ContainerAppCommandArgs", "--custom");
+
+        ITaskItem[] items = GetContainerConfig(project);
+
+        items.Should().ContainSingle(x => x.ItemSpec == "/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost");
+        GetContainerProperty(items, "ContainerAppCommandInstruction").Should().BeEmpty();
+    }
+
 #if NET
     [Theory]
     [InlineData("HostEmbedded", "linux-x64", "", "")]
@@ -417,7 +563,11 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         target.Returns = "@(_ContainerTestProperty);@(ContainerLabel);@(ContainerAppCommand);@(ContainerEnvironmentVariable)";
 
         ProjectItemGroupElement properties = target.AddItemGroup();
-        foreach (string name in new[] { "ContainerBaseImage", "ContainerRuntimeIdentifier", "ContainerWorkingDirectory" })
+        foreach (string name in new[]
+        {
+            "ContainerBaseImage", "ContainerRuntimeIdentifier", "ContainerWorkingDirectory",
+            "ContainerUser", "ContainerAppCommandInstruction"
+        })
         {
             properties.AddItem("_ContainerTestProperty", name).AddMetadata("Value", $"$({name})");
         }

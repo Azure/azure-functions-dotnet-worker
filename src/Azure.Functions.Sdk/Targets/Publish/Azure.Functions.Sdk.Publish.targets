@@ -16,6 +16,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <PropertyGroup>
     <PublishContainerDependsOn>$(PublishContainerDependsOn);_RemoveWorkerConfigFromStandaloneContainer</PublishContainerDependsOn>
+    <_FunctionsTargetFrameworkVersion>$(TargetFrameworkVersion.TrimStart('vV'))</_FunctionsTargetFrameworkVersion>
+    <!-- .NET 11 and later default to the Chiseled host image, which does not include the worker's runtime. -->
+    <_FunctionsSupportsChiseledContainer Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(_FunctionsTargetFrameworkVersion)' != '' and $([MSBuild]::VersionGreaterThanOrEquals('$(_FunctionsTargetFrameworkVersion)', '11.0'))">true</_FunctionsSupportsChiseledContainer>
   </PropertyGroup>
 
   <Target Name="ValidateFunctionsContainerMode">
@@ -58,17 +61,28 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Target Name="AssignFunctionsBaseImage" Condition="'$(FunctionsContainerMode)' == 'HostEmbedded'">
     <PropertyGroup>
-      <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">mcr.microsoft.com/azure-functions/dotnet-isolated:$(_FunctionsRuntimeMajorVersion)-dotnet-isolated$(TargetFrameworkVersion.TrimStart('vV'))</ContainerBaseImage>
+      <_FunctionsChiseledBaseImage>mcr.microsoft.com/azure-functions/dotnet-isolated:$(_FunctionsRuntimeMajorVersion)-dotnet-isolated$(_FunctionsTargetFrameworkVersion)-chiseled</_FunctionsChiseledBaseImage>
+      <_FunctionsUseChiseledContainer Condition="'$(_FunctionsSupportsChiseledContainer)' == 'true' and ('$(ContainerBaseImage)' == '' or '$(ContainerBaseImage)' == '$(_FunctionsChiseledBaseImage)')">true</_FunctionsUseChiseledContainer>
+      <ContainerBaseImage Condition="'$(ContainerBaseImage)' == '' and '$(_FunctionsUseChiseledContainer)' == 'true'">$(_FunctionsChiseledBaseImage)</ContainerBaseImage>
+      <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">mcr.microsoft.com/azure-functions/dotnet-isolated:$(_FunctionsRuntimeMajorVersion)-dotnet-isolated$(_FunctionsTargetFrameworkVersion)</ContainerBaseImage>
       <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/home/site/wwwroot</ContainerWorkingDirectory>
+      <ContainerUser Condition="'$(_FunctionsUseChiseledContainer)' == 'true' and '$(ContainerUser)' == ''">0</ContainerUser>
+      <ContainerAppCommandInstruction Condition="'$(_FunctionsUseChiseledContainer)' == 'true' and '$(ContainerAppCommandInstruction)' == '' and '@(ContainerAppCommand)' == '' and '@(ContainerAppCommandArgs)' == ''">None</ContainerAppCommandInstruction>
     </PropertyGroup>
 
     <ItemGroup>
-      <ContainerAppCommand Include="/opt/startup/start_nonappservice.sh" />
+      <ContainerAppCommand Include="/azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost"
+        Condition="'$(_FunctionsUseChiseledContainer)' == 'true' and '$(ContainerAppCommandInstruction)' != 'None' and '@(ContainerAppCommand)' == ''" />
+      <ContainerAppCommand Include="/opt/startup/start_nonappservice.sh"
+        Condition="'$(_FunctionsUseChiseledContainer)' != 'true' and ('$(_FunctionsSupportsChiseledContainer)' != 'true' or ('@(ContainerAppCommand)' == '' and '$(ContainerAppCommandInstruction)' != 'None'))" />
       <ContainerEnvironmentVariable Include="AzureWebJobsScriptRoot" Value="$(ContainerWorkingDirectory)"
         Condition="!@(ContainerEnvironmentVariable->AnyHaveMetadataValue('Identity', 'AzureWebJobsScriptRoot'))"/>
       <ContainerEnvironmentVariable Include="AzureFunctionsJobHost__Logging__Console__IsEnabled" Value="true"
         Condition="!@(ContainerEnvironmentVariable->AnyHaveMetadataValue('Identity', 'AzureFunctionsJobHost__Logging__Console__IsEnabled'))"/>
     </ItemGroup>
   </Target>
+
+  <Import Project="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Publish.Chiseled.targets"
+          Condition="'$(_FunctionsSupportsChiseledContainer)' == 'true' and '$(FunctionsContainerMode)' == 'HostEmbedded'" />
 
 </Project>

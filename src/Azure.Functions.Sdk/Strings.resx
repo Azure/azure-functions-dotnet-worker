@@ -153,6 +153,33 @@
   <data name="AZFW0111_Warning_WorkerPackageNotReferenced" xml:space="preserve">
     <value>No Azure Functions worker package was found after restore. Add a package reference to 'Microsoft.Azure.Functions.Worker' (or a package that depends on it) so the worker runtime is available.</value>
   </data>
+  <data name="Container_IncompatibleFrameworks" xml:space="preserve">
+    <value>The required .NET runtime version '{0}' and ASP.NET Core runtime version '{1}' cannot be combined in the default Functions container with the configured roll-forward policy.</value>
+  </data>
+  <data name="Container_InvalidRuntimeConfig" xml:space="preserve">
+    <value>The published runtime configuration '{0}' is invalid: {1}.</value>
+  </data>
+  <data name="Container_InvalidWorkerConfig" xml:space="preserve">
+    <value>The published worker configuration '{0}' is invalid or has an unsupported worker path.</value>
+  </data>
+  <data name="Container_OverlappingPaths" xml:space="preserve">
+    <value>The publish directory '{0}' and container staging directory '{1}' must not overlap. Choose separate publish and intermediate output paths.</value>
+  </data>
+  <data name="Container_ReservedPath" xml:space="preserve">
+    <value>The published application contains '{0}', which is reserved for the Functions container runtime. Remove or rename it before publishing the container.</value>
+  </data>
+  <data name="Container_RuntimeConfigMissing" xml:space="preserve">
+    <value>The published runtime configuration '{0}' was not found. The default Chiseled Functions container requires a framework-dependent app with a runtime configuration file.</value>
+  </data>
+  <data name="Container_UnsupportedFramework" xml:space="preserve">
+    <value>The published worker requires framework '{0}' version '{1}', which cannot be included in the default Chiseled Functions container. Use a compatible framework or a custom container base image.</value>
+  </data>
+  <data name="Container_WorkerAssemblyMissing" xml:space="preserve">
+    <value>The worker assembly '{0}' referenced by '{1}' is missing or is outside the publish directory.</value>
+  </data>
+  <data name="Container_WorkerConfigMissing" xml:space="preserve">
+    <value>The published worker configuration '{0}' was not found.</value>
+  </data>
   <data name="Deploy_AsyncDeployment" xml:space="preserve">
     <value>Asynchronous deployment. Polling status at {0}</value>
   </data>

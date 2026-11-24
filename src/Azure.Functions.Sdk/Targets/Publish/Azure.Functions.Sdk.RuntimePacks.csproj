@@ -26,11 +26,6 @@
   </ItemGroup>
 
   <Target Name="GetFunctionsContainerRuntimePacks"
-          DependsOnTargets="ProcessFrameworkReferences;ResolveFrameworkReferences;_GetAppHostPaths"
-          Returns="@(_FunctionsContainerRuntimeOutput)">
-    <ItemGroup>
-      <_FunctionsContainerRuntimeOutput Include="@(ResolvedRuntimePack)" />
-      <_FunctionsContainerRuntimeOutput Include="$(AppHostSourcePath)" FrameworkName="_apphost" />
-    </ItemGroup>
-  </Target>
+          DependsOnTargets="ProcessFrameworkReferences;ResolveFrameworkReferences"
+          Returns="@(ResolvedRuntimePack)" />
 </Project>

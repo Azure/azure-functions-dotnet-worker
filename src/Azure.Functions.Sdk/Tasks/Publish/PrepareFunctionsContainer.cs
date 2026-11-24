@@ -82,16 +82,6 @@ public sealed class PrepareFunctionsContainer(IFileSystem fileSystem) : Microsof
             return false;
         }
 
-        foreach (string name in new[] { ".functions-runtime", ".functions-worker" })
-        {
-            string path = _fileSystem.Path.Combine(PublishedPath, name);
-            if (_fileSystem.File.Exists(path) || _fileSystem.Directory.Exists(path))
-            {
-                Log.LogError(Strings.Container_ReservedPath, path);
-                return false;
-            }
-        }
-
         string runtimeConfigPath = _fileSystem.Path.GetFullPath(_fileSystem.Path.Combine(PublishedPath, RuntimeConfigFileName));
         if (!runtimeConfigPath.StartsWith(PublishedPath, pathComparison)
             || !_fileSystem.File.Exists(runtimeConfigPath))

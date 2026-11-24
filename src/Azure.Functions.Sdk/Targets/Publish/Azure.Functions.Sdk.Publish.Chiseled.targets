@@ -1,8 +1,7 @@
-<!-- PublishContainer reads PublishDir directly; staging must take effect even if it was set on the command line. -->
-<Project TreatAsLocalProperty="PublishDir">
+<!-- PublishContainer reads these properties directly; staging must take effect even if they were set on the command line. -->
+<Project TreatAsLocalProperty="PublishDir;ContainerWorkingDirectory">
 
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.PrepareFunctionsContainer" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
-  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.UpdateContainerWorkerConfig" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
     <_FunctionsContainerTargetFramework>net$(_FunctionsTargetFrameworkVersion)</_FunctionsContainerTargetFramework>
@@ -37,7 +36,11 @@
     <!-- Isolate pack restore from app-specific settings while preserving the configured NuGet sources and cache. -->
     <PropertyGroup>
       <_FunctionsContainerOriginalPublishDir>$(PublishDir)</_FunctionsContainerOriginalPublishDir>
-      <_FunctionsContainerRuntimeRoot>$(_FunctionsContainerStagingPath).functions-runtime/</_FunctionsContainerRuntimeRoot>
+      <_FunctionsContainerOriginalWorkingDirectory>$(ContainerWorkingDirectory)</_FunctionsContainerOriginalWorkingDirectory>
+      <!-- The staging directory mirrors the image root: the app goes to its working directory and the runtime to the base image's DOTNET_ROOT. -->
+      <_FunctionsContainerWorkingDirectoryPath>$(ContainerWorkingDirectory.Trim('/'))</_FunctionsContainerWorkingDirectoryPath>
+      <_FunctionsContainerAppPath>$(_FunctionsContainerStagingPath)$(_FunctionsContainerWorkingDirectoryPath)/</_FunctionsContainerAppPath>
+      <_FunctionsContainerRuntimeRoot>$(_FunctionsContainerStagingPath)usr/share/dotnet/</_FunctionsContainerRuntimeRoot>
       <_FunctionsContainerRuntimeRemoveProps>$(_AzureFunctionsExtensionRemoveProps);PublishSelfContained;RuntimeFrameworkVersion;TargetLatestRuntimePatch;AppHostRuntimeIdentifier;NoBuild;RestoreAdditionalProjectSources;RestoreAdditionalProjectFallbackFolders;RestoreLockedMode;RestorePackagesWithLockFile;NuGetLockFilePath;DisableTransitiveFrameworkReferenceDownloads;MSBuildProjectExtensionsPath;ProjectAssetsFile;RestoreOutputPath;UseArtifactsOutput;ArtifactsPath;ArtifactsPivots</_FunctionsContainerRuntimeRemoveProps>
       <_FunctionsContainerRuntimeProps>_FunctionsContainerTargetFramework=$(_FunctionsContainerTargetFramework);_FunctionsCoreRuntimeVersion=$(_FunctionsCoreRuntimeVersion);_FunctionsAspNetRuntimeVersion=$(_FunctionsAspNetRuntimeVersion)</_FunctionsContainerRuntimeProps>
       <_FunctionsContainerRuntimeProps Condition="'$(_OutputSources)' != ''">$(_FunctionsContainerRuntimeProps);RestoreSources=$(_OutputSources)</_FunctionsContainerRuntimeProps>
@@ -46,7 +49,10 @@
       <_FunctionsContainerRuntimeProps Condition="'$(_FunctionsContainerRestoreConfig)' != ''">$(_FunctionsContainerRuntimeProps);RestoreConfigFile=$(_FunctionsContainerRestoreConfig)</_FunctionsContainerRuntimeProps>
     </PropertyGroup>
 
-    <!-- Use a small helper project to let the SDK resolve the matching Linux runtime and apphost packs. -->
+    <Error Condition="!$(ContainerWorkingDirectory.StartsWith('/')) or '$(_FunctionsContainerWorkingDirectoryPath)' == ''"
+           Text="ContainerWorkingDirectory '$(ContainerWorkingDirectory)' must be an absolute Linux directory other than '/' for the Chiseled Functions container." />
+
+    <!-- Use a small helper project to let the SDK resolve the matching Linux runtime packs. -->
     <MakeDir Directories="$(_FunctionsContainerStagingRoot)runtime-project" />
     <Copy SourceFiles="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.RuntimePacks.csproj" DestinationFiles="$(_FunctionsContainerRuntimeProject)" />
 
@@ -63,11 +69,10 @@
       <_FunctionsContainerCorePack Include="@(_FunctionsContainerResolvedRuntime->WithMetadataValue('FrameworkName', 'Microsoft.NETCore.App'))" />
       <_FunctionsContainerAspNetPack Include="@(_FunctionsContainerResolvedRuntime->WithMetadataValue('FrameworkName', 'Microsoft.AspNetCore.App'))"
                                     Condition="'$(_FunctionsAspNetRuntimeVersion)' != ''" />
-      <_FunctionsContainerAppHost Include="@(_FunctionsContainerResolvedRuntime->WithMetadataValue('FrameworkName', '_apphost'))" />
     </ItemGroup>
 
-    <Error Condition="@(_FunctionsContainerCorePack->Count()) != 1 or @(_FunctionsContainerAppHost->Count()) != 1 or ('$(_FunctionsAspNetRuntimeVersion)' != '' and @(_FunctionsContainerAspNetPack->Count()) != 1)"
-           Text="Unable to resolve the required linux-x64 runtime and apphost packs for the Chiseled Functions container." />
+    <Error Condition="@(_FunctionsContainerCorePack->Count()) != 1 or ('$(_FunctionsAspNetRuntimeVersion)' != '' and @(_FunctionsContainerAspNetPack->Count()) != 1)"
+           Text="Unable to resolve the required linux-x64 runtime packs for the Chiseled Functions container." />
 
     <PropertyGroup>
       <_FunctionsContainerCorePackPath>@(_FunctionsContainerCorePack->'%(PackageDirectory)')/runtimes/linux-x64/</_FunctionsContainerCorePackPath>
@@ -82,9 +87,9 @@
                                      Condition="'$(_FunctionsAspNetRuntimeVersion)' != ''" />
     </ItemGroup>
 
-    <!-- Copy the app unchanged, then arrange the private runtime where .NET expects shared frameworks and hostfxr. -->
+    <!-- Copy the app unchanged, then add the runtime beside the base image's dotnet muxer. -->
     <Copy SourceFiles="@(_FunctionsContainerPublishedFile)"
-          DestinationFiles="@(_FunctionsContainerPublishedFile->'$(_FunctionsContainerStagingPath)%(RecursiveDir)%(Filename)%(Extension)')" />
+          DestinationFiles="@(_FunctionsContainerPublishedFile->'$(_FunctionsContainerAppPath)%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(_FunctionsContainerCoreFile)"
           DestinationFiles="@(_FunctionsContainerCoreFile->'$(_FunctionsContainerRuntimeRoot)shared/Microsoft.NETCore.App/$(_FunctionsContainerCorePackVersion)/%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(_FunctionsContainerAspNetFile)"
@@ -92,23 +97,13 @@
     <Copy SourceFiles="$(_FunctionsContainerCorePackPath)native/libhostfxr.so"
           DestinationFiles="$(_FunctionsContainerRuntimeRoot)host/fxr/$(_FunctionsContainerCorePackVersion)/libhostfxr.so" />
 
-    <!-- Replace the default dotnet worker command with an apphost that finds the private runtime beside the app. -->
-    <UpdateContainerWorkerConfig StagingPath="$(_FunctionsContainerStagingPath)">
-      <Output TaskParameter="UsePrivateAppHost" PropertyName="_FunctionsContainerUsePrivateAppHost" />
-      <Output TaskParameter="WorkerPath" PropertyName="_FunctionsContainerWorkerPath" />
-      <Output TaskParameter="WorkerAssemblyPath" PropertyName="_FunctionsContainerWorkerAssembly" />
-    </UpdateContainerWorkerConfig>
-    <CreateAppHost Condition="'$(_FunctionsContainerUsePrivateAppHost)' == 'true'"
-                   AppHostSourcePath="@(_FunctionsContainerAppHost)"
-                   AppHostDestinationPath="$(_FunctionsContainerStagingPath).functions-worker"
-                   AppBinaryName="$(_FunctionsContainerWorkerPath)"
-                   IntermediateAssembly="$(_FunctionsContainerWorkerAssembly)"
-                   DotNetSearchLocations="AppRelative"
-                   AppRelativeDotNet=".functions-runtime" />
-
-    <!-- Build the image from the staged app and runtime rather than the ordinary publish directory. -->
+    <!--
+      The .NET SDK adds PublishDir as one layer at ContainerWorkingDirectory. Root the layer at '/.' so the staged tree
+      lands at both paths; '/' itself cannot be used because the SDK trims it to an empty tar entry name.
+    -->
     <PropertyGroup>
       <PublishDir>$(_FunctionsContainerStagingPath)</PublishDir>
+      <ContainerWorkingDirectory>/.</ContainerWorkingDirectory>
     </PropertyGroup>
     <OnError ExecuteTargets="_CleanupFunctionsChiseledContainer" />
   </Target>
@@ -119,6 +114,7 @@
           Condition="'$(_FunctionsContainerStagingRoot)' != ''">
     <PropertyGroup>
       <PublishDir>$(_FunctionsContainerOriginalPublishDir)</PublishDir>
+      <ContainerWorkingDirectory>$(_FunctionsContainerOriginalWorkingDirectory)</ContainerWorkingDirectory>
     </PropertyGroup>
     <RemoveDir Directories="$(_FunctionsContainerStagingRoot)" />
   </Target>

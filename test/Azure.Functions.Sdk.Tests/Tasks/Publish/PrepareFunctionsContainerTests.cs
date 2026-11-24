@@ -140,21 +140,6 @@ public sealed class PrepareFunctionsContainerTests : IDisposable
     }
 
     [Fact]
-    public void ReservedApplicationPathFailsWithoutOverwritingIt()
-    {
-        PrepareFunctionsContainer task = CreateTask("""
-            { "runtimeOptions": { "framework": { "name": "Microsoft.NETCore.App", "version": "11.0.0" } } }
-            """);
-        string reservedPath = Path.Combine(_temp.Path, "publish", ".functions-worker");
-        File.WriteAllText(reservedPath, "user content");
-
-        task.Execute().Should().BeFalse();
-
-        File.ReadAllText(reservedPath).Should().Be("user content");
-        _buildEngine.VerifyLog(LogLevel.Error, Strings.Container_ReservedPath, reservedPath);
-    }
-
-    [Fact]
     public void OverlappingPublishAndIntermediatePathsFail()
     {
         PrepareFunctionsContainer task = CreateTask("{}");

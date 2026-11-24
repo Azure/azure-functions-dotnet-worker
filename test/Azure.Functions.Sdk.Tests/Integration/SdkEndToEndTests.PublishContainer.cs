@@ -57,13 +57,13 @@ public partial class SdkEndToEndTests
                 config.RootElement.GetProperty("description").GetProperty("defaultExecutablePath").GetString()
                     .Should().Be(selfContained ? "{WorkerRoot}FunctionApp" : "dotnet");
             }
-            File.Exists(Path.Combine(publishPath, ".functions-worker")).Should().BeFalse();
-            Directory.Exists(Path.Combine(publishPath, ".functions-runtime")).Should().BeFalse();
+            Directory.Exists(Path.Combine(publishPath, "usr")).Should().BeFalse();
             if (useAspNetIntegration)
             {
                 await RunProcess("dotnet", "msbuild", "FunctionApp.csproj",
                     "-t:_PrepareFunctionsChiseledContainer;_CleanupFunctionsChiseledContainer",
                     "-p:_FunctionsUseChiseledContainer=true",
+                    "-p:ContainerWorkingDirectory=/home/site/wwwroot",
                     $"-p:PublishDir={publishPath}{Path.DirectorySeparatorChar}",
                     $"-p:MSBuildProjectExtensionsPath={Path.Combine(TestRootPath, "obj")}{Path.DirectorySeparatorChar}",
                     $"-p:ProjectAssetsFile={Path.Combine(TestRootPath, "obj", "project.assets.json")}");
@@ -90,9 +90,8 @@ public partial class SdkEndToEndTests
             }
             if (!selfContained)
             {
-                result.RootElement.GetProperty("arguments").EnumerateArray().Skip(1)
-                    .Select(argument => argument.GetString())
-                    .Should().NotContain(argument => argument != null && argument.EndsWith("FunctionApp.dll", StringComparison.Ordinal));
+                result.RootElement.GetProperty("runtimeDirectory").GetString()
+                    .Should().StartWith("/usr/share/dotnet/shared/Microsoft.NETCore.App/11.");
             }
         }
         finally
@@ -120,6 +119,7 @@ public partial class SdkEndToEndTests
             XunitException error = await Assert.ThrowsAsync<XunitException>(() => RunProcess("dotnet", "msbuild", "FunctionApp.csproj",
                 "-t:_PrepareFunctionsChiseledContainer", "-p:Configuration=Release",
                 "-p:_FunctionsUseChiseledContainer=true",
+                "-p:ContainerWorkingDirectory=/home/site/wwwroot",
                 $"-p:PublishDir={publishPath}{Path.DirectorySeparatorChar}",
                 $"-p:RestoreSources={emptySource}",
                 $"-p:RestorePackagesPath={Path.Combine(TestRootPath, "empty-packages")}"));
@@ -178,7 +178,7 @@ public partial class SdkEndToEndTests
                     {
                         runtime = RuntimeInformation.FrameworkDescription,
                         aspNetRuntime = typeof(HttpRequest).Assembly.GetName().Version!.ToString(),
-                        arguments = Environment.GetCommandLineArgs()
+                        runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory()
                     });
                 }
             }
@@ -201,7 +201,7 @@ public partial class SdkEndToEndTests
                     await response.WriteAsJsonAsync(new
                     {
                         runtime = RuntimeInformation.FrameworkDescription,
-                        arguments = Environment.GetCommandLineArgs()
+                        runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory()
                     });
                     return response;
                 }

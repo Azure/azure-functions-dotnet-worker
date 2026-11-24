@@ -159,14 +159,8 @@
   <data name="Container_InvalidRuntimeConfig" xml:space="preserve">
     <value>The published runtime configuration '{0}' is invalid: {1}.</value>
   </data>
-  <data name="Container_InvalidWorkerConfig" xml:space="preserve">
-    <value>The published worker configuration '{0}' is invalid or has an unsupported worker path.</value>
-  </data>
   <data name="Container_OverlappingPaths" xml:space="preserve">
     <value>The publish directory '{0}' and container staging directory '{1}' must not overlap. Choose separate publish and intermediate output paths.</value>
-  </data>
-  <data name="Container_ReservedPath" xml:space="preserve">
-    <value>The published application contains '{0}', which is reserved for the Functions container runtime. Remove or rename it before publishing the container.</value>
   </data>
   <data name="Container_RuntimeConfigMissing" xml:space="preserve">
     <value>The published runtime configuration '{0}' was not found. The default Chiseled Functions container requires a framework-dependent app with a runtime configuration file.</value>

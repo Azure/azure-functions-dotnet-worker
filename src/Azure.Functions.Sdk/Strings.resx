@@ -162,8 +162,20 @@
   <data name="Container_OverlappingPaths" xml:space="preserve">
     <value>The publish directory '{0}' and container staging directory '{1}' must not overlap. Choose separate publish and intermediate output paths.</value>
   </data>
+  <data name="Container_RuntimeFrameworkNotResolved" xml:space="preserve">
+    <value>Unable to determine the '{0}' runtime version for target framework '{1}' while preparing the Functions container runtime downloads.</value>
+  </data>
   <data name="Container_RuntimeConfigMissing" xml:space="preserve">
     <value>The published runtime configuration '{0}' was not found. The default Chiseled Functions container requires a framework-dependent app with a runtime configuration file.</value>
+  </data>
+  <data name="Container_RuntimeDownloadsMissing" xml:space="preserve">
+    <value>The runtime packages required for the Functions container were not restored for target framework '{0}' in '{1}'. Restore the project with the same runtime settings before publishing the container.</value>
+  </data>
+  <data name="Container_RuntimePackIncomplete" xml:space="preserve">
+    <value>The restored .NET or ASP.NET Core runtime pack is incomplete: '{0}', '{1}'. Restore the required runtime packs before publishing the Functions container.</value>
+  </data>
+  <data name="Container_RuntimePackNotFound" xml:space="preserve">
+    <value>The restored runtime pack '{0}' version '{1}' is missing from the package folders. Restore the project before publishing the Functions container.</value>
   </data>
   <data name="Container_UnsupportedFramework" xml:space="preserve">
     <value>The published worker requires framework '{0}' version '{1}', which cannot be included in the default Chiseled Functions container. Use a compatible framework or a custom container base image.</value>

@@ -74,10 +74,13 @@ in one layer, the image working directory is `/`; `AzureWebJobsScriptRoot` still
 does not receive this automatic runtime staging or Chiseled entrypoint configuration; configure the
 custom image and its startup command as needed.
 
-The runtime comes from Linux runtime packs resolved using the selected .NET SDK and the
-project's NuGet settings. Container publishing restores these packs, including when `--no-restore`
-is specified; the packs must be available in the cache or configured sources. The SDK chooses the
-latest compatible runtime patch known to it unless the application disables patch roll-forward.
+The .NET and ASP.NET Core runtimes come from Linux runtime packs resolved using the selected .NET
+SDK and the project's NuGet settings. For framework-dependent projects using the default Chiseled
+host image, ordinary project restore requires both packs even when not publishing a container.
+Container publishing does not perform a separate restore; `--no-restore` requires the appropriate
+packs to have already been restored for the current runtime settings. The packs are `PackageDownload`
+items and are not recorded as dependencies in `packages.lock.json`. The SDK chooses the latest
+compatible runtime patch known to it unless the application disables patch roll-forward.
 Rebuild and republish with an updated SDK to pick up newer runtime patches. Set any worker
 roll-forward policy before publishing: a deployment-time override such as
 `DOTNET_ROLL_FORWARD=Disable` can prevent the host or worker from finding its required runtime.

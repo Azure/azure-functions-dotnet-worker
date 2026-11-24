@@ -62,7 +62,7 @@ public sealed class PrepareFunctionsContainerTests : IDisposable
         task.Execute().Should().BeTrue();
 
         task.CoreRuntimeVersion.Should().Be("11.0.7");
-        task.AspNetRuntimeVersion.Should().BeEmpty();
+        task.AspNetRuntimeVersion.Should().Be("11.0.7");
     }
 
     [Fact]
@@ -158,7 +158,12 @@ public sealed class PrepareFunctionsContainerTests : IDisposable
             { "runtimeOptions": { "framework": { "name": "Microsoft.NETCore.App", "version": "12.0.0" } } }
             """);
         task.TargetFramework = "net12.0";
-        task.KnownFrameworkReferences = [.. task.KnownFrameworkReferences, KnownFramework("Microsoft.NETCore.App", "12.0.3", "net12.0")];
+        task.KnownFrameworkReferences =
+        [
+            .. task.KnownFrameworkReferences,
+            KnownFramework("Microsoft.NETCore.App", "12.0.3", "net12.0"),
+            KnownFramework("Microsoft.AspNetCore.App", "12.0.3", "net12.0"),
+        ];
 
         task.Execute().Should().BeTrue();
 

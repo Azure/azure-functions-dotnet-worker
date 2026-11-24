@@ -19,6 +19,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsTargetFrameworkVersion>$(TargetFrameworkVersion.TrimStart('vV'))</_FunctionsTargetFrameworkVersion>
     <!-- .NET 11 and later default to the Chiseled host image, which does not include the worker's runtime. -->
     <_FunctionsSupportsChiseledContainer Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(_FunctionsTargetFrameworkVersion)' != '' and $([MSBuild]::VersionGreaterThanOrEquals('$(_FunctionsTargetFrameworkVersion)', '11.0'))">true</_FunctionsSupportsChiseledContainer>
+    <_FunctionsChiseledBaseImage>mcr.microsoft.com/azure-functions/dotnet-isolated:$(_FunctionsRuntimeMajorVersion)-dotnet-isolated$(_FunctionsTargetFrameworkVersion)-chiseled</_FunctionsChiseledBaseImage>
   </PropertyGroup>
 
   <Target Name="ValidateFunctionsContainerMode">
@@ -61,7 +62,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Target Name="AssignFunctionsBaseImage" Condition="'$(FunctionsContainerMode)' == 'HostEmbedded'">
     <PropertyGroup>
-      <_FunctionsChiseledBaseImage>mcr.microsoft.com/azure-functions/dotnet-isolated:$(_FunctionsRuntimeMajorVersion)-dotnet-isolated$(_FunctionsTargetFrameworkVersion)-chiseled</_FunctionsChiseledBaseImage>
       <_FunctionsUseChiseledContainer Condition="'$(_FunctionsSupportsChiseledContainer)' == 'true' and ('$(ContainerBaseImage)' == '' or '$(ContainerBaseImage)' == '$(_FunctionsChiseledBaseImage)')">true</_FunctionsUseChiseledContainer>
       <ContainerBaseImage Condition="'$(ContainerBaseImage)' == '' and '$(_FunctionsUseChiseledContainer)' == 'true'">$(_FunctionsChiseledBaseImage)</ContainerBaseImage>
       <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">mcr.microsoft.com/azure-functions/dotnet-isolated:$(_FunctionsRuntimeMajorVersion)-dotnet-isolated$(_FunctionsTargetFrameworkVersion)</ContainerBaseImage>

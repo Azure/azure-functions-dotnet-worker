@@ -11,6 +11,7 @@ This folder contains a set of samples that demonstrate various scenarios.
 |[Custom Middleware](./CustomMiddleware)| Demonstrates how to create and use custom middleware |
 |[Entity Framework](./EntityFramework)| Demonstrates how to work with entity framework |
 |[External Extension Project](./ExternalExtensionProject)| An advanced scenario. Demonstrates supplying the worker extension project manually. |
+|[Middleware Binding](./MiddlewareBinding)| Demonstrates how to read an input binding (Service Bus trigger) from inside a custom middleware |
 |[Extensions](./Extensions)| Examples of how to work with various extensions |
 |[Function App](./FunctionApp)| Examples of using the HTTP Trigger; default project for debugging the worker SDK |
 |[.NET 7 Worker](./Net7Worker)| Demonstrates how to setup a .NET 7 Function App |

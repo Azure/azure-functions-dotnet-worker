@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.SignalRService <version>
+### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 2.3.0
 
-- <entry>
+- Updated `Microsoft.Azure.WebJobs.Extensions.SignalRService` to 2.3.0.

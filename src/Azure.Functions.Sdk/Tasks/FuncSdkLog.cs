@@ -5,6 +5,7 @@ using Microsoft.Build.Framework;
 
 namespace Azure.Functions.Sdk.Tasks;
 
+[MSBuildMultiThreadableTask]
 public class FuncSdkLog : Microsoft.Build.Utilities.Task
 {
     [Required]

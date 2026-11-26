@@ -4,16 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage 6.8.3
+### Microsoft.Azure.Functions.Worker.Extensions.Storage <version>
 
-- Update `Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs` to `6.8.3` (#3516)
-- Update `Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues` to `5.5.6` (#3516)
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.8.3
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
 
-- Update `Microsoft.Azure.WebJobs.Extensions.Storage.Blobs` to `5.3.10` (#3516)
-  - Fixes BlobTrigger polling regressions introduced in `5.3.8`: blobs uploaded after the first scan are now discovered when the listing continuation marker is empty, and blobs modified during a complete single-page listing are no longer skipped (Azure/azure-sdk-for-net#62764)
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.5.6
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
 
-- Update `Microsoft.Azure.WebJobs.Extensions.Storage.Queues` to `5.3.10` (#3516)
+- <entry>

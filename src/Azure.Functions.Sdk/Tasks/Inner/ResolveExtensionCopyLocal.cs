@@ -9,6 +9,7 @@ namespace Azure.Functions.Sdk.Tasks.Inner;
 /// Resolves the set of extension assemblies that should be copied locally,
 /// excluding those that are part of the Azure Functions runtime.
 /// </summary>
+[MSBuildMultiThreadableTask]
 public class ResolveExtensionCopyLocal : Microsoft.Build.Utilities.Task
 {
     /// <summary>

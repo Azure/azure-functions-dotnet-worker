@@ -5,6 +5,7 @@ using Microsoft.Build.Framework;
 
 namespace Azure.Functions.Sdk.Tasks.Extensions;
 
+[MSBuildMultiThreadableTask]
 public class ValidateExtensionPackages : Microsoft.Build.Utilities.Task
 {
     [Required]

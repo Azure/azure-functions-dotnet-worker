@@ -18,4 +18,9 @@ After a build, `bin/Debug/net9.0/functions.metadata` lists the discovered functi
 
 ## Run
 
-Install [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local), then run `func start` from the `bin/Debug/net9.0` folder (or `func start` in this folder after `dotnet build`).
+Install [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local). The sample has no `local.settings.json`, so Core Tools needs the worker runtime from the environment. Run `func start` from the `bin/Debug/net9.0` folder after `dotnet build`, with `FUNCTIONS_WORKER_RUNTIME` set to `dotnet-isolated`:
+
+```
+cd bin/Debug/net9.0
+FUNCTIONS_WORKER_RUNTIME=dotnet-isolated func start
+```
